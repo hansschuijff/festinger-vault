@@ -1152,10 +1152,10 @@ body {
   background-color: #f3305924 !important ;
   border-radius: 12px !important;
   box-shadow: none !important;
-  border: 1px solid #f33059;  
+  border: 1px solid #f33059;
   color: #fff !important;
-  margin-bottom: 5px;   
-  font-size: 16px;  
+  margin-bottom: 5px;
+  font-size: 16px;
 }
 .push-notification-title {
   /* color: red !important; */
@@ -1163,7 +1163,7 @@ body {
 .activate-license-notice {
   margin: 0 !important;
 }
-/* 
+/*
 #filter_type {
 } */
 .wp-core-ui select {
@@ -1223,7 +1223,6 @@ div.paginationjs .paginationjs-pages li.active > a {
   color: #fff;
 }
 
-
 .cart-dropdown li {
     margin-bottom: 6px;
     clear: both;
@@ -1237,8 +1236,6 @@ div.paginationjs .paginationjs-pages li.active > a {
 .disablendhide ul li {
   display: none;
 }
-
-
 
 /* Styles for the pagination */
 .pagination {
@@ -1302,7 +1299,7 @@ div.paginationjs .paginationjs-pages li.active > a {
     background-color: #2c1d58;
     background-clip: padding-box;
     border: 1px solid #4d378e;
-    border-radius: 0.25rem;  
+    border-radius: 0.25rem;
     box-shadow: 0 8px 12px rgba(0,0,0,.35);
 }
 
@@ -1329,7 +1326,7 @@ div.paginationjs .paginationjs-pages li.active > a {
 }
 
 .modal-header {
-     border-bottom: 1px solid #463283;   
+     border-bottom: 1px solid #463283;
 }
 
 .modal-body .card ul li {
@@ -1429,7 +1426,6 @@ a {
   transition: width .6s ease;
 }
 
-
 table.dataTable tbody tr {
     background-color: #292154!important;
 }
@@ -1438,7 +1434,6 @@ table.dataTable tbody tr {
     color: #fff!important;
 }
 
-
 div.dataTables_wrapper div.dataTables_length select {
     color: #fff!important;
 }
@@ -1446,7 +1441,6 @@ div.dataTables_wrapper div.dataTables_length select {
 div.dataTables_wrapper div.dataTables_filter input {
     color: #fff!important;
 }
-
 
 table.table-bordered.dataTable th:last-child, table.table-bordered.dataTable th:last-child, table.table-bordered.dataTable td:last-child, table.table-bordered.dataTable td:last-child {
     border-right-width: 1px;
@@ -1459,7 +1453,6 @@ table.table-bordered.dataTable th:last-child, table.table-bordered.dataTable th:
   color: #000!important;
 }
 
-
 .page-item.active .page-link {
     padding: 3px 10px!important;
     font-size: 1rem!important;
@@ -1471,22 +1464,15 @@ table.table-bordered.dataTable th:last-child, table.table-bordered.dataTable th:
 
 }
 
-
 .table-bordered {
 color: #fff;
 border: 1px solid #4D378E !important;
 
-
-
 }
-
-
 
 .table>:not(:last-child)>:last-child>* {
 border-bottom-color: #4D378E;
 }
-
-
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
 cursor: default;
@@ -1496,11 +1482,7 @@ background: transparent;
 box-shadow: none;
 }
 
-
-
 .dataTables_wrapper .dataTables_length {
 margin-bottom: 20px;
 }
-
-
 

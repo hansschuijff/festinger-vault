@@ -31,7 +31,7 @@
                                         name="agency_author_url">
                                 </div>
                             </div>
-                            
+
                         </div>
                         <div class="row">
                             <div class="col-md-12">
@@ -86,18 +86,15 @@
                                     If you want to access while label settings in future, simply deactivate the
                                     Festinger Vault plugin and activate it again. </div>
 
-
                             </div>
                         </div>
-      
-
 
                         <div class='row'>
                             <div class='col-md-12'>
                                 <hr style="margin: 25px auto; height:0.5px; background-color: #4d378e !important;" />
                             </div>
                             <div class='col-md-12'>
-                                <?php 
+                                <?php
 				  			if($all_license_data->license_1->options->white_label == 'yes' || $all_license_data->license_2->options->white_label=='yes'):
 
 				  		?>
@@ -173,13 +170,5 @@
     </div>
 </div>
 </div>
-
-
-
-
-
-
-
-
 
 </div>

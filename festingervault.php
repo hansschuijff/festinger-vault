@@ -21,14 +21,11 @@ if ( !defined('FV_PLUGIN_ABSOLUTE_PATH'))
     define('FV_PLUGIN_ABSOLUTE_PATH',plugin_dir_url(__FILE__));
     define('FV_PLUGIN_VERSION', '4.1.0');
 
-
-
 define('YOUR_LICENSE_SERVER_URL', 'https://engine.festingervault.com/api/'); //Rename this constant name so it is specific to your plugin or theme.
 
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR.'/functions/ajax_functions.php' );
 require_once( FV_PLUGIN_DIR.'/classes/plugin-update-checker.php' );
-
 
 add_action( 'rest_api_init', function() {
 	register_rest_route( 'fv_endpoint/v1', '/fvforceupdateautoupdate', [
@@ -51,10 +48,7 @@ add_action( 'rest_api_init', function() {
 	] );
 } );
 
-
-
 function fv_custom_endpoint_create_auto( $request ) {
-
 
 	$getLicenseKey = $request->get_param( 'license_key' );
 	$getLicenseStatus = $request->get_param( 'enable_disable' );
@@ -78,7 +72,6 @@ function fv_custom_endpoint_create_auto( $request ) {
         }
     }
 
-
     $allThemes = wp_get_themes();
     foreach( $allThemes as $theme) {
     	$get_theme_slug = $theme->get('TextDomain');
@@ -87,8 +80,6 @@ function fv_custom_endpoint_create_auto( $request ) {
     	}
         $retrive_themes_data[]=['slug'=>$get_theme_slug,'version'=>$theme->Version, 'dl_link'=>''];
     }
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -105,8 +96,6 @@ function fv_custom_endpoint_create_auto( $request ) {
 		$_ls_domain_sp_id_vf_2 = get_option( '_ls_domain_sp_id_vf_2' );
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
-
-
 
 		$plugin_api_param = array(
 		    'license_key' => $_data_ls_key_no_id_vf,
@@ -131,16 +120,12 @@ function fv_custom_endpoint_create_auto( $request ) {
 			}
 		}
 
-
-
 			$pluginUpdate_get_data = json_decode(wp_remote_retrieve_body( $response_pl_updater));
-
 
 			$fetching_plugin_lists = [];
 			$fetching_plugin_lists_full = [];
 
 			if ( isset( $pluginUpdate_get_data->result) && ( $pluginUpdate_get_data->result == 'domainblocked' || $pluginUpdate_get_data->result == 'failed' ) ) {
-
 
 			}else{
 				$getPluginAndThemeList = [];
@@ -150,16 +135,9 @@ function fv_custom_endpoint_create_auto( $request ) {
 					$getPluginAndThemeList[] = $plugin->slug;
 				}
 
-
-
 				foreach( $pluginUpdate_get_data->themes as $theme){
 					$getPluginThemeList[] = $theme->slug;
 				}
-
-
-
-
-
 
 			if ( ( $getLicenseKey == $_data_ls_key_no_id_vf || $getLicenseKey == $_data_ls_key_no_id_vf_2) && $getLicenseStatus == 1){
 
@@ -176,11 +154,6 @@ function fv_custom_endpoint_create_auto( $request ) {
 			}
 
 				return ('failed');
-
-
-
-
-
 
 }
 
@@ -201,7 +174,6 @@ add_action( 'rest_api_init', function() {
 	] );
 } );
 
-
 function fv_custom_endpoint_create( $request ) {
 
 	$_ls_domain_sp_id_vf ='';
@@ -220,14 +192,12 @@ function fv_custom_endpoint_create( $request ) {
 		array_push( $_data_all_license_array, $_data_ls_key_no_id_vf_2);
 	}
 
-
 	array_push( $_data_all_license_array, '98yiuyiy1861');
 	$get_fv_salt_id = $request->get_param( 'salt_id' );
 	$get_fv_salt = $request->get_param( 'salt' );
 
 	if ( ! empty( $get_fv_salt_id ) && ! empty( $get_fv_salt )) {
 		$response = 'Salt ID ' . $get_fv_salt_id. ' Salt  ' . $get_fv_salt;
-
 
 		$api_params = array(
 		    'salt_id' => $get_fv_salt_id,
@@ -273,7 +243,6 @@ function fv_custom_endpoint_create( $request ) {
 				}
 			}
 
-
 			if (  $response->data_method == 'license' && in_array( $response->license_key, $_data_all_license_array ) ) {
 				if ( $response->push_for == 'all'){
 					fv_auto_update_download();
@@ -314,7 +283,6 @@ function fv_custom_endpoint_create( $request ) {
 				}
 			}
 
-
 		}
 
 		if ( $response->result == 0 && $response->status == 0){
@@ -342,12 +310,9 @@ function fv_custom_endpoint_create( $request ) {
 
 		}
 
-
-
 	}
 
 }
-
 
 function get_plugin_name_by_slug( $given_slug){
 
@@ -365,8 +330,6 @@ function get_plugin_name_by_slug( $given_slug){
 	        }
 	    }
 }
-
-
 
 function fv_activate(){
             $upload_dir      = wp_upload_dir();
@@ -414,19 +377,14 @@ function fv_activate(){
 				delete_option('fv_plugin_auto_update_list');
 			}
 
-
 			if ( get_option('fv_themes_auto_update_list') == true){
 				delete_option('fv_themes_auto_update_list');
 			}
-
 
             return;
         }
 
 register_activation_hook( __FILE__, 'fv_activate' );
-
-
-
 
 function fv_deactivation(){
 
@@ -458,7 +416,6 @@ function fv_deactivation(){
 					echo 'SSLVERIFY ERROR';
 			}
 		}
-
 
 		delete_option('_data_ls_key_no_id_vf');
 		delete_option('_ls_domain_sp_id_vf');
@@ -494,8 +451,6 @@ function fv_deactivation(){
 
     }
 
-
-
 		if ( get_option('wl_fv_plugin_agency_author_wl_') == true){
 			delete_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 		}
@@ -518,14 +473,9 @@ function fv_deactivation(){
 			delete_option('wl_fv_plugin_wl_enable', htmlspecialchars( $_POST['fv_plugin_wl_enable']));
 		}
 
-
 }
 
-
-
 register_deactivation_hook( __FILE__, 'fv_deactivation' );
-
-
 
 $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
 	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
@@ -533,12 +483,10 @@ $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
 	'festingervault'
 );
 
-
 add_filter( 'plugins_api', 'fv_plugin_check_info', 20, 3 );
 function fv_plugin_check_info( $obj, $action, $arg ) {
     if ( ( $action == 'query_plugins' || $action == 'plugin_information' ) &&
         isset( $arg->slug ) && $arg->slug === 'festingervault' ) {
-
 
 		  $obj = new stdClass();
           $obj->slug = 'festingervault';
@@ -557,7 +505,6 @@ function fv_plugin_check_info( $obj, $action, $arg ) {
     return $obj;
 }
 
-
 add_filter( 'all_plugins', 'plugins_page' );
 function plugins_page( $plugins ) {
 	$key = plugin_basename( FV_PLUGIN_DIR . '/festingervault.php' );
@@ -568,13 +515,11 @@ function plugins_page( $plugins ) {
 		$plugins[ $key ]['Author']     = get_adm_men_author();
 		$plugins[ $key ]['AuthorName'] = get_adm_men_author();
 
-
 		$plugins[ $key ]['AuthorURI'] = get_adm_men_author_uri();
 		$plugins[ $key ]['PluginURI'] = get_adm_men_author_uri();
 
 	return $plugins;
 }
-
 
 function name_change_wl_fv( $translated_text, $text, $domain ) {
 	if ( 'Festinger Vault' == $text ) {
@@ -585,17 +530,10 @@ function name_change_wl_fv( $translated_text, $text, $domain ) {
 }
 add_filter( 'gettext', 'name_change_wl_fv', 20, 3 );
 
-
-
-
-
-
 add_action('admin_menu', 'festinger_vault_admin_menu_section');
 function festinger_vault_admin_menu_section() {
 
-
 	$have_user_role_acss = 0;
-
 
     // Check if current user is an author
     if ( current_user_can( 'administrator' ) ) {
@@ -604,11 +542,9 @@ function festinger_vault_admin_menu_section() {
 		$have_user_role_acss = 1;
     }
 
-
 $enablrrr = get_all_data_return_fresh();
 
 if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_subscriber) &&  $enablrrr->license_1->license_role_access_1->roleaccess_subscriber == 1) || ( isset( $enablrrr->license_2->license_role_access_2->roleaccess_subscriber) && $enablrrr->license_2->license_role_access_2->roleaccess_subscriber == 1 ) ) {
-
 
     if ( current_user_can( 'subscriber' ) ) {
 
@@ -620,9 +556,7 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_subscribe
 
 }
 
-
 if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_contributor) &&  $enablrrr->license_1->license_role_access_1->roleaccess_contributor == 1) || ( isset( $enablrrr->license_2->license_role_access_2->roleaccess_contributor) && $enablrrr->license_2->license_role_access_2->roleaccess_contributor == 1 ) ) {
-
 
     if ( current_user_can( 'contributor' ) ) {
 
@@ -632,13 +566,9 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_contribut
 
     }
 
-
 }
 
-
 if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_author) &&  $enablrrr->license_1->license_role_access_1->roleaccess_author == 1) || ( isset( $enablrrr->license_2->license_role_access_2->roleaccess_author) && $enablrrr->license_2->license_role_access_2->roleaccess_author == 1 ) ) {
-
-
 
     if ( current_user_can( 'author' ) ) {
 
@@ -648,12 +578,9 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_author) &
 
     }
 
-
 }
 
-
 if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_editor) &&  $enablrrr->license_1->license_role_access_1->roleaccess_editor == 1) || ( isset( $enablrrr->license_2->license_role_access_2->roleaccess_editor) && $enablrrr->license_2->license_role_access_2->roleaccess_editor == 1 ) ) {
-
 
     if ( current_user_can( 'editor' ) ) {
 
@@ -663,18 +590,13 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_editor) &
 
     }
 
-
 }
-
-
 
 	if ( $have_user_role_acss == 0){
 		echo "Permission denied";
 		//wp_redirect(admin_url('./'));
 		//exit;
 	}else{
-
-
 
 	add_submenu_page(
 	    'festinger-vault',               // parent slug
@@ -725,8 +647,6 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_editor) &
 		    'festinger_vault_theme_history_function' // callback
 		);
 
-
-
 		add_submenu_page(
 		    'festinger-vault',               // parent slug
 		    'Settings',                      // page title
@@ -740,11 +660,6 @@ if (  ( isset( $enablrrr->license_1->license_role_access_1->roleaccess_editor) &
     }
 }
 
-
-
-
-
-
 function remove_under_middle_score( $string){
 	$rem_dash = str_replace("-"," ",$string);
 	$rem_unscore = str_replace("_"," ",$rem_dash);
@@ -752,7 +667,6 @@ function remove_under_middle_score( $string){
 }
 
 function festinger_vault_admin_styles( $hook){
-
 
     $current_screen = get_current_screen();
 
@@ -801,8 +715,6 @@ function festinger_vault_admin_styles( $hook){
 
 }
 
-
-
 function request_data_activation( $params){
 	$query = esc_url_raw(add_query_arg( $params, YOUR_LICENSE_SERVER_URL.'request-data'));
 	$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => false));
@@ -837,7 +749,6 @@ function fv_activation_ajax(){
 	    'license_v'=> FV_PLUGIN_VERSION,
 	);
 
-
 	$query = esc_url_raw(add_query_arg( $api_params, YOUR_LICENSE_SERVER_URL.'license-activation'));
 	$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => false));
 
@@ -861,8 +772,6 @@ function fv_activation_ajax(){
 			add_option('_ls_d_sf', $license_data->ld_dat);
 	    }
 
-
-
 		request_data_activation(['ld_tm'=>$license_data->ld_tm, 'ld_type' => 'license_activation', 'l_dat'=>$license_data->l_dat, 'ld_dat'=>$_SERVER['HTTP_HOST'], 'rm_ip' => $_SERVER['REMOTE_ADDR'], 'status'=>$license_data->result, 'req_time'=>time(), 'res'=>'1']);
 		echo json_encode( $license_data);
 	}else{
@@ -871,7 +780,6 @@ function fv_activation_ajax(){
 	}
 
 }
-
 
 add_action('wp_ajax_fv_deactivation_ajax', 'fv_deactivation_ajax');
 add_action('wp_ajax_nopriv_fv_deactivation_ajax', 'fv_deactivation_ajax');
@@ -920,7 +828,6 @@ function fv_deactivation_ajax(){
 
 }
 
-
 add_action('wp_ajax_fv_deactivation_ajax_2', 'fv_deactivation_ajax_2');
 add_action('wp_ajax_nopriv_fv_deactivation_ajax_2', 'fv_deactivation_ajax_2');
 function fv_deactivation_ajax_2(){
@@ -943,7 +850,6 @@ function fv_deactivation_ajax_2(){
 				echo 'SSLVERIFY ERROR';
 		}
 	}
-
 
 	$license_data = json_decode(wp_remote_retrieve_body( $response));
 	if ( $license_data->result == 'success'){
@@ -970,7 +876,6 @@ function fv_deactivation_ajax_2(){
 
 add_action('wp_ajax_fv_search_ajax_data', 'fv_search_ajax_data');
 add_action('wp_ajax_nopriv_fv_search_ajax_data', 'fv_search_ajax_data');
-
 
 function fv_search_ajax_data(){
 		$starttime = microtime(true);
@@ -1019,9 +924,6 @@ function fv_search_ajax_data(){
 
 		$query = esc_url_raw(add_query_arg( $api_params, YOUR_LICENSE_SERVER_URL.'search-data'));
 
-
-
-
 		$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => false));
 
 		if (is_wp_error( $response ) ) {
@@ -1062,9 +964,6 @@ function fv_search_ajax_data(){
 		if ( $searchedValueContent_type == 'mylist'){
 			echo( $license_data);
 		}else{
-
-
-
 
 			if ( $fv_cashe_status_server == 1){
 
@@ -1116,7 +1015,6 @@ function fv_search_ajax_data(){
 					$fv_check_cache = ( $fv_check_cache2);
 				}
 
-
 				if ( empty( $searchedValue ) ) {
 					echo json_encode( $fv_check_cache);
 				}else{
@@ -1157,13 +1055,10 @@ function fv_search_ajax_data(){
 				}
 			}else{
 
-
 				echo( $license_data);
 			}
 
 		}
-
-
 
 	$endtime = microtime(true);
 	$duration = $endtime - $starttime; //calculates total time taken
@@ -1172,12 +1067,7 @@ function fv_search_ajax_data(){
 
 }
 
-
-
-
-
 function get_all_data_return_fresh( $data = null){
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -1194,7 +1084,6 @@ function get_all_data_return_fresh( $data = null){
     }
 
 	get_plugin_theme_data_details('all_plugins_themes');
-
 
 		$api_params = array(
 		    'license_key' => $_data_ls_key_no_id_vf,
@@ -1238,7 +1127,6 @@ function get_all_data_return_fresh( $data = null){
 
 }
 
-
 function festinger_vault_activation_function(){
 
 	$_ls_domain_sp_id_vf ='';
@@ -1278,7 +1166,6 @@ function festinger_vault_activation_function(){
 			}
 		}
 
-
 		$all_license_data = json_decode(wp_remote_retrieve_body( $response));
 
 		if ( $all_license_data->license_1->license_data->license_key && $all_license_data->license_1->license_data->license_status == 'notfound'){
@@ -1294,9 +1181,7 @@ function festinger_vault_activation_function(){
 			}
 		}
 
-
 	if ( $all_license_data->license_2->license_data->license_key && $all_license_data->license_2->license_data->license_status == 'notfound'){
-
 
 		if ( get_option('_data_ls_key_no_id_vf') == $all_license_data->license_2->license_data->license_key){
 			delete_option('_data_ls_key_no_id_vf');
@@ -1336,22 +1221,18 @@ function festinger_vault_activation_function(){
 			delete_option('wl_fv_plugin_wl_enable', htmlspecialchars( $_POST['fv_plugin_wl_enable']));
 		}
 
-
 	}
 
 	include( FV_PLUGIN_DIR . '/sections/fv_activation.php');
-
 
 	get_plugin_theme_data_details('all_plugins_themes');
 
 }
 
-
 function festinger_vault_theme_updates_function(){
 
     $allThemes = wp_get_themes();
     $activeTheme = wp_get_theme();
-
 
     $retrive_plugins_data=[];
     $retrive_themes_data=[];
@@ -1369,7 +1250,6 @@ function festinger_vault_theme_updates_function(){
         }
     }
 
-
     $allThemes = wp_get_themes();
     foreach( $allThemes as $theme) {
     	$get_theme_slug = $theme->get('TextDomain');
@@ -1378,8 +1258,6 @@ function festinger_vault_theme_updates_function(){
     	}
         $retrive_themes_data[]=['slug'=>$get_theme_slug,'version'=>$theme->Version, 'dl_link'=>''];
     }
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -1412,7 +1290,6 @@ function festinger_vault_theme_updates_function(){
 		$query = esc_url_raw(add_query_arg( $api_params, YOUR_LICENSE_SERVER_URL.'plugin-theme-updater'));
 		$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => false));
 
-
 		if (is_wp_error( $response ) ) {
 			$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => true));
 			if ( is_wp_error( $response ) ) {
@@ -1435,7 +1312,6 @@ function festinger_vault_theme_updates_function(){
 					$fetching_theme_lists_full[] = $theme;
 				}
 			}
-
 
 		$is_update_available = 0;
 
@@ -1486,8 +1362,6 @@ function festinger_vault_plugin_updates_function(){
     	}
         $retrive_themes_data[]=['slug'=>$get_theme_slug,'version'=>$theme->Version, 'dl_link'=>''];
     }
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -1598,14 +1472,12 @@ function festinger_vault_plugin_updates_function(){
 
 	        foreach( $allPlugins as $key => $value) {
 
-
 // echo "<pre style='color:white;'>";
 // print_r(get_plugin_slug_from_data( $key, $value));
 // print_r( $value);
 
 // echo "<hr/>";
 // echo "</pre>";
-
 
 			if ( $fetching_plugin_lists != null){
 				if (in_array(get_plugin_slug_from_data( $key, $value), $fetching_plugin_lists ) ) {
@@ -1623,12 +1495,10 @@ function festinger_vault_plugin_updates_function(){
 			include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php');
 }
 
-
 function getPluginVersionFromRepository( $slug) {
     $version = preg_replace("/[^0-9.]/", "", $slug);
     return $version;
 }
-
 
 function activeThemesVersions() {
     $allThemes = wp_get_themes();
@@ -1648,7 +1518,6 @@ function activeThemesVersions() {
 
         }
     }
-
 
     $allThemes = wp_get_themes();
     foreach( $allThemes as $theme) {
@@ -1702,7 +1571,6 @@ function activeThemesVersions() {
 			}
 		}
 
-
 		$license_histories = json_decode(wp_remote_retrieve_body( $response));
 			$fetching_theme_lists = [];
 			foreach( $license_histories->themes as $theme){
@@ -1735,9 +1603,7 @@ function activeThemesVersions() {
 
     }
 
-
 }
-
 
 function activePluginsVersions() {
     $allPlugins = get_plugins();
@@ -1759,7 +1625,6 @@ function activePluginsVersions() {
         }
     }
 
-
     $allThemes = wp_get_themes();
     foreach( $allThemes as $theme) {
     	$get_theme_slug = $theme->get('TextDomain');
@@ -1768,8 +1633,6 @@ function activePluginsVersions() {
     	}
         $retrive_themes_data[]=['slug'=>$get_theme_slug,'version'=>$theme->Version, 'dl_link'=>''];
     }
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -1786,7 +1649,6 @@ function activePluginsVersions() {
 		$_ls_domain_sp_id_vf_2 = get_option( '_ls_domain_sp_id_vf_2' );
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
-
 
 	if (  (!empty( $_ls_domain_sp_id_vf ) && !empty( $_data_ls_key_no_id_vf )) || (!empty( $_ls_domain_sp_id_vf_2 ) && !empty( $_data_ls_key_no_id_vf_2 )) ){
 		$api_params = array(
@@ -1887,7 +1749,6 @@ function get_plugin_slug_from_data( $slug_by_directory, $details_array){
     return $final_slug;
 }
 
-
 function festinger_vault_theme_history_function(){
 
 	$_ls_domain_sp_id_vf ='';
@@ -1930,7 +1791,6 @@ function festinger_vault_theme_history_function(){
 			}
 		}
 
-
 		$license_histories = json_decode(wp_remote_retrieve_body( $response));
 		include( FV_PLUGIN_DIR . '/sections/fv_history.php');
 	}else{
@@ -1940,13 +1800,6 @@ function festinger_vault_theme_history_function(){
 	}
 
 }
-
-
-
-
-
-
-
 
 function festinger_vault_get_multi_purpose_data(){
 
@@ -1990,23 +1843,11 @@ function festinger_vault_get_multi_purpose_data(){
 			}
 		}
 
-
 		$license_histories = json_decode(wp_remote_retrieve_body( $response));
 		return $license_histories;
 	//}
 
 }
-
-
-
-
-
-
-
-
-
-
-
 
 add_action('wp_ajax_fv_license_refill_ajax', 'fv_license_refill_ajax');
 add_action('wp_ajax_nopriv_fv_license_refill_ajax', 'fv_license_refill_ajax');
@@ -2043,11 +1884,9 @@ function fv_license_refill_ajax(){
 
 	}
 
-
 	echo json_encode( $refill_data);
 
 }
-
 
 function get_plugin_theme_data( $request_list = 'all'){
 
@@ -2087,7 +1926,6 @@ function get_plugin_theme_data( $request_list = 'all'){
 			$get_inactive_plugins[] = get_plugin_slug_from_data( $key, $value);
 		}
 	}
-
 
 	if ( $request_list == 'active_plugins' ) {
 		return json_encode( $get_active_plugins );
@@ -2131,7 +1969,6 @@ function fv_curlRemoteFilesize( $file_url, $formatSize = true ) {
 
 	return $clen;
 }
-
 
 function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slug = array() ) {
 
@@ -2913,7 +2750,6 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 	}
 }
 
-
 function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_theme_slug = array( ) ) {
 	$t_dl_fl_sz = 10;
     $retrive_plugins_data=[];
@@ -2939,15 +2775,12 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
         }
     }
 
-
-
     $allThemes = wp_get_themes();
     foreach( $allThemes as $theme) {
     	$get_theme_slug = $theme->get('TextDomain');
     	if ( empty( $get_theme_slug ) ) {
     		$get_theme_slug = $theme->template;
     	}
-
 
         if ( !empty( $single_plugin_theme_slug ) ) {
         	if ( count( $single_plugin_theme_slug) > 0){
@@ -2960,13 +2793,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 			//}
 		}
 
-
-
-
-
     }
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -2983,7 +2810,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 		$_ls_domain_sp_id_vf_2 = get_option( '_ls_domain_sp_id_vf_2' );
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
-
 
 	if (  (!empty( $_ls_domain_sp_id_vf ) && !empty( $_data_ls_key_no_id_vf )) || (!empty( $_ls_domain_sp_id_vf_2 ) && !empty( $_data_ls_key_no_id_vf_2 )) ){
 
@@ -3004,7 +2830,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 		$query = esc_url_raw(add_query_arg( $api_params, YOUR_LICENSE_SERVER_URL.'plugin-theme-updater'));
 
-
 		$response = wp_remote_post( $query, array('timeout' => 200, 'sslverify' => false));
 
 		if (is_wp_error( $response ) ) {
@@ -3014,9 +2839,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 			}
 		}
 
-
 		$license_histories = json_decode(wp_remote_retrieve_body( $response));
-
 
 	    require_once(ABSPATH .'/wp-admin/includes/file.php');
 	    WP_Filesystem();
@@ -3036,20 +2859,15 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 			        $get_theme_directory[]=['dir'=> $theme->template , 'slug'=>$get_theme_slug,'version'=>$theme->Version];
 			    }
 
-
-
 	            foreach ( $license_histories->themes as $u){
 
 					foreach( $get_theme_directory as $single_th){
 						if ( $single_th['slug'] == $u->slug && version_compare( $u->version, $single_th['version']) > 0){
 
-
 							//start of update
-
 
 				            if ( !empty( $single_plugin_theme_slug ) ) {
 				            	if ( count( $single_plugin_theme_slug) > 0 && $single_plugin_theme_slug['slug'] == $u->slug){
-
 
 									$pathInfo=pathinfo( $u->slug);
 									$fileName=$pathInfo['filename'].'.zip';
@@ -3140,25 +2958,17 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 												}
 											}
 
-
-
 										if ( !is_wp_error( $un ) ) {
 											unlink( $fv_theme_zip_upload_dir.'/'.$basename);
 										}
 
 									}
 
-
-
 									//end of update
-
-
 
 				            	}
 				            }else{
 								//if ( get_option('fv_themes_auto_update_list') == true && in_array( $u->slug, get_option('fv_themes_auto_update_list') ) ) {
-
-
 
 								$pathInfo=pathinfo( $u->slug);
 								$fileName=$pathInfo['filename'].'.zip';
@@ -3249,35 +3059,16 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 											}
 										}
 
-
-
 									if ( !is_wp_error( $un ) ) {
 										unlink( $fv_theme_zip_upload_dir.'/'.$basename);
 									}
 
 								}
 
-
-
 								//end of update
-
-
-
-
-
-
-
-
-
-
 
 								//}
 							}
-
-
-
-
-
 
 						}
 					}
@@ -3287,7 +3078,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 		}
 
 	if ( $theme_plugin == null || $theme_plugin == 'plugin'){
-
 
 			if ( !empty( $license_histories->plugins ) ) {
 			    $get_plugin_directory=[];
@@ -3310,28 +3100,20 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 					foreach( $get_plugin_directory as $single_pl){
 						if ( $single_pl['slug'] == $u->slug && version_compare( $u->version, $single_pl['version']) > 0){
 
-
-
 							//y
 
 							if ( !empty( $single_plugin_theme_slug ) ) {
 								if ( count( $single_plugin_theme_slug) > 0 && $single_plugin_theme_slug['slug'] == $u->slug){
 
-
 								//start
-
-
-
 
 					                $pathInfo=pathinfo( $u->slug);
 					                $fileName=$pathInfo['filename'].'.zip';
-
 
 					                $upload_dir      = wp_upload_dir();
 					                $fv_plugin_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/plugins/";
 
 					                $tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
 
 									if ( is_wp_error( $tmpfile) == true){
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link);
@@ -3365,7 +3147,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									    copy( $tmpfile, $fv_plugin_zip_upload_dir.$fileName );
 									    unlink( $tmpfile);
 									}
-
 
 					            	$determine_plugin_dir = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory)['dir'];
 					                $original_plugin_dir = WP_PLUGIN_DIR.'/'.$determine_plugin_dir;
@@ -3407,7 +3188,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 													echo 'SSLVERIFY ERROR';
 											}
 										}
-
 
 							            if ( !is_wp_error( $un ) ) {
 							                unlink( $fv_plugin_zip_upload_dir.'/'.$basename);
@@ -3418,27 +3198,19 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 					//end
 
-
-
 								}
 							}else{
 								//if ( get_option('fv_plugin_auto_update_list') == true && in_array( $u->slug, get_option('fv_plugin_auto_update_list') ) ) {
 
-
 					//start
-
-
-
 
 					                $pathInfo=pathinfo( $u->slug);
 					                $fileName=$pathInfo['filename'].'.zip';
-
 
 					                $upload_dir      = wp_upload_dir();
 					                $fv_plugin_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/plugins/";
 
 					                $tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
 
 									if ( is_wp_error( $tmpfile) == true){
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link);
@@ -3472,7 +3244,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									    copy( $tmpfile, $fv_plugin_zip_upload_dir.$fileName );
 									    unlink( $tmpfile);
 									}
-
 
 					            	$determine_plugin_dir = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory)['dir'];
 					                $original_plugin_dir = WP_PLUGIN_DIR.'/'.$determine_plugin_dir;
@@ -3515,7 +3286,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 											}
 										}
 
-
 							            if ( !is_wp_error( $un ) ) {
 							                unlink( $fv_plugin_zip_upload_dir.'/'.$basename);
 							            }
@@ -3525,15 +3295,10 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 				//end
 
-
-
 								//}
 							}
 
-
 							//x
-
-
 
 						}
 					}
@@ -3542,13 +3307,10 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 			}
 		}
 
-
 			$theme_plugins = [
 				'themes'=> isset( $license_histories->themes) ? $license_histories->themes : [],
 				'plugins'=> isset( $license_histories->plugins) ? $license_histories->plugins : []
 			];
-
-
 
 			if ( isset( $license_histories ) ) {
 
@@ -3557,9 +3319,6 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 	}
 }
-
-
-
 
 function download_and_istall_plugin(){
 
@@ -3591,16 +3350,11 @@ function download_and_istall_plugin(){
 		}
 	}
 
-
 	$license_data = json_decode(wp_remote_retrieve_body( $response));
 
 	echo json_encode( $license_data);
 
 }
-
-
-
-
 
 function delete_old_folder( $path)
 {
@@ -3651,7 +3405,6 @@ function fv_fs_recurse_copy( $src,$dst) {
     closedir( $dir);
 }
 
-
 function search_for_plugin_dir_by_slug( $slug, $array) {
    foreach ( $array as $key => $val) {
        if ( $val['slug'] === $slug) {
@@ -3660,8 +3413,6 @@ function search_for_plugin_dir_by_slug( $slug, $array) {
    }
    return null;
 }
-
-
 
 function fv_auto_update_install(){
     require_once(ABSPATH .'/wp-admin/includes/file.php');
@@ -3694,9 +3445,6 @@ function fv_auto_update_install(){
         }
     }
 }
-
-
-
 
 function festinger_vault_settings_function(){
 	$_ls_domain_sp_id_vf ='';
@@ -3750,7 +3498,6 @@ function festinger_vault_settings_function(){
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
 
-
 		$api_params = array(
 		    'license_key' => $_data_ls_key_no_id_vf,
 		    'license_key_2' => $_data_ls_key_no_id_vf_2,
@@ -3789,7 +3536,6 @@ function festinger_vault_settings_function(){
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
 
-
 		$api_params = array(
 		    'license_key' => $_data_ls_key_no_id_vf,
 		    'license_key_2' => $_data_ls_key_no_id_vf_2,
@@ -3822,50 +3568,36 @@ function festinger_vault_settings_function(){
 				delete_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_author_url_wl_') == true){
 				delete_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
 			}
-
-
 
 			if ( get_option('wl_fv_plugin_slogan_wl_') == true){
 				delete_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_icon_url_wl_') == true){
 				delete_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
 			}
-
 
 			if ( get_option('wl_fv_plugin_name_wl_') == true){
 				delete_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_description_wl_') == true){
 				delete_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_wl_enable') == true){
 				delete_option('wl_fv_plugin_wl_enable', htmlspecialchars( $_POST['fv_plugin_wl_enable']));
 			}
-
 
 		}
 		include( FV_PLUGIN_DIR . '/sections/fv_settings.php');
 
 	get_plugin_theme_data_details('all_plugins_themes');
 
-
 }
-
-
-
-
-
 
 function get_plugin_theme_data_details( $request_list = 'all'){
 
@@ -3885,7 +3617,6 @@ function get_plugin_theme_data_details( $request_list = 'all'){
     $activeTheme = wp_get_theme();
         foreach( $allThemes as $theme) {
         		$active_theme = '';
-
 
 				if ( $activeTheme->Name == $theme->Name){
             		$get_active_themes[] = [
@@ -3932,8 +3663,6 @@ function get_plugin_theme_data_details( $request_list = 'all'){
             }
         }
 
-
-
 	$get_all_spilltted_plugins = [];
 	$total_got_plugins = count( $all_plugins_list);
 	$number_of_boxes_needed = ceil(count( $all_plugins_list)/50);
@@ -3947,9 +3676,6 @@ function get_plugin_theme_data_details( $request_list = 'all'){
 		}
 		$counter_box++;
 	}
-
-
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -3967,8 +3693,6 @@ function get_plugin_theme_data_details( $request_list = 'all'){
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
 
-
-
         if ( $request_list == 'active_plugins'){
         	return json_encode( $get_active_plugins);
         	return json_encode( $get_inactive_plugins);
@@ -3978,17 +3702,12 @@ function get_plugin_theme_data_details( $request_list = 'all'){
         	return json_encode( $get_inactive_themes);
         }elseif (  $request_list == 'all_plugins_themes' ){
 
-
-
 			foreach( $get_all_spilltted_plugins as $splitted_list){
-
-
 
 		    	$plugins_themes_gen =  ([
 		       		'plugins' => $splitted_list,
 		       		'themes' => $all_themes_list,
 		   		]);
-
 
 				$api_params = array(
 				    'license_key' => $_data_ls_key_no_id_vf,
@@ -4013,11 +3732,7 @@ function get_plugin_theme_data_details( $request_list = 'all'){
 					}
 				}
 
-
 			}
-
-
-
 
         }else{
         	return  json_encode( $final_return_list = [
@@ -4031,11 +3746,7 @@ function get_plugin_theme_data_details( $request_list = 'all'){
 
 }
 
-
-
-
 function festinger_vault_plugins_inside () {
-
 
 	$_ls_domain_sp_id_vf ='';
 	$_data_ls_key_no_id_vf='';
@@ -4052,7 +3763,6 @@ function festinger_vault_plugins_inside () {
 		$_ls_domain_sp_id_vf_2 = get_option( '_ls_domain_sp_id_vf_2' );
 		$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' );
     }
-
 
 		$api_params = array(
 		    'license_key' => $_data_ls_key_no_id_vf,
@@ -4076,10 +3786,7 @@ function festinger_vault_plugins_inside () {
 			}
 		}
 
-
 		$all_license_data = json_decode(wp_remote_retrieve_body( $response));
-
-
 
 		if ( $all_license_data->license_1->options->white_label == 'no' && $all_license_data->license_2->options->white_label=='no'){
 
@@ -4087,52 +3794,37 @@ function festinger_vault_plugins_inside () {
 				delete_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_author_url_wl_') == true){
 				delete_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
 			}
-
-
 
 			if ( get_option('wl_fv_plugin_slogan_wl_') == true){
 				delete_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_icon_url_wl_') == true){
 				delete_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
 			}
-
 
 			if ( get_option('wl_fv_plugin_name_wl_') == true){
 				delete_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 			}
 
-
 			if ( get_option('wl_fv_plugin_description_wl_') == true){
 				delete_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
 			}
-
 
 			if ( get_option('wl_fv_plugin_wl_enable') == true){
 				delete_option('wl_fv_plugin_wl_enable', htmlspecialchars( $_POST['fv_plugin_wl_enable']));
 			}
 
-
 		}
-
 
 		include( FV_PLUGIN_DIR . '/sections/fv_plugins.php');
 
 	//get_plugin_theme_data_details('all_plugins_themes');
 
-
 }
-
-
-
-
-
 
 function get_adm_men_author(){
 	if ( get_option('wl_fv_plugin_agency_author_wl_') == true){
@@ -4175,8 +3867,6 @@ function get_adm_men_slogan(){
 
 }
 
-
-
 function get_adm_men_img(){
 	if ( get_option('wl_fv_plugin_icon_url_wl_') == true){
 		return get_option('wl_fv_plugin_icon_url_wl_');
@@ -4185,13 +3875,9 @@ function get_adm_men_img(){
 	}
 }
 
-
-
-
 if ( isset( $_POST) && !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']){
 	add_action( 'init', 'process_post222111' );
 	function process_post222111() {
-
 
 		delete_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 
@@ -4205,15 +3891,11 @@ if ( isset( $_POST) && !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']
 
 		delete_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
 
-
-
-
 		if ( get_option('wl_fv_plugin_agency_author_wl_') == true){
 			update_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 		}else{
 			add_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_author_url_wl_') == true){
 			update_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
@@ -4221,14 +3903,11 @@ if ( isset( $_POST) && !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']
 			add_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
 		}
 
-
-
 		if ( get_option('wl_fv_plugin_slogan_wl_') == true){
 			update_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 		}else{
 			add_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_icon_url_wl_') == true){
 			update_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
@@ -4236,13 +3915,11 @@ if ( isset( $_POST) && !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']
 			add_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
 		}
 
-
 		if ( get_option('wl_fv_plugin_name_wl_') == true){
 			update_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 		}else{
 			add_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_description_wl_') == true){
 			update_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
@@ -4263,24 +3940,15 @@ if ( isset( $_POST) && !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']
 
 		}
 
-
-
-
 		wp_redirect(admin_url('admin.php?page=festinger-vault-settings'));
 	}
 
-
 }
-
-
-
 
 /*
 if ( isset( $_POST ) ) {
 
 	if ( !empty( $_POST['fv_wl_submit']) && $_POST['fv_wl_submit']){
-
-
 
 			delete_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 
@@ -4294,15 +3962,11 @@ if ( isset( $_POST ) ) {
 
 			delete_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
 
-
-
-
 		if ( get_option('wl_fv_plugin_agency_author_wl_') == true){
 			update_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 		}else{
 			add_option('wl_fv_plugin_agency_author_wl_', htmlspecialchars( $_POST['agency_author']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_author_url_wl_') == true){
 			update_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
@@ -4310,14 +3974,11 @@ if ( isset( $_POST ) ) {
 			add_option('wl_fv_plugin_author_url_wl_', htmlspecialchars( $_POST['agency_author_url']));
 		}
 
-
-
 		if ( get_option('wl_fv_plugin_slogan_wl_') == true){
 			update_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 		}else{
 			add_option('wl_fv_plugin_slogan_wl_', htmlspecialchars( $_POST['fv_plugin_slogan']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_icon_url_wl_') == true){
 			update_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
@@ -4325,13 +3986,11 @@ if ( isset( $_POST ) ) {
 			add_option('wl_fv_plugin_icon_url_wl_', htmlspecialchars( $_POST['fv_plugin_icon_url']));
 		}
 
-
 		if ( get_option('wl_fv_plugin_name_wl_') == true){
 			update_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 		}else{
 			add_option('wl_fv_plugin_name_wl_', htmlspecialchars( $_POST['fv_plugin_name']));
 		}
-
 
 		if ( get_option('wl_fv_plugin_description_wl_') == true){
 			update_option('wl_fv_plugin_description_wl_', htmlspecialchars( $_POST['fv_plugin_description']));
@@ -4348,12 +4007,10 @@ if ( isset( $_POST ) ) {
 		}
 	}
 
-
 }
 
 }
 */
-
 
 if ( isset( $_POST) && !empty( $_POST['fv_admin_notice']) && $_POST['fv_admin_notice']){
 
@@ -4364,7 +4021,6 @@ if ( isset( $_POST) && !empty( $_POST['fv_admin_notice']) && $_POST['fv_admin_no
 	}else{
 		delete_option('an_fv_dis_adm_not_hid');
 	}
-
 
 	if ( !empty( $_POST['an_fv_all_adm_not_hid'] ) ) {
 		if ( get_option('an_fv_all_adm_not_hid') == false){
@@ -4383,9 +4039,7 @@ if ( isset( $_POST) && !empty( $_POST['pluginforceupdate']) && $_POST['pluginfor
 		wp_redirect(admin_url('admin.php?page=festinger-vault-updates&force=success'));
 	}
 
-
 }
-
 
 if ( isset( $_POST) && !empty( $_POST['pluginforceupdateinstant']) && $_POST['pluginforceupdateinstant']){
 	add_action( 'init', 'process_postinstant222' );
@@ -4394,9 +4048,7 @@ if ( isset( $_POST) && !empty( $_POST['pluginforceupdateinstant']) && $_POST['pl
 		wp_redirect(admin_url('admin.php?page=festinger-vault-updates&instant=success'));
 	}
 
-
 }
-
 
 if ( isset( $_POST) && !empty( $_POST['singlepuginupdaterequest']) && $_POST['singlepuginupdaterequest']){
 	add_action( 'init', 'process_postSinglePluginUpdate' );
@@ -4419,9 +4071,7 @@ if ( isset( $_POST) && !empty( $_POST['singlepuginupdaterequest']) && $_POST['si
 		wp_redirect(admin_url('admin.php?page=festinger-vault-updates&force=success'));
 	}
 
-
 }
-
 
 if ( isset( $_POST) && !empty( $_POST['singlethemeupdaterequest']) && $_POST['singlethemeupdaterequest']){
 	add_action( 'init', 'process_singlepuginupdaterequest' );
@@ -4436,7 +4086,6 @@ if ( isset( $_POST) && !empty( $_POST['singlethemeupdaterequest']) && $_POST['si
 		wp_redirect(admin_url('admin.php?page=festinger-vault-theme-updates&force=success'));
 	}
 
-
 }
 
 if ( isset( $_POST) && !empty( $_POST['themeforceupdate']) && $_POST['themeforceupdate']){
@@ -4446,7 +4095,6 @@ if ( isset( $_POST) && !empty( $_POST['themeforceupdate']) && $_POST['themeforce
 		wp_redirect(admin_url('admin.php?page=festinger-vault-theme-updates&force=success'));
 	}
 }
-
 
 if ( isset( $_POST) && !empty( $_POST['themeforceupdate_instant']) && $_POST['themeforceupdate_instant']){
 	add_action( 'init', 'process_post_theme_instant' );
@@ -4474,8 +4122,6 @@ function fv_get_client_ip() {
         $ipaddress = 'UNKNOWN';
     return $ipaddress;
 }
-
-
 
 if ( get_option('an_fv_all_adm_not_hid') == true){
 
@@ -4516,7 +4162,6 @@ if ( get_option('an_fv_all_adm_not_hid') == true){
 
 }
 
-
 function get_plugin_basefile_by_slug( $given_slug){
 
 	$all_plugins = get_plugins();
@@ -4534,8 +4179,6 @@ function get_plugin_basefile_by_slug( $given_slug){
 	    }
 }
 
-
-
 function generatePluginActivationLinkUrl( $plugin)
 {
     if (strpos( $plugin, '/')) {
@@ -4548,7 +4191,6 @@ function generatePluginActivationLinkUrl( $plugin)
 
     return $activateUrl;
 }
-
 
 if ( isset( $_GET['actionrun']) && isset( $_GET['activeslug'] ) ) {
 	add_action( 'init', 'action_run_pl_act' );
@@ -4579,7 +4221,6 @@ function check_rollback_availability( $slug, $version, $plugin_or_theme){
 	if ( $plugin_or_theme == 'plugin'){
 		$plugin_base_file_get = get_plugin_basefile_by_slug( $slug);
 		$backup_plugin_dir =  $upload_dir["basedir"]."/fv_auto_update_directory/plugins/backup/".$plugin_base_file_get;
-
 
 		if (file_exists( $backup_plugin_dir)) {
 			if ( version_compare( $version,  get_plugin_data( $backup_plugin_dir)['Version']) == 1){
@@ -4637,8 +4278,6 @@ function check_rollback_availability( $slug, $version, $plugin_or_theme){
 
 }
 
-
-
 if ( isset( $_POST) && !empty( $_POST['themerollback']) && $_POST['themerollback']){
 	add_action( 'init', 'rollback_theme' );
 	function rollback_theme() {
@@ -4667,11 +4306,6 @@ if ( isset( $_POST) && !empty( $_POST['themerollback']) && $_POST['themerollback
 	}
 }
 
-
-
-
-
-
 if ( isset( $_POST) && !empty( $_POST['pluginrollback']) && $_POST['pluginrollback']){
 	add_action( 'init', 'rollback_plugin' );
 	function rollback_plugin() {
@@ -4687,7 +4321,6 @@ if ( isset( $_POST) && !empty( $_POST['pluginrollback']) && $_POST['pluginrollba
 
 		        $original_plugin_dir = WP_PLUGIN_DIR.'/'.$_POST['slug'].'/';
 
-
 		        if ( is_dir( $original_plugin_dir ) ) {
 
 		        	fv_fs_recurse_copy( $backup_plugin_only_dir, $original_plugin_dir); // copy old version as backup
@@ -4700,10 +4333,6 @@ if ( isset( $_POST) && !empty( $_POST['pluginrollback']) && $_POST['pluginrollba
 
 	}
 }
-
-
-
-
 
 function auto_update_specific_plugins( $update, $item ) {
   $plugins = array(

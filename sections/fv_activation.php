@@ -9,12 +9,10 @@
 </div>
 <div class="container-padding">
     <div class="row my-4 justify-content-center">
-        <?php 
+        <?php
                 if($all_license_data->validation->license_1 != 'notfound'):
                 ?>
         <div class="col-md-6 mt-3 mt-3">
-
-
 
             <div class="card card-bg-cus h-100" style="min-width:100%;">
                 <div class="py-4">
@@ -23,12 +21,11 @@
                         <div>
                             <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="w-50"><?php 
-                                    
-                                    $license_key_view = $all_license_data->license_1->license_data->license_key; 
+                                    <td class="w-50"><?php
+
+                                    $license_key_view = $all_license_data->license_1->license_data->license_key;
                                     echo substr($license_key_view,0,5) . '**********************' . substr($license_key_view,-5);
 
-                                  
                                   ?>
                                     </td>
                                     <td class="w-50">
@@ -59,10 +56,9 @@
                                                             <b>Plan:</b><?= $all_license_data->license_1->license_data->license_plan_name;?>
                                                             <br /><b>License Key:</b>
 
-                                                            <?php 
+                                                            <?php
 
-
-                                                                $license_key_view1 = $all_license_data->license_1->license_data->license_key; 
+                                                                $license_key_view1 = $all_license_data->license_1->license_data->license_key;
                                                                 echo substr($license_key_view1,0,5) . '**********************' . substr($license_key_view1,-5);
 
                                                             ?>
@@ -197,10 +193,7 @@
 
                     <div class="card-footer ">
 
-
-
-
-                        <?php 
+                        <?php
 
                             if($all_license_data->validation->license_1 != 'notfound'):
                             $get_license_own_db = '';
@@ -215,23 +208,17 @@
                             <button type="submit" class="btn primary-btn btn-sm non_active_button">Remove
                                 License</button>
                         </form>
-                        <?php 
-
+                        <?php
 
                             endif;
-                            
+
                         ?>
 
-
-
-
                         <?php endif;?>
-
 
                         <div class="row">
                             <div class='deactivation_result'></div>
                         </div>
-
 
                     </div>
 
@@ -239,16 +226,9 @@
             </div>
         </div>
 
-
-
-
-
-
-
         <?php endif; ?>
 
-
-        <?php 
+        <?php
       if($all_license_data->validation->license_2 != 'notfound'):
     ?>
         <div class="col-md-6 mt-3 mt-3">
@@ -261,15 +241,14 @@
                                 <tr>
                                     <td class="w-50">
                                         <?php
-								   
-                                                            $license_key_view = $all_license_data->license_2->license_data->license_key; 
+
+                                                            $license_key_view = $all_license_data->license_2->license_data->license_key;
                                                             echo substr($license_key_view,0,5) . '**********************' . substr($license_key_view,-5);
-                                                                            
+
                                                         ?>
                                     </td>
                                     <td class="w-50">
                                         <span>
-
 
                                             <?php if($all_license_data->license_2->license_data->license_status == 'valid'): ?>
                                             <span style="color:#fff;" class="badge bg-tag">Active</span>
@@ -277,10 +256,7 @@
                                             <span style="color:#fff;" class="badge bg-danger">Suspended</span>
                                             <?php endif; ?>
 
-
-
                                             <?php if($all_license_data->license_2->license_data->license_type == 'onetime'): ?>
-
 
                                             <!-- Button trigger modal -->
                                             <button type="button" class=" px-3 py-2 primary-btn border-0"
@@ -299,10 +275,9 @@
                                                                 <b>Plan:</b><?= $all_license_data->license_2->license_data->license_plan_name;?>
                                                                 <br /><b>License Key:</b>
 
-                                                                <?php 
+                                                                <?php
 
-
-                                                                    $license_key_view1 = $all_license_data->license_1->license_data->license_key; 
+                                                                    $license_key_view1 = $all_license_data->license_1->license_data->license_key;
                                                                     echo substr($license_key_view1,0,5) . '**********************' . substr($license_key_view1,-5);
 
                                                                 ?>                                                            </h6>
@@ -433,15 +408,11 @@
 
                     <div class="card-footer">
 
-
-
-
-                        <?php 
+                        <?php
 
             if($all_license_data->validation->license_2 != 'notfound'):
               $get_license_own_db = '';
 
-             
               if(get_option( '_data_ls_key_no_id_vf_2' ) == $all_license_data->license_2->license_data->license_key):
                 $get_license_own_db_2 = get_option( '_data_ls_key_no_id_vf_2' );
               ?>
@@ -458,11 +429,9 @@
 
                         <?php endif;?>
 
-
                         <div class="row">
                             <div class='deactivation_result2'></div>
                         </div>
-
 
                     </div>
 
@@ -470,10 +439,7 @@
             </div>
         </div>
 
-
         <?php endif; //end license 2action  ?>
-
-
 
                       <ul class="dropdown-menu dropdown-menu-end cart-dropdown get-cart-dropdownsub" aria-labelledby="cart-dropdown" style="width:400px;padding:10px; display: none;">
                         <div id="cart-items" class="cart-items"></div>
@@ -488,23 +454,16 @@
                 <div class="py-4">
                     <div class="card-header card-bottom-border">
                         <h5><b>License Activation</b></h5>
-                        <?php 
+                        <?php
 
 if($all_license_data->validation->license_1 == 'notfound' || $all_license_data->validation->license_2 == 'notfound'):?>
-
 
                         <p class="card-text my-3">Please enter your activation license key to activate and enjoy our service. Don't have a license key? Buy now and get access to all of our 25K+ themes and plugins directory.
                         </p>
                     </div>
                     <div class="card-body card-bottom-border">
 
-
-
-
-
-
                         <form class="form" id="ajax-license-activation-form" action="#">
-
 
                             <div class="mb-3">
                                 <label for="licenseKeyInput" class="form-label">Please enter your license
@@ -526,7 +485,6 @@ if($all_license_data->validation->license_1 == 'notfound' || $all_license_data->
                             <div id='activation_result'></div>
                         </div>
 
-
                     </div>
 
                     <div class="card-footer ">
@@ -541,8 +499,6 @@ if($all_license_data->validation->license_1 == 'notfound' || $all_license_data->
                             <?php endif;?>
                         </div>
                     </div>
-
-
 
                 </div>
             </div>

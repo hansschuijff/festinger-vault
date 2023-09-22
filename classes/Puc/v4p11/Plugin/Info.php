@@ -81,7 +81,6 @@ if ( !class_exists('Puc_v4p11_Plugin_Info', false) ):
 			return true;
 		}
 
-
 		/**
 		 * Transform plugin info into the format used by the native WordPress.org API
 		 *

@@ -30,7 +30,7 @@
                                 <tr>
                                     <td colspan="5" style="color: #fff;">No history found. </td>
                                 </tr>
-                            <?php 
+                            <?php
                             else:
                             foreach($license_histories as $history): ?>
 
@@ -44,8 +44,8 @@
                                         <?= substr($history->website,0,5) . '******' . substr($history->website,-5);?>
 
                                            </p>
-                                        <span class="bg-tag p-2 border-8 mb-2" style="font-size:13px;"><?php  
-												$license_key_view = $history->logged_license; 
+                                        <span class="bg-tag p-2 border-8 mb-2" style="font-size:13px;"><?php
+												$license_key_view = $history->logged_license;
 												echo substr($license_key_view,0,5) . '**********************' . substr($license_key_view,-5);
 											?>
                                         </span>
@@ -60,12 +60,12 @@
                                         </div>
                                     </div>
                                 </td>
-                               
+
                                 <td class='plugin_update_width_15'><?= ucfirst(str_replace('_', ' ', $history->history_type)) ;?></td>
                                 <td class=" plugin_update_width_15">
                                     <?= date("Y-m-d",strtotime($history->created_at)) ;?></td>
                             </tr>
-                            <?php endforeach; 
+                            <?php endforeach;
                                 endif;
                             ?>
                         </tbody>
@@ -74,15 +74,12 @@
                 </div>
             </div>
 
-
-
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-
 
     $('#history_table').DataTable({
         "pageLength": 50,

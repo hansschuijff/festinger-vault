@@ -30,7 +30,6 @@ jQuery(function($) {
 		return false;
 	});
 
-
 	// Debug Bar uses the panel class name as part of its link and container IDs. This means we can
 	// end up with multiple identical IDs if more than one plugin uses the update checker library.
 	// Fix it by replacing the class name with the plugin slug.

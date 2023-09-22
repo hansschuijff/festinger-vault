@@ -27,9 +27,6 @@
                 <?php endif; ?>
                 <?php endif; ?>
 
-
-
-
                 <?php
                     if ( isset($pluginUpdate_get_data->result ) && $pluginUpdate_get_data->result == 'domainblocked' ):
                 ?>
@@ -56,10 +53,7 @@
         </div>
     </div>
 
-
     <div class="row" style="padding-top:20px;">
-
-
 
         <?php if ( isset($pluginUpdate_get_data->result ) && ($pluginUpdate_get_data->result == 'domainblocked' || $pluginUpdate_get_data->result == 'failed' ) ):?>
         <div class="alert alert-danger alert-dismissible" role="alert">
@@ -67,7 +61,6 @@
             <?= $pluginUpdate_get_data->msg;?>
         </div>
         <?php endif;?>
-
 
         <?php if ( isset($_GET['force'] ) ):
         if ( $_GET['force'] == 'success' )
@@ -101,7 +94,6 @@
 
         <?php endif;?>
 
-
         <div class="col-md-12 card-bg-cus" style="overflow-x: scroll;">
 
             <table class="table borderless table-borderless table-responsive update_plugin"
@@ -115,11 +107,7 @@
                     <th class=" fw-bolder plugin_update_width_20 text-grey text-center" style="min-width: 125px;">Rollback</th>
                 </tr>
 
-
-
-
                 <?php
-
 
                 if ( count($fetching_plugin_lists ) ==0  ):
 
@@ -136,7 +124,6 @@
                     $is_toggle_checked = 'checked';
                 }
 
-
             if ( $fetching_plugin_lists != null ){
 
                 if (in_array(get_plugin_slug_from_data($key, $value ), $fetching_plugin_lists ) ){
@@ -146,9 +133,7 @@
                     $chk_pkg_type = '';
                     $bgredhere = '';
 
-
                     foreach($fetching_plugin_lists_full as $single_p ){
-
 
                         if ( $single_p->slug == get_plugin_slug_from_data($key, $value ) && $single_p->pkg_str == 1 ){
                             $chk_pkg_type = 'onetime';
@@ -157,7 +142,6 @@
                         if ( $single_p->slug == get_plugin_slug_from_data($key, $value ) && $single_p->pkg_str == 0 ){
                             $chk_pkg_type = 'recurring';
                         }
-
 
                         if ( $single_p->slug == get_plugin_slug_from_data($key, $value ) ){
                             $plugin_slug_get = $single_p->slug;
@@ -174,11 +158,9 @@
 
                     }
 
-
                     if ( !empty($new_version ) ){
                         $bgredhere = 'style="background: #f33059; border-radius: 5px;"';
                     }
-
 
                     if ( in_array($key, $activePlugins ) ) { // display active only
                         $textval = substr(strip_tags($value['Description'] ), 0, 100 );
@@ -213,10 +195,8 @@
                                         <div class='col-6 text-left' ".$bgredhere.">{$new_version}</div>";
                                     }
 
-
                                 echo  "</div>
                             </td>";
-
 
                         echo "<td class='position-relative'>
                                 <center style='position: absolute; top: 50%; left:50%; transform: translate(-50%,-50% );'>
@@ -232,7 +212,6 @@
 
                             if (version_compare($version1, $version2, '<' ) ):
 
-
                          ?>
                                  <span style="position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );">
                                     <form name="singlepuginupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ){return false;}">
@@ -244,21 +223,17 @@
                                     </form>
                                 </span>
 
-
                          <?php
 
                                  endif;
                              endif;
                          echo '</td>';
 
-
                         echo "<td class='position-relative'><span style='position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );'>";
                          check_rollback_availability(get_plugin_slug_from_data($key, $value ), $value['Version'], 'plugin' );
                         echo '</td>';
 
                         echo '</tr>';
-
-
 
                     }else{
 
@@ -330,12 +305,10 @@
                             </form>
                         </span>
 
-
                          <?php
 
                              endif;
                          echo '</td>';
-
 
                         echo "<td class='position-relative'>
                                 <span style='position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );'>";
@@ -343,23 +316,12 @@
                         echo    '</span>
                               </td>';
 
-
                         echo '</tr>';
-
-
-
-
-
 
                     }
                 }
             }
         }
-
-
-
-
-
 
                 ?>
             </table>

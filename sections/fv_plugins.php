@@ -17,8 +17,6 @@
         <div class="mx-auto" style="width:100%; max-width:1400px; justify-content:flex-end!important; display: block;">
             <div class="navbar-brand float-start margin-bottom-xs" style="margin-top: 10px;">
 
-
-
                 <img src="<?= get_adm_men_img();?> " style="margin-top: -4px;margin-right: 3px;">
 
                 <?= get_adm_men_name();?> <br />
@@ -26,9 +24,7 @@
                     <?= get_adm_men_slogan();?>
                 </small>
 
-
             </div>
-
 
             <div class="modal fade" id="messages" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
@@ -37,9 +33,6 @@
                     </div>
                 </div>
             </div>
-
-
-
 
             <div class="modal fade" id="empModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
                 style="background: rgba(0,0,0,0.8);">
@@ -50,19 +43,16 @@
                       </div>
                         <div class="modal-body" style="color: black;"></div>
 
-
                             <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                               <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
                             </div>
 
                             <div id="installation-status"></div>
 
-
                     </div>
                 </div>
 
             </div>
-
 
             <?php
               date_default_timezone_set("UTC");
@@ -73,11 +63,7 @@
               $reset_in_next_hours =  $hourdiff.' hour(s)';
             ?>
 
-
             <?php if($all_license_data->validation->license_1 != 'notfound'): ?>
-
-
-
 
             <div class="float-end margin-bottom-xs border-8 dark-blue p-3 mx-2">
 
@@ -114,11 +100,8 @@
 
                             <?= ucfirst($all_license_data->license_1->license_data->license_type);?><br />
 
-
                         </td>
                     </tr>
-
-
 
                     <?php if($all_license_data->license_1->license_data->license_type == 'onetime'){
                                 echo "<tr><td colspan='2' class='text-grey' style='margin-right:15px;'><i class='fas fa-sync-alt'></i>&nbsp;<span>Need more credits?</span> <a style='font-size:12px;' target='_blank' href='https://festingervault.com/pay-as-you-go/'>Purchase</a></td></tr></table>";
@@ -129,20 +112,11 @@
 
                     <!-- Table is closed in the PHP string above -->
 
-
-
             </div>
-
-
-
 
             <?php endif;?>
 
-
-
             <?php if($all_license_data->validation->license_2 != 'notfound'): ?>
-
-
 
             <div class="float-end margin-bottom-xs border-8 dark-blue px-3 mx-2">
                 <p style="margin-top:15px;color:#fff;">
@@ -181,8 +155,6 @@
                         </td>
                     </tr>
 
-
-
                     <?php if($all_license_data->license_2->license_data->license_type == 'onetime'){
                                    echo "</table><i class='fas fa-sync-alt' style='font-size:15px!important;'></i>&nbsp;<span>Need more credits?</span> <a style='font-size:12px;' target='_blank' href='https://festingervault.com/pay-as-you-go/'>Purchase</a>";
 
@@ -196,17 +168,11 @@
 
             </div>
 
-
-
             <?php endif;?>
 
-
-
-
-            <?php 
+            <?php
 	if($all_license_data->validation->result == 'domainblocked'):
 ?>
-
 
             <div class="float-end margin-bottom-xs border-8 dark-blue px-3 mx-2">
 
@@ -218,14 +184,9 @@
                     <?= $all_license_data->validation->msg; ?>
                 </div>
 
-
             </div>
 
             <?php else: ?>
-
-
-
-
 
             <?php if($all_license_data->validation->license_1 =='notfound' && $all_license_data->validation->license_2 =='notfound'): ?>
             <div class="float-end border-8 dark-blue p-3 mx-2 activate-license-notice">
@@ -242,20 +203,14 @@
 
             <?php endif; ?>
 
-
-
-
         </div>
     </nav>
 
-
-
 </div>
-
 
 <div class="container-fluid">
 
-    <?php if(isset($_GET['installation']) && isset($_GET['slug']) ): 
+    <?php if(isset($_GET['installation']) && isset($_GET['slug']) ):
 	if($_GET['installation'] == 'success')
 ?>
 
@@ -281,7 +236,7 @@
         </div>
     </div>
 
-    <?php else: 
+    <?php else:
 
 ?>
 
@@ -323,21 +278,20 @@
                         <select class="form-select home_con_select btn-block margin-bottom-xs" id="filter_category"
                             aria-label="Default select example">
                             <option selected value="all">Filter Category</option>
-                            <?php 
+                            <?php
 							 foreach(json_decode($all_license_data->category_list) as $category):
                                 if(strlen($category->category_slug)>1):
 							?>
                                 <option data-type="<?= $category->type_slug; ?>" class="filter_type_cate_val"
                                 value="<?= $category->category_slug; ?>">
                                 <?= ucwords(str_replace('-', ' ', $category->category_slug)); ?></option>
-                            <?php 
-                                endif; 
+                            <?php
+                                endif;
                                 endforeach;
                             ?>
                         </select>
 
                     </div>
-
 
                     <div class="col-md-1">
                         <button type="button" class="btn float-end non_active_button_purple" id="reset_filter"
@@ -362,7 +316,6 @@
                 </div>
                 <div class="col-md-4">
 
-
                     <!-- The cart dropdown -->
                     <div class="dropdown float-end">
                       <button class="btn btn-secondary dropdown-toggle cart-get-dropdown" type="button" id="cart-dropdown" aria-expanded="false">
@@ -376,8 +329,6 @@
                         <li><button id="clearall-button" class="btn btn-warning btn-md btn-block">Clear All</button></li>
                       </ul>
                     </div>
-
-
 
                 </div>
             </div>
