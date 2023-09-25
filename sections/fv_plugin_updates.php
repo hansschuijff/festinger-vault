@@ -163,7 +163,7 @@
                     }
 
                     if ( in_array($key, $activePlugins ) ) { // display active only
-                        $textval = substr(strip_tags($value['Description'] ), 0, 100 );
+                        $textval = substr( wp_strip_all_tags( $value['Description'] ), 0, 100 );
                         echo '<tr class="table-tr mb-2">';
                         echo "<td class='plugin_update_width_30'>
                                 {$value['Name']} <br/>
