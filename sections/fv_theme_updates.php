@@ -1,9 +1,4 @@
 <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
-<?php // $license_histories->result = 'domainblocked'; ?>
-<?php // $license_histories->result = 'failed'; ?>
-<?php // $license_histories->msg = 'HALLO HANS!'; ?>
-<?php // $is_update_available = 0; ?>
-<?php // $license_histories->manual_force_update = 'no'; ?>
 
 <div class="container-padding">
     <div class="row" style="padding-top:20px">
@@ -78,15 +73,14 @@
         </div>
     </div>
     <?php
-
-        $success_message = fv_get_succes_message();
-        if ( $success_message ) :
-        ?>
-            <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
-                <strong><?php echo $success_message; ?></strong>
-                <a href="<?= admin_url( 'admin.php?page=festinger-vault-theme-updates' ); ?>" class="btn-close" aria-label="Close"></a>
-            </div>
-        <?php endif; ?>
+    $success_message = fv_get_succes_message();
+    if ( $success_message ) :
+    ?>
+        <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
+            <strong><?php echo $success_message; ?></strong>
+            <a href="<?= admin_url( 'admin.php?page=festinger-vault-theme-updates' ); ?>" class="btn-close" aria-label="Close"></a>
+        </div>
+    <?php endif; ?>
 
         <div class="col-md-12 card-bg-cus" style="overflow-x: scroll;">
             <table
@@ -106,7 +100,7 @@
                  * If remote Vault didn't return themes,
                  * then just render a message and skip further processing.
                  */
-                if ( empty( $fetching_theme_lists ) ):
+                if ( empty( $fvault_themes_slugs ) ):
                     ?>
                     <tr>
                         <td colspan='5'>
@@ -126,18 +120,16 @@
                  */
                 foreach( $allThemes as $theme ) {
 
-                    // Is auto-update checked for this theme?
-                    $is_toggle_checked = '';
-                    if ( get_option( 'fv_themes_auto_update_list' ) == true
-                    && ( array_search( $theme->template, get_option( 'fv_themes_auto_update_list' ) ) ) !== false ) {
-                        $is_toggle_checked = 'checked';
+                    $theme_slug           = fv_get_wp_theme_slug( $theme );
+                    $theme_update_version = '';
+
+                    if ( fv_should_auto_update_theme( $theme_slug ) ) {
+                        $auto_update_toggle_checked = 'checked';
+                    } else {
+                        $auto_update_toggle_checked = '';
                     }
 
-                    $new_version     = '';
-                    $chk_pkg_type    = '';
-                    $theme_slug_get  = '';
-
-                    if ( in_array( $theme->template, $fetching_theme_lists ) ) {
+                    if ( in_array( $theme_slug, $fvault_themes_slugs ) ) {
 
                         $active_theme_marker = '';
                         if ( $activeTheme->Name == $theme->Name ) {
@@ -156,9 +148,9 @@
                             <!-- Plan -->
                             <td class='plugin_update_width_10'><span class='badge bg-tag'>
                             <?php
-                            foreach( $fetching_theme_lists_full as $single_p ) {
-                                if ( $single_p->slug == fv_get_wp_theme_slug( $theme ) ) {
-                                    switch ( $single_p->pkg_str_t ) {
+                            foreach( $fvault_themes as $single_t ) {
+                                if ( $single_t->slug == $theme_slug ) {
+                                    switch ( $single_t->pkg_str_t ) {
                                         case '1':
                                             echo 'Onetime';
                                             break;
@@ -186,42 +178,51 @@
                                 <!-- available update -->
                                 <?php
                                 $bgredhere = '';
-                                foreach( $fetching_theme_lists_full as $single_p ) {
 
-                                    if ( $single_p->slug == fv_get_wp_theme_slug( $theme )
-                                    &&   version_compare( $single_p->version, $theme['Version'], '>' ) ) {
+                                foreach( $fvault_themes as $single_t ) {
 
-                                        $new_version     = $single_p->version;
-                                        $theme_slug_get  = $single_p->slug;
-                                        $bgredhere       = 'style="background: #f33059; border-radius: 5px;"';
-                                        ?>
-                                        <div class="col-6 text-left text-grey">New</div>
-                                        <div class="col-6 text-left" <?php echo $bgredhere; ?> > <?php echo $new_version; ?> </div>
-                                        <?php
+                                    if ( $single_t->slug == $theme_slug
+                                    &&   version_compare( $single_t->version, $theme->Version, '>' ) ) {
+                                        /**
+                                         * if more than one theme update available,
+                                         * take the highest version.
+                                         */
+                                        if ( empty( $theme_update_version )
+                                        ||  version_compare( $single_t->version, $theme_update_version, '>' ) ) {
+                                            $theme_update_version = $single_t->version;
+                                            $bgredhere            = 'style="background: #f33059; border-radius: 5px;"';
+                                        }
                                         continue;
                                     }
+                                }
+                                if ( ! empty( $theme_update_version ) ) {
+                                ?>
+                                    <div class="col-6 text-left text-grey">New</div>
+                                    <div class="col-6 text-left" <?php echo $bgredhere; ?> >
+                                        <?php echo $theme_update_version; ?>
+                                    </div>
+                                <?php
                                 }
                                 ?>
                             </td>
                             <!-- Auto-update -->
                             <td class='position-relative auto_theme_update_switch'>
                                 <center style='white-space:nowrap!important; word-break:nowrap; position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );'>
-                                    <input class='auto_theme_update_switch' data-id='<?php echo $theme->template; ?>' type='checkbox' <?php echo $is_toggle_checked; ?> data-toggle='toggle' data-style='custom' data-size='xs'>
+                                    <input class='auto_theme_update_switch' data-id='<?php echo $theme_slug; ?>' type='checkbox' <?php echo $auto_update_toggle_checked; ?> data-toggle='toggle' data-style='custom' data-size='xs'>
                                 </center>
                             </td>
                             <!-- Instant Update -->
                             <td class="text-center">
                                 <?php
-                                if ( ! empty( $new_version )
-                                &&   version_compare( $new_version, $theme->Version, '>' ) ):
+                                if ( ! empty( $theme_update_version ) ):
                                 ?>
                                     <span style="position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );">
                                         <form name="singlethemeupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
                                             <input type="hidden" name="theme_name" value="<?= $theme->name; ?>" />
-                                            <input type="hidden" name="slug" value="<?= $theme_slug_get; ?>" />
-                                            <input type="hidden" name="version" value="<?= $new_version; ?>" />
+                                            <input type="hidden" name="slug" value="<?= $theme_slug; ?>" />
+                                            <input type="hidden" name="version" value="<?= $theme_update_version; ?>" />
                                             <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="singlethemeupdaterequest" value="single_item_update">
-                                                Update <?= $new_version; ?>
+                                                Update <?= $theme_update_version; ?>
                                             </button>
                                         </form>
                                     </span>
@@ -235,7 +236,7 @@
                                 <?php
                                     // NOTE: The name of this function is confusing.
                                     //       It checks, but also renders the html for this column.
-                                    check_rollback_availability( $theme->template, $theme->Version, 'theme' );
+                                    check_rollback_availability( $theme_slug, $theme->Version, 'theme' );
                                 ?>
                                 </div>
                             </td>

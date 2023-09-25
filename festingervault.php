@@ -98,6 +98,7 @@ function fv_custom_endpoint_create_auto( $request ) {
 	$_ls_domain_sp_id_vf_2   = get_option( '_ls_domain_sp_id_vf_2' ) ?: '';
 	$_data_ls_key_no_id_vf_2 = get_option( '_data_ls_key_no_id_vf_2' ) ?: '';
 
+
 	$plugin_api_param = array(
 		'license_key'     => $_data_ls_key_no_id_vf,
 		'license_key_2'   => $_data_ls_key_no_id_vf_2,
@@ -1263,24 +1264,29 @@ function festinger_vault_theme_updates_function( ) {
 	$response                  = fv_remote_run_query( $query );
 	$license_histories         = json_decode( wp_remote_retrieve_body( $response ) );
 
-	$fetching_theme_lists      = [];
-	$fetching_theme_lists_full = [];
-	$list_of_plugins           = [];
+	$fvault_themes_slugs      = [];
+	$fvault_themes            = [];
+	$list_of_plugins          = [];
 
-	// make an array of themes for comparison with installed themes
-	if ( ! isset( $pluginUpdate_get_data->result )
-	||   ! in_array( $pluginUpdate_get_data->result, array( 'domainblocked', 'failed') ) ) {
+	d(
+		$retrive_themes_data,
+		$license_histories
+	);
+	// Make an array of themes for comparison with installed themes
+	if ( ! isset( $license_histories->result )
+	||   ! in_array( $license_histories->result, array( 'domainblocked', 'failed') ) ) {
+
 		foreach( $license_histories->themes as $theme ) {
-			$fetching_theme_lists[]      = $theme->slug;
-			$fetching_theme_lists_full[] = $theme;
+			$fvault_themes_slugs[]  = $theme->slug;
+			$fvault_themes[]        = $theme;
 		}
 	}
 
 	$is_update_available = 0;
-	if ( ! empty ( $fetching_theme_lists ) ) {
+	if ( ! empty ( $fvault_themes_slugs ) ) {
 		foreach( $allThemes as $theme) {
-			if ( in_array( fv_get_wp_theme_slug( $theme ), $fetching_theme_lists ) ) {
-				foreach( $fetching_theme_lists_full as $single_t ) {
+			if ( in_array( fv_get_wp_theme_slug( $theme ), $fvault_themes_slugs ) ) {
+				foreach( $fvault_themes as $single_t ) {
 					if ( $single_t->slug == fv_get_wp_theme_slug( $theme )
 					&& version_compare( $single_t->version, $theme['Version'], '>' ) ) {
 						$is_update_available = 1;
@@ -1373,7 +1379,6 @@ function festinger_vault_plugin_updates_function( ) {
 
 	$is_update_available = 0;
 	$new_version         = '';
-	$chk_pkg_type        = '';
 
 	// find out if there is any update available.
 	if ( ! empty( $fetching_plugin_lists ) ) {
@@ -1497,14 +1502,14 @@ function activeThemesVersions() {
 
 		// render a list of installed themes that are also in Festinger Vault
 
-		$fetching_theme_lists = [];
+		$fvault_themes_slugs = [];
 		foreach( $license_histories->themes as $theme ) {
-			$fetching_theme_lists[] = $theme->slug;
+			$fvault_themes_slugs[] = $theme->slug;
 		}
 
 		foreach( $allThemes as $theme ) {
 
-			if ( in_array( fv_get_wp_theme_slug( $theme ), $fetching_theme_lists ) ) {
+			if ( in_array( fv_get_wp_theme_slug( $theme ), $fvault_themes_slugs ) ) {
 
 				$active_theme = '';
 				if ( $activeTheme->Name == $theme->Name ) {
@@ -4202,6 +4207,8 @@ function fv_should_auto_update_theme( string $slug ): bool	{
 	if ( empty( $slug ) ) {
 		return false;
 	}
+	// note: in fv_theme_updates.php array_search was used. Is that better?
+	// ( array_search( $theme_slug, get_option( 'fv_themes_auto_update_list' ) ) ) !== false
 
 	return is_array( get_option( 'fv_themes_auto_update_list' ) )
 		&& in_array( $slug, get_option( 'fv_themes_auto_update_list' ) );
