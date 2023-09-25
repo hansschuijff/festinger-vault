@@ -119,7 +119,7 @@ function fv_plugin_autoupdate_switch(){
 	$plugin_slug_capture = $_POST['plugin_slug_capture'];
 	$is_plugin_switch_yes = $_POST['plugin_switch_is_checked'];
 	if(!empty($plugin_slug_capture) && ($is_plugin_switch_yes == true || $is_plugin_switch_yes == false)){
-		if(get_option('fv_plugin_auto_update_list') == true || empty(get_option('fv_plugin_auto_update_list'))){
+		if( get_option('fv_plugin_auto_update_list') == true || empty(get_option('fv_plugin_auto_update_list'))){
 
 			$auto_update_plugin_list = get_option('fv_plugin_auto_update_list');
 
@@ -941,7 +941,7 @@ function get_plugins_and_themes_matched_by_vault($plugin_theme, $get_slug){
         foreach ($all_plugins as $plugin_slug=>$values){
             $slugArray=explode('/',$plugin_slug);
 
-            $version=getPluginVersionFromRepository($values['Version']);
+            $version=fv_esc_version($values['Version']);
             $slug=get_plugin_slug_from_data($plugin_slug, $values);
             $retrive_plugins_data[]=['slug'=>$slug,'version'=>$version, 'dl_link'=>''];
 
