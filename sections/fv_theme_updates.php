@@ -135,7 +135,7 @@
 
                     $new_version     = '';
                     $chk_pkg_type    = '';
-                    $plugin_slug_get = '';
+                    $theme_slug_get  = '';
 
                     if ( in_array( $theme->template, $fetching_theme_lists ) ) {
 
@@ -157,17 +157,20 @@
                             <td class='plugin_update_width_10'><span class='badge bg-tag'>
                             <?php
                             foreach( $fetching_theme_lists_full as $single_p ) {
-                                // NOTE: Slug should be unique id, but isn't.
-                                // Changed continue statements by break,
-                                // so no duplicate badges are rendered.
-                                if ( $single_p->slug == $theme->template
-                                &&   $single_p->pkg_str_t == 1 ) {
-                                    echo 'Onetime';
-                                    break;
-                                }
-                                if ( $single_p->slug == $theme->template
-                                &&   $single_p->pkg_str_t == 0 ) {
-                                    echo 'Recurring';
+                                if ( $single_p->slug == fv_get_wp_theme_slug( $theme ) ) {
+                                    switch ( $single_p->pkg_str_t ) {
+                                        case '1':
+                                            echo 'Onetime';
+                                            break;
+
+                                        case '0':
+                                            echo 'Recurring';
+                                            break;
+
+                                        default:
+                                            echo 'Unknown';
+                                            break;
+                                    }
                                     break;
                                 }
                             }
@@ -185,11 +188,11 @@
                                 $bgredhere = '';
                                 foreach( $fetching_theme_lists_full as $single_p ) {
 
-                                    if ( $single_p->slug == $theme->template
+                                    if ( $single_p->slug == fv_get_wp_theme_slug( $theme )
                                     &&   version_compare( $single_p->version, $theme['Version'], '>' ) ) {
 
                                         $new_version     = $single_p->version;
-                                        $plugin_slug_get = $single_p->slug;
+                                        $theme_slug_get  = $single_p->slug;
                                         $bgredhere       = 'style="background: #f33059; border-radius: 5px;"';
                                         ?>
                                         <div class="col-6 text-left text-grey">New</div>
@@ -215,7 +218,7 @@
                                     <span style="position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );">
                                         <form name="singlethemeupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
                                             <input type="hidden" name="theme_name" value="<?= $theme->name; ?>" />
-                                            <input type="hidden" name="slug" value="<?= $plugin_slug_get; ?>" />
+                                            <input type="hidden" name="slug" value="<?= $theme_slug_get; ?>" />
                                             <input type="hidden" name="version" value="<?= $new_version; ?>" />
                                             <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="singlethemeupdaterequest" value="single_item_update">
                                                 Update <?= $new_version; ?>

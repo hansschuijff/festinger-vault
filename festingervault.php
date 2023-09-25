@@ -85,10 +85,7 @@ function fv_custom_endpoint_create_auto( $request ) {
 	$allThemes = fv_get_themes();
 
 	foreach( $allThemes as $theme) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
-		}
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$retrive_themes_data[]=[
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
@@ -1236,10 +1233,7 @@ function festinger_vault_theme_updates_function( ) {
 
 	$allThemes = fv_get_themes();
 	foreach( $allThemes as $theme) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
-		}
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$retrive_themes_data[] = [
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
@@ -1285,9 +1279,9 @@ function festinger_vault_theme_updates_function( ) {
 	$is_update_available = 0;
 	if ( ! empty ( $fetching_theme_lists ) ) {
 		foreach( $allThemes as $theme) {
-			if ( in_array( $theme->template, $fetching_theme_lists ) ) {
+			if ( in_array( fv_get_wp_theme_slug( $theme ), $fetching_theme_lists ) ) {
 				foreach( $fetching_theme_lists_full as $single_t ) {
-					if ( $single_t->slug == $theme->template
+					if ( $single_t->slug == fv_get_wp_theme_slug( $theme )
 					&& version_compare( $single_t->version, $theme['Version'], '>' ) ) {
 						$is_update_available = 1;
 					}
@@ -1327,10 +1321,7 @@ function festinger_vault_plugin_updates_function( ) {
 
 	$allThemes = fv_get_themes();
 	foreach( $allThemes as $theme) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
-		}
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$retrive_themes_data[] = [
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
@@ -1468,10 +1459,7 @@ function activeThemesVersions() {
 	$allThemes = fv_get_themes(); // Filters out any plugin from wordpress.org repo.
 
 	foreach( $allThemes as $theme) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
-		}
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$retrive_themes_data[] = [
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
@@ -1516,7 +1504,7 @@ function activeThemesVersions() {
 
 		foreach( $allThemes as $theme ) {
 
-			if ( in_array( $theme->template, $fetching_theme_lists ) ) {
+			if ( in_array( fv_get_wp_theme_slug( $theme ), $fetching_theme_lists ) ) {
 
 				$active_theme = '';
 				if ( $activeTheme->Name == $theme->Name ) {
@@ -1569,10 +1557,7 @@ function activePluginsVersions() {
 	$allThemes            = fv_get_themes();
 	$retrive_plugins_data = [];
 	foreach( $allThemes as $theme ) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
-		}
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$retrive_themes_data[]=[
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
@@ -2005,10 +1990,7 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 
 		foreach( $allThemes as $theme ) {
 
-			$get_theme_slug = $theme->get( 'TextDomain' );
-			if ( empty( $get_theme_slug) ) {
-				$get_theme_slug = $theme->template;
-			}
+			$get_theme_slug = fv_get_wp_theme_slug( $theme );
 
 			if ( fv_should_auto_update_theme( $get_theme_slug ) ) {
 
@@ -2060,12 +2042,12 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 				$get_theme_directory=[];
 
 				foreach( $allThemes as $theme ) {
-					$get_theme_slug = $theme->get( 'TextDomain' );
+					$get_theme_slug = fv_get_wp_theme_slug( $theme );
 					if (  empty( $get_theme_slug ) ) {
-						$get_theme_slug = $theme->template;
+						$get_theme_slug = $theme->get( 'TextDomain' );
 					}
 					$get_theme_directory[] = [
-						'dir'     => $theme->template ,
+						'dir'     => $theme->get_stylesheet(),
 						'slug'    => $get_theme_slug,
 						'version' => $theme->Version];
 				}
@@ -2531,9 +2513,9 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 	$allThemes = fv_get_themes();
 	foreach( $allThemes as $theme) {
-		$get_theme_slug = $theme->get( 'TextDomain' );
+		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->template;
+			$get_theme_slug = $theme->get( 'TextDomain' );
 		}
 
 		if ( ! empty( $single_plugin_theme_slug ) ) {
@@ -2602,12 +2584,12 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 				$get_theme_directory=[];
 
 				foreach( $allThemes as $theme) {
-					$get_theme_slug = $theme->get( 'TextDomain' );
+					$get_theme_slug = fv_get_wp_theme_slug( $theme );
 					if ( empty( $get_theme_slug ) ) {
-						$get_theme_slug = $theme->template;
+						$get_theme_slug = $theme->get( 'TextDomain' );
 					}
 					$get_theme_directory[]=[
-						'dir'     => $theme->template,
+						'dir'     => $theme->get_stylesheet(),
 						'slug'    => $get_theme_slug,
 						'version' => $theme->Version
 					];
@@ -4223,5 +4205,39 @@ function fv_should_auto_update_theme( string $slug ): bool	{
 
 	return is_array( get_option( 'fv_themes_auto_update_list' ) )
 		&& in_array( $slug, get_option( 'fv_themes_auto_update_list' ) );
+}
+
+/**
+ * Gets the theme slug, from a WP_Theme object.
+ *
+ * @param WP_Theme $theme
+ * @return string
+ */
+function fv_get_wp_theme_slug( WP_Theme $theme ): string {
+
+	$slug = $theme->get_stylesheet();
+	if ( empty( $slug ) ) {
+		$slug = $theme->get( 'TextDomain' );
+	}
+
+	return fv_sanitize_theme_slug( $slug );
+}
+
+/**
+ * Returns the stylesheet dir.
+ *
+ * If WP_Themes->stylesheet contains subdirs like "genesis-children/digital-pro"
+ * then this function will remove the parent directories.
+ *
+ * @param string $slug The last subdir.
+ * @return string
+ */
+function fv_sanitize_theme_slug( string $slug ): string {
+
+	if ( false !== strpos( haystack: $slug, needle: '/' ) ) {
+		$slug = explode( separator: '/', string: $slug );
+		$slug = $slug[ count( $slug ) - 1 ];
+	}
+	return $slug;
 }
 
