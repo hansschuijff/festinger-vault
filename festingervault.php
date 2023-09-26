@@ -377,7 +377,7 @@ function fv_deactivation() {
 		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-deactivation' ) );
 		$response = fv_remote_run_query( $query );
 
-		fv_forget_license()
+		fv_forget_license();
 	}
 
 	if ( fv_has_license_2() ) {
@@ -3992,10 +3992,10 @@ function fv_is_active_theme( $theme_name ) {
 
 function fv_forget_license_by_key ( string $license_key ) {
 	if ( fv_get_license_key() == $license_key ) {
-		fv_forget_license()
+		fv_forget_license();
 	}
 	if ( fv_get_license_key_2() == $license_key ) {
-		fv_forget_license_2()
+		fv_forget_license_2();
 	}
 }
 
@@ -4295,9 +4295,9 @@ function fv_forget_license_2() {
  * @return bool True when all elements are filled, otherwise false.
  */
 function fv_license_complete( array $license_data ) {
-	return ( empty ( $license_data['license-key'] )
-		||   empty ( $license_data['domain-id'] )
-		||   empty ( $license_data['_ls_d_sf'] ) );
+	return ( ! empty( $license_data['license-key'] )
+		&&   ! empty( $license_data['domain-id'] )
+		&&   ! empty( $license_data['_ls_d_sf'] ) );
 }
 
 /**
@@ -4308,7 +4308,7 @@ function fv_license_complete( array $license_data ) {
  *     @type string 'domain-id'   Domain id (returned by api as 'data_security_dom' attribute).
  *     @type string '_ls_d_sf'    Returned by api as 'ld_dat' attribute.
  * }
- * @return void|false
+ * @return bool false when data incomplete, otherwise true.
  */
 function fv_save_license( array $license_data ) {
 
@@ -4316,14 +4316,15 @@ function fv_save_license( array $license_data ) {
 		return false;
 	}
 
+	if ( fv_has_license_1() && fv_has_license_2() ) {
+		return false;
+	}
+
 	if ( fv_has_license_1() ) {
 		return fv_save_license_2( $license_data );
 	}
-	if ( fv_has_license_2() ) {
-		return fv_save_license_1( $license_data );
-	}
-	// Both licenses already saved.
-	return false;
+
+	return fv_save_license_1( $license_data );
 }
 
 /**
@@ -4334,7 +4335,7 @@ function fv_save_license( array $license_data ) {
  *     @type string 'domain-id'   Domain id (returned by api as 'data_security_dom' attribute).
  *     @type string '_ls_d_sf'    Returned by api as 'ld_dat' attribute.
  * }
- * @return void|false
+ * @return bool false when data incomplete, otherwise true.
  */
 function fv_save_license_1( array $license_data ) {
 
@@ -4345,6 +4346,8 @@ function fv_save_license_1( array $license_data ) {
 	add_option( '_data_ls_key_no_id_vf', $license_data['license-key'] );
 	add_option( '_ls_domain_sp_id_vf',   $license_data['domain-id'] );
 	add_option( '_ls_d_sf',              $license_data['_ls_d_sf'] );
+
+	return true;
 }
 
 /**
@@ -4355,9 +4358,9 @@ function fv_save_license_1( array $license_data ) {
  *     @type string 'domain-id'   Domain id (returned by api as 'data_security_dom' attribute).
  *     @type string '_ls_d_sf'    Returned by api as 'ld_dat' attribute.
  * }
- * @return void|false
+ * @return bool false when data incomplete, otherwise true.
  */
-function fv_save_license_2( array $license_data ): void {
+function fv_save_license_2( array $license_data ) {
 
 	if ( ! fv_license_complete( $license_data ) ) {
 		return false;
@@ -4366,4 +4369,6 @@ function fv_save_license_2( array $license_data ): void {
 	add_option( '_data_ls_key_no_id_vf_2', $license_data['license-key'] );
 	add_option( '_ls_domain_sp_id_vf_2',   $license_data['domain-id'] );
 	add_option( '_ls_d_sf_2',              $license_data['_ls_d_sf'] );
+
+	return true;
 }
