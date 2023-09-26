@@ -197,8 +197,8 @@
 
                             if($all_license_data->validation->license_1 != 'notfound'):
                             $get_license_own_db = '';
-                            if(get_option( '_data_ls_key_no_id_vf' ) == $all_license_data->license_1->license_data->license_key):
-                                $get_license_own_db = get_option( '_data_ls_key_no_id_vf' );
+                            if( fv_get_license_key() == $all_license_data->license_1->license_data->license_key ):
+                                $get_license_own_db = fv_get_license_key();
                             ?>
                         <form class="ajax-license-deactivation-form" action="#">
                             <input type="hidden" required id="license_key" name="license_key"
@@ -413,8 +413,8 @@
             if($all_license_data->validation->license_2 != 'notfound'):
               $get_license_own_db = '';
 
-              if(get_option( '_data_ls_key_no_id_vf_2' ) == $all_license_data->license_2->license_data->license_key):
-                $get_license_own_db_2 = get_option( '_data_ls_key_no_id_vf_2' );
+              if ( fv_get_license_key_2() == $all_license_data->license_2->license_data->license_key):
+                $get_license_own_db_2 = fv_get_license_key_2();
               ?>
 
                         <form class="ajax-license-deactivation-form-2" action="#">
