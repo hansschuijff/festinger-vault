@@ -14,7 +14,8 @@ if ( !class_exists('Puc_v4p11_DebugBar_Extension', false) ):
 				$this->panelClass = $panelClass;
 			}
 
-			if ( version_compare(PHP_VERSION, '5.3', '>=') && (strpos($this->panelClass, '\\') === false) ) {
+			if ( version_compare(PHP_VERSION, '5.3', '>=' )
+			&& ( strpos( $this->panelClass, '\\') === false ) ) {
 				$this->panelClass = __NAMESPACE__ . '\\' . $this->panelClass;
 			}
 

@@ -188,7 +188,7 @@
                                     $version1 = $value['Version'];
                                     $version2 = $new_version;
 
-                                    if (version_compare($version1, $version2, '<' ) ) {
+                                    if ( version_compare( $version1, $version2, '<' ) ) {
                                         echo "
                                     <div class='col-6 text-left text-grey'>New</div>
 
@@ -210,7 +210,7 @@
                             $version1 = $value['Version'];
                             $version2 = $new_version;
 
-                            if (version_compare($version1, $version2, '<' ) ):
+                            if ( version_compare( $version1, $version2, '<' ) ):
 
                          ?>
                                  <span style="position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );">
@@ -270,7 +270,7 @@
                             // end update TVU/DWP
                             $version1 = $value['Version'];
                             $version2 = $new_version;
-                            if (version_compare($version1, $version2, '<' ) ) {
+                            if ( version_compare($version1, $version2, '<' ) ) {
                                 echo "
                                     <div class='col-6 text-left text-grey'>New</div>
                                     <div class='col-6 text-left' ".$bgredhere.">{$new_version}</div>";

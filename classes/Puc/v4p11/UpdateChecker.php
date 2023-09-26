@@ -311,7 +311,8 @@ if ( !class_exists('Puc_v4p11_UpdateChecker', false) ):
 			if ( isset($update) ) {
 				//Check if the update is actually newer than the currently installed version.
 				$installedVersion = $this->getInstalledVersion();
-				if ( ($installedVersion !== null) && version_compare($update->version, $installedVersion, '>') ){
+				if ( $installedVersion !== null
+				&& version_compare( $update->version, $installedVersion, '>' ) ) {
 					return $update;
 				}
 			}
@@ -670,12 +671,13 @@ if ( !class_exists('Puc_v4p11_UpdateChecker', false) ):
 			$result = wp_remote_get($url, $options);
 
 			$result = apply_filters($this->getUniqueName('request_metadata_http_result'), $result, $url, $options);
-			
+
 			//Try to parse the response
 			$status = $this->validateApiResponse($result);
 			$metadata = null;
 			if ( !is_wp_error($status) ){
-				if ( version_compare(PHP_VERSION, '5.3', '>=') && (strpos($metaClass, '\\') === false) ) {
+				if ( version_compare(PHP_VERSION, '5.3', '>=' )
+				&& ( strpos( $metaClass, '\\' ) === false ) ) {
 					$metaClass = __NAMESPACE__ . '\\' . $metaClass;
 				}
 				$metadata = call_user_func(array($metaClass, 'fromJson'), $result['body']);

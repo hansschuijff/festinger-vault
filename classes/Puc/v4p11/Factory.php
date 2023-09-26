@@ -112,7 +112,7 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 			}
 
 			//Add the current namespace to the class name(s).
-			if ( version_compare(PHP_VERSION, '5.3', '>=') ) {
+			if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
 				$checkerClass = __NAMESPACE__ . '\\' . $checkerClass;
 			}
 
@@ -131,7 +131,8 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 					return null;
 				}
 
-				if ( version_compare(PHP_VERSION, '5.3', '>=') && (strpos($apiClass, '\\') === false) ) {
+				if ( version_compare( PHP_VERSION, '5.3', '>=' )
+				&& ( strpos( $apiClass, '\\' ) === false ) ) {
 					$apiClass = __NAMESPACE__ . '\\' . $apiClass;
 				}
 
@@ -323,7 +324,7 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 		}
 
 		protected static function compareVersions($a, $b) {
-			return -version_compare($a, $b);
+			return -version_compare( $a, $b );
 		}
 
 		/**
@@ -345,10 +346,8 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 			$components = explode('.', $version);
 			if ( $components[0] === self::$myMajorVersion ) {
 
-				if (
-					empty(self::$latestCompatibleVersion)
-					|| version_compare($version, self::$latestCompatibleVersion, '>')
-				) {
+				if ( empty(self::$latestCompatibleVersion)
+				|| version_compare( $version, self::$latestCompatibleVersion, '>' ) ) {
 					self::$latestCompatibleVersion = $version;
 				}
 

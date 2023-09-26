@@ -186,7 +186,7 @@ if ( !class_exists('Puc_v4p11_Vcs_Api') ):
 			if ( !isset($tag2->$property) ) {
 				return -1;
 			}
-			return -version_compare(ltrim($tag1->$property, 'v'), ltrim($tag2->$property, 'v'));
+			return -version_compare( ltrim( $tag1->$property, 'v' ), ltrim( $tag2->$property, 'v' ) );
 		}
 
 		/**

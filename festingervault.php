@@ -2539,7 +2539,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 				foreach ( $license_histories->themes as $u ) {
 
 					foreach( $get_theme_directory as $single_th ) {
-						if ( $single_th['slug'] == $u->slug && version_compare( $u->version, $single_th['version'] ) > 0 ) {
+						if ( $single_th['slug'] == $u->slug
+						&& version_compare( $u->version, $single_th['version'], '>' ) ) {
 
 							//start of update
 
@@ -2746,7 +2747,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 				foreach ( $license_histories->plugins as $u ) {
 					foreach( $get_plugin_directory as $single_pl ) {
-						if ( $single_pl['slug'] == $u->slug && version_compare( $u->version, $single_pl['version'] ) > 0 ) {
+						if ( $single_pl['slug'] == $u->slug
+						&& version_compare( $u->version, $single_pl['version'], '>' ) ) {
 
 							// y
 
@@ -3761,7 +3763,7 @@ function check_rollback_availability( $slug, $version, $plugin_or_theme ) {
 		$backup_plugin_dir    = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $plugin_base_file_get;
 
 		if ( file_exists( $backup_plugin_dir ) ) {
-			if ( version_compare( $version, get_plugin_data( $backup_plugin_dir )['Version'] ) == 1 ) {
+			if ( version_compare( $version, get_plugin_data( $backup_plugin_dir )['Version'], '>' ) ) {
 		?>
 			<form name="plugin_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback?' ) ) {return false;}">
 				<input type="hidden" name="slug" value="<?= $slug;?>" />
@@ -3788,7 +3790,8 @@ function check_rollback_availability( $slug, $version, $plugin_or_theme ) {
 				$theme_name    = ! empty( $theme_full[0] ) ? $theme_full[0] : "";
 				$theme_version = ! empty( $theme_full[1] ) ? $theme_full[1] : "";
 				if ( file_exists( $backup_theme_dir . $single_theme ) ) {
-					if ( ! empty( $theme_version ) && version_compare( $version, $theme_version, ">" ) ) {
+					if ( ! empty( $theme_version )
+					&& version_compare( $version, $theme_version, ">" ) ) {
 						?>
 						<form name="theme_rollback" method="POST"
 							onSubmit="if ( !confirm( 'Are you sure want to rollback this theme?' ) ) {return false;}">
@@ -3832,7 +3835,7 @@ if ( isset( $_POST ) && ! empty( $_POST['themerollback'] ) && $_POST['themerollb
 
 				if ( file_exists( $backup_theme_dir . $single_theme ) ) {
 
-					if ( version_compare( $_POST['version'],  $theme_version ) == 1 ) {
+					if ( version_compare( $_POST['version'],  $theme_version, '>' ) ) {
 
 						$original_theme_dir = get_theme_root() . '/' . $_POST['slug'] . '/';
 
@@ -3861,7 +3864,7 @@ if ( isset( $_POST ) && ! empty( $_POST['pluginrollback'] ) && $_POST['pluginrol
 		$backup_plugin_only_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $_POST['slug'] . '/';
 
 		if (file_exists( $backup_plugin_dir ) ) {
-			// if ( version_compare( $_POST['version'],  get_plugin_data( $backup_plugin_dir )['Version'] ) == 1 ) {
+			// if ( version_compare( $_POST['version'], get_plugin_data( $backup_plugin_dir )['Version'], '>' ) ) {
 			// if ( get_plugin_data( $backup_plugin_dir )['Version'] ) {
 
 				$original_plugin_dir = WP_PLUGIN_DIR . '/' . $_POST['slug'] . '/';
