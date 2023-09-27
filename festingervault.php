@@ -25,7 +25,7 @@ if ( ! defined( 'FV_PLUGIN_ABSOLUTE_PATH' ) ) {
 if ( ! defined( 'FV_REST_API_URL' ) ) {
 	define( 'FV_REST_API_URL', 'https://engine.festingervault.com/api/' ); // Add to this base URL to make it specific to your plugin or theme.
 }
-define( 'FV_PLUGIN_VERSION', '4.1.0' );
+define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
 
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
