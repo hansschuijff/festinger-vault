@@ -809,9 +809,13 @@ function get_plugins_and_themes_matched_by_vault($plugin_theme, $get_slug){
         foreach ($all_plugins as $plugin_slug=>$values){
             $slugArray=explode('/',$plugin_slug);
 
-            $version=fv_esc_version($values['Version']);
-            $slug=get_plugin_slug_from_data($plugin_slug, $values);
-            $requested_plugins[]=['slug'=>$slug,'version'=>$version, 'dl_link'=>''];
+            $version             = fv_esc_version($values['Version']);
+            $slug                = fv_shorten_slug( $plugin_slug );
+            $requested_plugins[] = [
+				'slug'=>$slug,
+				'version'=>$version,
+				'dl_link'=>''
+			];
 
         }
     }

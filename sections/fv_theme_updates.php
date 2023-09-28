@@ -13,13 +13,13 @@
                     ?>
                     <button class="btn btn-sm float-end btn-custom-color btn-danger">
                         <?= ( 'domainblocked' == $license_histories->result ) ? 'DOMAIN IS BLOCKED' : ''; ?>
-                        <?= ( 'failed' == $license_histories->result ) ? 'NO ACTIVE LICENSE' : ''; ?>
+                        <?= ( 'failed'        == $license_histories->result ) ? 'NO ACTIVE LICENSE' : ''; ?>
                     </button>
                     <div class="row" style="padding-top:20px">
                         <div class="alert alert-danger alert-dismissible" role="alert">
                             <strong>Whoops!</strong>
                             <?= ( 'domainblocked' == $license_histories->result ) ? 'Your domain is blocked' : ''; ?>
-                            <?= ( 'failed' == $license_histories->result ) ? 'No active license was found' : ''; ?>
+                            <?= ( 'failed'        == $license_histories->result ) ? 'No active license was found' : ''; ?>
                             <?= $license_histories->msg ? ": " . $license_histories->msg : ''; ?>
                         </div>
                     </div>
@@ -63,17 +63,15 @@
                     <button class="btn btn-sm float-end primary-btn" id="manual_force_update_r">
                         FORCE UPDATE not in plan
                     </button>
-                    <button class="btn btn-sm float-end primary-btn" style="margin-right:10px" id="manual_force_update_instant_r">
+                    <button class="btn btn-sm float-end primary-btn" style="margin-right:10px;" id="manual_force_update_instant_r">
                         Instant update not in plan
                     </button>
-                <?php
-                endif;
-                ?>
+                <?php endif; ?>
             </h4>
         </div>
     </div>
     <?php
-    $success_message = fv_get_succes_message();
+    $success_message = fv_get_succes_message( context: 'themes' );
     if ( $success_message ) :
     ?>
         <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
@@ -116,7 +114,7 @@
                 endif;
 
                 /**
-                 * Render a theme rows
+                 * Render theme rows
                  */
                 foreach( $allThemes as $theme ) {
 
@@ -146,28 +144,30 @@
                             <!-- Desctription -->
                             <td class='plugin_update_width_40'><?php echo substr( wp_strip_all_tags( text: $theme->Description,  remove_breaks: true ), 0, 50 ) ?>...</td>
                             <!-- Plan -->
-                            <td class='plugin_update_width_10'><span class='badge bg-tag'>
-                            <?php
-                            foreach( $fvault_themes as $single_t ) {
-                                if ( $single_t->slug == $theme_slug ) {
-                                    switch ( $single_t->pkg_str_t ) {
-                                        case '1':
-                                            echo 'Onetime';
-                                            break;
+                            <td class='plugin_update_width_10'>
+                                <span class='badge bg-tag'>
+                                    <?php
+                                    foreach( $fvault_themes as $single_t ) {
+                                        if ( $single_t->slug == $theme_slug ) {
+                                            switch ( $single_t->pkg_str_t ) {
+                                                case '1':
+                                                    echo 'Onetime';
+                                                    break;
 
-                                        case '0':
-                                            echo 'Recurring';
-                                            break;
+                                                case '0':
+                                                    echo 'Recurring';
+                                                    break;
 
-                                        default:
-                                            echo 'Unknown';
+                                                default:
+                                                    echo 'Unknown';
+                                                    break;
+                                            }
                                             break;
+                                        }
                                     }
-                                    break;
-                                }
-                            }
-                            ?>
-                            </span> </td>
+                                    ?>
+                                </span>
+                            </td>
                             <!-- Version -->
                             <td class='plugin_update_width_10'>
                                 <!-- currently installed version -->
@@ -249,22 +249,3 @@
         </div>
     </div>
 </div>
-
-<?php
-/**
- * Determine message, to display when a button form is succesfully processed.
- *
- * @return string
- */
-function fv_get_succes_message(): string {
-    if ( isset( $_GET['force'] ) && 'success' == $_GET['force'] ) {
-        return 'Force update for themes run successfully!';
-    }
-    if ( isset( $_GET['rollback'] ) && 'success' == $_GET['rollback'] ) {
-        return 'Rollback run successfully!';
-    }
-    if ( isset( $_GET['instant'] ) && 'success' == $_GET['instant'] ) {
-        return 'Instant update run successfully!';
-    }
-    return '';
-}

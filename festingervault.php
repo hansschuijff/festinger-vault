@@ -74,7 +74,7 @@ function fv_custom_endpoint_create_auto( $request ) {
 	if ( ! empty( $all_plugins ) ) {
 		foreach ( $all_plugins as $plugin_slug => $values ) {
 			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = get_plugin_slug_from_data( $plugin_slug, $values );
+			$slug                   = fv_shorten_slug( $plugin_slug );
 			$requested_plugins[] = [
 				'slug'    => $slug,
 				'version' => $version,
@@ -287,7 +287,7 @@ function get_plugin_name_by_slug( $slug ) {
 		return $slug;
 	}
 	foreach ( $all_plugins as $plugin_basename => $plugin_data ) {
-		if ( $slug === get_plugin_slug_from_data( $plugin_basename, $plugin_data ) ) {
+		if ( $slug === fv_shorten_slug( $plugin_basename ) ) {
 			return $values['Name'];
 		}
 	}
@@ -1151,7 +1151,7 @@ function festinger_vault_theme_updates_function() {
 	if ( ! empty( $all_plugins ) ) {
 		foreach ( $all_plugins as $plugin_slug => $values ) {
 			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = get_plugin_slug_from_data( $plugin_slug, $values );
+			$slug                   = fv_shorten_slug( $plugin_slug );
 			$requested_plugins[] = [
 				'slug'    => $slug,
 				'version' => $version,
@@ -1224,90 +1224,49 @@ function festinger_vault_theme_updates_function() {
  */
 function festinger_vault_plugin_updates_function() {
 
-	$allPlugins           = fv_get_plugins();
-	$activePlugins        = get_option( 'active_plugins' );
+	$plugins = get_installed_plugins_for_api_request();
 
-	$requested_plugins = [];
-	$requested_themes  = [];
-	$all_plugins          = fv_get_plugins();
-
-	if ( ! empty( $all_plugins ) ) {
-		foreach ( $all_plugins as $plugin_slug=>$values ) {
-			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = get_plugin_slug_from_data( $plugin_slug, $values );
-			$requested_plugins[] = [
-				'slug'    => $slug,
-				'version' => $version,
-				'dl_link' => ''
-			];
-		}
-	}
-
-	$allThemes = fv_get_themes();
-	foreach( $allThemes as $theme ) {
-		$get_theme_slug = fv_get_wp_theme_slug( $theme );
-		$requested_themes[] = [
-			'slug'    => $get_theme_slug,
-			'version' => $theme->Version,
-			'dl_link' => ''
-		];
-	}
-
-	$chunkSize                  = 95;
-	$firstChunkSize             = $chunkSize - count( $requested_themes );
-	$requested_pluginss      = fv_array_split( $requested_plugins, $firstChunkSize, $chunkSize );
-
-	$fetching_plugin_lists      = [];
-	$fetching_plugin_lists_full = [];
-	$dwp_first_cycle            = true;
-
-	foreach ( $requested_pluginss as $requested_plugins ) {
+	foreach ( fv_array_equal_split( array: $plugins, chunkSize: 75 ) as $plugins ) {
 
 		$plugin_api_param = array(
 			'license_key'     => fv_get_license_key(),
 			'license_key_2'   => fv_get_license_key_2(),
 			'license_d'       => fv_get_license_domain_id(),
 			'license_d_2'     => fv_get_license_domain_id_2(),
-			'all_plugin_list' => $requested_plugins,
-			'all_theme_list'  => $dwp_first_cycle ? $requested_themes : [],
+			'all_plugin_list' => $plugins,
+			'all_theme_list'  => [],
 			'license_pp'      => $_SERVER['REMOTE_ADDR'],
 			'license_host'    => $_SERVER['HTTP_HOST'],
 			'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 			'license_v'       => FV_PLUGIN_VERSION,
-		 );
+		);
 
-		$dwp_first_cycle       = false;
 		$query_pl_updater      = esc_url_raw( add_query_arg( $plugin_api_param, FV_REST_API_URL . 'plugin-theme-updater' ) );
 		$response_pl_updater   = fv_remote_run_query( $query_pl_updater );
 		$pluginUpdate_get_data = json_decode( wp_remote_retrieve_body( $response_pl_updater ) );
 
-		if ( ! isset( $pluginUpdate_get_data->result )
-		||   ! in_array( $pluginUpdate_get_data->result, array( 'domainblocked', 'failed' ) ) ) {
-			foreach( $pluginUpdate_get_data->plugins as $plugin ) {
-				$fetching_plugin_lists[]      = $plugin->slug;
-				$fetching_plugin_lists_full[] = $plugin;
+		if ( isset( $pluginUpdate_get_data->result )
+		&&   fv_api_call_failed( $pluginUpdate_get_data->result ) ) {
+
+			if ( fv_domain_blocked( $pluginUpdate_get_data->result ) ) {
+				break;
 			}
+			continue;
+		}
+		if ( empty( $fv_plugins ) ) {
+			$fv_plugins = (array) $pluginUpdate_get_data->plugins;
+		} else {
+			$fv_plugins = array_merge( $fv_plugins, (array) $pluginUpdate_get_data->plugins );
 		}
 	}
 
-	$is_update_available = 0;
-	$new_version         = '';
+	$fv_plugins           = fv_remove_duplicate_plugins( $fv_plugins );
+	$fv_plugins           = fv_make_plugin_basename_key( $fv_plugins );
+	$fv_plugin_updates    = fv_get_plugin_updates( $fv_plugins );
 
-	// find out if there is any update available.
-	if ( ! empty( $fetching_plugin_lists ) ) {
-		foreach( $allPlugins as $p_basename => $p_details ) {
-			if ( in_array( get_plugin_slug_from_data( $p_basename, $p_details ), $fetching_plugin_lists ) ) {
-				foreach( $fetching_plugin_lists_full as $fv_plugin ) {
-					if ( $fv_plugin->slug == get_plugin_slug_from_data( $p_basename, $p_details )
-					&&   version_compare( $fv_plugin->version, $p_details['Version'], '>' ) ) {
-						$is_update_available = 1;
-						// When an update is found, we can break out both loops and go to the page rendering.
-						break 2;
-					}
-				}
-			}
-		}
-	}
+	// legacy code:
+	// $fvault_plugins       = array_values( $fv_plugins );
+	// $fvault_plugins_slugs = array_keys( $fv_plugins );
 
 	// render the plugin update page.
 	include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php' );
@@ -1362,7 +1321,7 @@ function activeThemesVersions() {
 	if ( ! empty( $all_plugins ) ) {
 		foreach ( $all_plugins as $plugin_slug => $values ) {
 			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = get_plugin_slug_from_data( $plugin_slug, $values );
+			$slug                   = fv_shorten_slug( $plugin_slug );
 			$requested_plugins[] = [
 				'slug'    => $slug,
 				'version' => $version,
@@ -1457,7 +1416,7 @@ function activePluginsVersions() {
 		foreach ( $all_plugins as $plugin_slug=>$values ) {
 
 			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = get_plugin_slug_from_data( $plugin_slug, $values );
+			$slug                   = fv_shorten_slug( $plugin_slug );
 			$requested_plugins[] = [
 				'slug'    => $slug,
 				'version' => $version,
@@ -1498,16 +1457,16 @@ function activePluginsVersions() {
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
 		// build an array of plugin slugs from festinger vault results
-		$fetching_plugin_lists = [];
+		$fvault_plugins_slugs = [];
 		foreach( $license_histories->plugins as $plugin ) {
-			$fetching_plugin_lists[] = $plugin->slug;
+			$fvault_plugins_slugs[] = $plugin->slug;
 		}
 
 		$activePlugins = get_option( 'active_plugins' );
 
 		foreach( $allPlugins as $key => $value ) {
 
-			if ( in_array( get_plugin_slug_from_data( $key, $value ), $fetching_plugin_lists ) ) {
+			if ( in_array( fv_shorten_slug( $key ) ) ) {
 
 				// installed plugin also in festinger vault.
 
@@ -1520,7 +1479,7 @@ function activePluginsVersions() {
 							<span class='badge bg-success'>Active</span>
 							</td>";
 					echo "<td class='plugin_update_width_60'>". substr( $value['Description'], 0, 180 )."...
-							<br/>Slug: ".get_plugin_slug_from_data( $key, $value )."
+							<br/>Slug: " . fv_shorten_slug( $key )."
 					</td>";
 					echo "<td>{$value['Version']}</td>";
 
@@ -1540,7 +1499,7 @@ function activePluginsVersions() {
 							</td>";
 					echo "<td class='plugin_update_width_60'>". substr( $value['Description'], 0, 180 )."...
 
-							<br/>Slug: ".get_plugin_slug_from_data( $key, $value )."
+							<br/>Slug: " . fv_shorten_slug( $key )."
 
 						</td>";
 					echo "<td>{$value['Version']}</td>";
@@ -1552,32 +1511,6 @@ function activePluginsVersions() {
 			}
 		}
 	}
-}
-
-/**
- * Determine slug of the plugin:
- *
- * @param string $slug_by_directory The plugins slug.
- * @param array $details_array The plugins data.
- * @return string The plugins textdomain if available, otherwise the dir part from the slug.
- */
-function get_plugin_slug_from_data( $slug_by_directory, $details_array ) {
-
-	$slug_by_directory = explode( '/', $slug_by_directory )[0];
-	$final_slug        = '';
-
-	// note that this comparison is redundant.
-	// The code will always choose textdomain if filled.
-	if ( $details_array['TextDomain'] == $slug_by_directory ) {
-		$final_slug = $details_array['TextDomain'];
-	} else {
-		if ( empty( $details_array['TextDomain'] ) ) {
-			$final_slug = $slug_by_directory;
-		} else {
-			$final_slug = $details_array['TextDomain'];
-		}
-	}
-	return $final_slug;
 }
 
 /**
@@ -1734,7 +1667,7 @@ function get_plugin_theme_data( $request_list = 'all' ) {
 
 		foreach( $allPlugins as $plugin_basename => $plugin_data ) {
 
-			$plugin_slug         = get_plugin_slug_from_data( $plugin_basename, $plugin_data );
+			$plugin_slug         = fv_shorten_slug( $plugin_basename );
 			$all_plugins_list [] = $plugin_slug;
 
 			if (  in_array( $plugin_basename, $activePlugins ) ) {
@@ -1855,9 +1788,9 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 		foreach ( $all_plugins as $plugin_basename => $plugin_data ) {
 
 			$version   = fv_esc_version( $plugin_data['Version'] );
-			$slug      = get_plugin_slug_from_data( $plugin_basename, $plugin_data );
+			$slug      = fv_shorten_slug( $plugin_basename );
 
-			if ( fv_should_auto_update_plugin( $slug ) ) {
+			if ( fv_should_plugin_auto_update( $slug ) ) {
 				$requested_plugins[] = [
 					'slug'    => $slug,
 					'version' => $version,
@@ -2160,7 +2093,7 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 					foreach ( $all_plugins as $plugin_basename => $data ) {
 
 						$version = fv_esc_version( $data['Version'] );
-						$slug    = get_plugin_slug_from_data( $plugin_basename, $data );
+						$slug    = fv_shorten_slug( $plugin_basename );
 
 						$get_plugin_directory[] = [
 							'dir' 	 => explode( '/', $plugin_basename )[0],
@@ -2381,16 +2314,17 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 }
 
 function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_theme_slug = array() ) {
-	$t_dl_fl_sz = 10;
-	$requested_plugins=[];
-	$requested_themes=[];
-	$all_plugins = fv_get_plugins();
+
+	$t_dl_fl_sz        = 10;
+	$requested_plugins = [];
+	$requested_themes  = [];
+	$all_plugins       = fv_get_plugins();
 
 	if ( ! empty( $all_plugins ) ) {
 
 		foreach ( $all_plugins as $plugin_slug => $values ) {
 			$version = fv_esc_version( $values['Version'] );
-			$slug    = get_plugin_slug_from_data( $plugin_slug, $values );
+			$slug    = fv_shorten_slug( $plugin_slug );
 
 			if ( ! empty( $single_plugin_theme_slug ) ) {
 				if ( count( $single_plugin_theme_slug ) > 0 ) {
@@ -2690,9 +2624,9 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 				if ( ! empty( $all_plugins ) ) {
 
-					foreach ( $all_plugins as $plugin_slug=>$values ) {
-						$version=fv_esc_version( $values['Version'] );
-						$slug=get_plugin_slug_from_data( $plugin_slug, $values );
+					foreach ( $all_plugins as $plugin_slug => $values ) {
+						$version = fv_esc_version( $values['Version'] );
+						$slug    = fv_shorten_slug( $plugin_slug );
 						$get_plugin_directory[] = [
 													'dir' 	 => explode( '/',$plugin_slug )[0],
 													'slug'	 => $slug,
@@ -3159,17 +3093,17 @@ function get_plugin_theme_data_details( $request_list = 'all' ) {
 		if ( in_array( $key, $activePlugins ) ) {
 			$all_plugins_list []    = [
 				'name' => urlencode( $value['Name'] ),
-				'slug' => get_plugin_slug_from_data( $key, $value )
+				'slug' => fv_shorten_slug( $key )
 			];
 		} else {
 			$all_plugins_list []    = [
 				'name'=> urlencode( $value['Name'] ),
-				'slug'=> get_plugin_slug_from_data( $key, $value )
+				'slug'=> fv_shorten_slug( $key )
 			];
 		}
 		$get_inactive_plugins[] = [
 			'name'=> urlencode( $value['Name'] ),
-			'slug'=> get_plugin_slug_from_data( $key, $value )
+			'slug'=> fv_shorten_slug( $key )
 		];
 	}
 
@@ -3650,7 +3584,7 @@ function get_plugin_basefile_by_slug( string $given_slug ): string|false {
 
 	foreach ( $all_plugins as $basename => $data ) {
 
-		$slug = get_plugin_slug_from_data( $basename, $data );
+		$slug = fv_shorten_slug( $basename );
 
 		if ( $given_slug == $slug ) {
 			return $basename;
@@ -3719,18 +3653,23 @@ function check_rollback_availability( $slug, $version, $plugin_or_theme ) {
 		$backup_plugin_dir    = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $plugin_base_file_get;
 
 		if ( file_exists( $backup_plugin_dir ) ) {
-			if ( version_compare( $version, get_plugin_data( $backup_plugin_dir )['Version'], '>' ) ) {
-		?>
-			<form name="plugin_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback?' ) ) {return false;}">
-				<input type="hidden" name="slug" value="<?= $slug;?>" />
-				<input type="hidden" name="version" value="<?= $version;?>" />
-				<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="pluginrollback"
-					value="plugin">Rollback <?= get_plugin_data( $backup_plugin_dir )['Version'];?></button>
-			</form>
-		<?php
-			} else {
-				echo "<div class=' bg-tag border-8 text-center rollback-not-available'>Not Available</div>";
-			}
+				if ( version_compare( $version, get_plugin_data( $backup_plugin_dir )['Version'], '>' ) ) {
+				?>
+					<form name="plugin_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback?' ) ) {return false;}">
+						<input type="hidden" name="slug" value="<?= $slug;?>" />
+						<input type="hidden" name="version" value="<?= $version;?>" />
+						<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="pluginrollback" value="plugin">
+							Rollback <?= get_plugin_data( $backup_plugin_dir )['Version'];?>
+						</button>
+					</form>
+				<?php
+				} else {
+				?>
+					<div class=' bg-tag border-8 text-center rollback-not-available'>
+						Not Available
+					</div>
+				<?php
+				}
 		} else {
 			echo "<div class='bg-tag border-8 text-center rollback-not-available'>Not Available</div>";
 		}
@@ -3856,7 +3795,7 @@ add_filter( 'auto_update_plugin', 'auto_update_specific_plugins', 10, 2 );
  *
  * @return array Filtered output of get_plugins().
  */
-function fv_get_plugins() {
+function fv_get_plugins(): array {
 	return fv_remove_wp_org_plugins( get_plugins() );
 }
 
@@ -4070,16 +4009,6 @@ if ( ! function_exists( 'str_remove_prefix' ) ) {
 	}
 }
 
-function fv_should_auto_update_plugin( string $slug ): bool	{
-
-	if ( empty( $slug ) ) {
-		return false;
-	}
-
-	return is_array( get_option( 'fv_plugin_auto_update_list' ) )
-		&& in_array( $slug, get_option( 'fv_plugin_auto_update_list' ) );
-}
-
 function fv_should_auto_update_theme( string $slug ): bool	{
 
 	if ( empty( $slug ) ) {
@@ -4090,6 +4019,18 @@ function fv_should_auto_update_theme( string $slug ): bool	{
 
 	return is_array( get_option( 'fv_themes_auto_update_list' ) )
 		&& in_array( $slug, get_option( 'fv_themes_auto_update_list' ) );
+}
+
+function fv_should_plugin_auto_update( string $slug ): bool	{
+
+	if ( empty( $slug ) ) {
+		return false;
+	}
+	// note: in fv_plugin_updates.php array_search was used. Is that better?
+	// ( array_search( $slug, get_option( 'fv_plugin_auto_update_list' ) ) ) !== false
+
+	return is_array( get_option( 'fv_plugin_auto_update_list' ) )
+		&& in_array( $slug, get_option( 'fv_plugin_auto_update_list' ) );
 }
 
 /**
@@ -4371,4 +4312,255 @@ function fv_save_license_2( array $license_data ) {
 	add_option( '_ls_d_sf_2',              $license_data['_ls_d_sf'] );
 
 	return true;
+}
+
+/**
+ * Determine message, to display when a button form is succesfully processed.
+ *
+ * @param string $context 'plugins' or 'themes'
+ * @return string
+ */
+function fv_get_succes_message( string $context = 'plugins' ): string {
+
+    if ( isset( $_GET['force'] ) && 'success' == $_GET['force'] ) {
+        return "Force update for {$context} run successfully!";
+    }
+    if ( isset( $_GET['rollback'] ) && 'success' == $_GET['rollback'] ) {
+        return 'Rollback run successfully!';
+    }
+    if ( isset( $_GET['instant'] ) && 'success' == $_GET['instant'] ) {
+        return 'Instant update run successfully!';
+    }
+    return '';
+}
+
+if ( ! function_exists( 'str_remove_suffix' ) ) {
+	function str_remove_suffix( $str, $suffix ) {
+		if ( ! str_ends_with( haystack: $str, needle: $suffix ) ) {
+			return $str;
+		}
+		return substr( string: $str, offset: 0, length: -strlen( $suffix ) );
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\str_contains' ) ) {
+	/**
+	 * Polyfill for `str_contains()` function added in PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if needle is
+	 * contained in haystack.
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the haystack.
+	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
+	 */
+	function str_contains( string $haystack, string $needle ): bool {
+		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\str_starts_with' ) ) {
+	/**
+	 * Polyfill for `str_starts_with()` function added in PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if
+	 * the haystack begins with needle.
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
+	 */
+	function str_starts_with( string $haystack, string $needle ): bool {
+		return ( '' === $needle || 0 === strpos( $haystack, $needle ) );
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\str_ends_with' ) ) {
+	/**
+	 * Polyfill for `str_ends_with()` function added in PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if
+	 * the haystack ends with needle.
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		$len = strlen( $needle );
+		if ( strlen( $haystack ) < $len ) {
+			return false;
+		}
+		return 0 === substr_compare( haystack: $haystack, needle: $needle, offset: -$len, length: $len );
+	}
+}
+
+/**
+ * Translates WordPress plugin slug into a short version for Festinger Vault.
+ *
+ * @param string $plugin_slug Plugin slug.
+ * @param array $plugin_data
+ * @return string|false
+ */
+function fv_shorten_slug( string $plugin_slug ): string|false {
+	if ( empty( $plugin_slug ) ) {
+		return false;
+	}
+
+	// for now just return old fv slug since server works better with that.
+	return fv_get_plugin_slug( $plugin_slug );
+
+	$short_slug  = explode( '/', $plugin_slug, )[0];
+	// In case the plugin was just one file in the plugins folder.
+	$short_slug  = str_remove_suffix( $short_slug, '.php' );
+	return $short_slug;
+}
+
+/**
+ * Remove duplicate plugins in the result array returned by the api.
+ *
+ * @param array $fv_plugins An array with data of plugins returned by the FV API per plugin a stdClass object with slug, version, dl_link and pkg_str.
+ * @return array An associated array with only the data of the newest plugin versions from $fv_plugins.
+ */
+function fv_remove_duplicate_plugins( array $fv_plugins ): array {
+
+	foreach( $fv_plugins as $fv_plugin ) {
+		if ( ! isset( $fv_plugin->slug )
+        ||   ! isset( $fv_plugin->version ) ) {
+            continue;
+        }
+        if ( isset( $fv_uniq_plugins[ $fv_plugin->slug ] )
+        && ! version_compare( $fv_plugin->version, $fv_uniq_plugins[ $fv_plugin->slug ]->version, '>') ) {
+            continue;
+        }
+
+        $fv_uniq_plugins[ $fv_plugin->slug ] = $fv_plugin;
+    }
+
+    return $fv_uniq_plugins;
+}
+
+/**
+ * Changes the result array of fv_remove_duplicate_plugins()
+ * to make the plugin basename the array key (for better comparison).
+ *
+ * @param array $fv_plugins An associated array of plugins with $fv_slug as key and a stdClass object with slug, version, dl_link and pkg_str as returned by api.
+ * @return array A copy of $fv_plugins but now with the plugins basename as key.
+ */
+function fv_make_plugin_basename_key( array $fv_plugins ): array {
+
+    $fv_plugins_new = array();
+
+    foreach( fv_get_plugins() as $plugin_basename => $plugin_data ) {
+
+        // Festinger Vault id's plugins with a shortened slug than WordPress.
+        $fv_slug = fv_shorten_slug( $plugin_basename );
+        if ( ! $fv_slug ) {
+            continue;
+        }
+        if ( ! isset( $fv_plugins[ $fv_slug ] ) ) {
+            // No such plugin in Festinger Vault
+            continue;
+        }
+
+		$fv_plugins_new[ $plugin_basename ] = $fv_plugins[ $fv_slug ];
+    }
+
+	// sort array asc by key
+    ksort( $fv_plugins_new );
+
+	return $fv_plugins_new;
+}
+
+/**
+ * Removes plugins from $fv_plugins that are not newer than the currently installed version.
+ *
+ * Builds on the result of fv_make_plugin_basename_array_key(),
+ * so the array key should already be the plugins basename.
+ *
+ * @param array $fv_plugins An associated array of plugins with the plugins basename as key.
+ * @return array A copy of $fv_plugins containing only plugins that have a newer version in the Vault.
+ */
+function fv_get_plugin_updates( array $fv_plugins ): array {
+
+	$fv_plugin_updates = array();
+	$plugins           = fv_get_plugins();
+
+    foreach( $fv_plugins as $plugin_basename => $fv_plugin ) {
+
+		if ( $plugins[ $plugin_basename ]
+		&& version_compare( $fv_plugin->version, $plugins[ $plugin_basename ]['Version'], '>' ) ) {
+            // There is an update!
+            $fv_plugin_updates[ $plugin_basename ] = $fv_plugins[ $plugin_basename ];
+        }
+    }
+
+	return $fv_plugin_updates;
+}
+
+/**
+ * Translates a plugins package type to a human readable string.
+ *
+ * @param string $pkg_str should be either '0' or '1'
+ * @return string
+ */
+function fv_get_package_type( string $pkg_str ): string {
+    switch ( $pkg_str ) {
+        case '1':
+            return 'Onetime';
+            break;
+
+        case '0':
+            return 'Recurring';
+            break;
+
+        default:
+        break;
+
+    }
+    return 'Unknown';
+}
+
+/**
+ * Gets an array of installed plugins formatted for the FV API.
+ *
+ * @return array
+ */
+function get_installed_plugins_for_api_request(): array {
+
+	$plugins = [];
+
+	foreach ( fv_get_plugins() as $slug => $plugin_data ) {
+		$plugins[] = [
+			'slug'    => fv_shorten_slug( $slug ),
+			'version' => fv_esc_version( $plugin_data['Version'] ),
+			'dl_link' => ''
+		];
+	}
+
+	return $plugins;
+}
+
+function fv_domain_blocked( string $result ) : bool {
+	return 'domainblocked' === $result;
+}
+
+function fv_license_failed( string $result ) : bool {
+	return 'failed' === $result;
+}
+
+function fv_api_call_failed( string $result ) : bool {
+	return in_array( $result, array( 'domainblocked', 'failed' ) );
+}
+
+function fv_get_plugin_slug( $basename ){
+
+    $slug       = explode('/', $basename)[0];
+    $plugin     = get_plugin_data( trailingslashit( WP_PLUGIN_DIR ) . $basename );
+
+	if( empty( $plugin['TextDomain'] ) ){
+		return $slug;
+	}
+
+	return $plugin['TextDomain'];
 }
