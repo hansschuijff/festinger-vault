@@ -252,7 +252,7 @@ function fv_plugin_support_link(){
 	$genData = null;
 
 	// fv_plugin_support_link
-	if( fv_has_license() ) {
+	if( fv_has_any_license() ) {
 		$genData = json_encode([
 			'result'              => 'success',
 			'license_key'         => fv_has_license_1() ? fv_get_license_key() : fv_get_license_key_2(),
@@ -296,7 +296,7 @@ function fv_plugin_report_link(){
     $genData = null;
 
 	//fv_plugin_report_link
-	if( fv_has_license() ){
+	if( fv_has_any_license() ){
 		$genData = json_encode([
 			'result'              => 'success',
 			'license_key'         => fv_has_license_1() ? fv_get_license_key() : fv_get_license_key_2(),
@@ -810,7 +810,7 @@ function get_plugins_and_themes_matched_by_vault($plugin_theme, $get_slug){
             $slugArray=explode('/',$plugin_slug);
 
             $version             = fv_esc_version($values['Version']);
-            $slug                = fv_shorten_slug( $plugin_slug );
+            $slug                = fv_get_slug( $plugin_slug );
             $requested_plugins[] = [
 				'slug'=>$slug,
 				'version'=>$version,
@@ -829,7 +829,7 @@ function get_plugins_and_themes_matched_by_vault($plugin_theme, $get_slug){
         $requested_themes[]=['slug'=>$get_theme_slug,'version'=>$theme->Version, 'dl_link'=>''];
     }
 
-	if ( fv_has_license() ) {
+	if ( fv_has_any_license() ) {
 
 		$api_params = array(
 		    'license_key'     => fv_get_license_key(),

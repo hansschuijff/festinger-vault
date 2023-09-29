@@ -1,26 +1,63 @@
 <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
 
+<?php
+/**
+ * This file uses the following vars/data:
+ *
+ * $fv_api->result
+ * $fv_api->msg
+ * $fv_api->manual_force_update
+ * $fv_themes
+ * $fv_theme_updates
+ */
+?>
+
 <div class="container-padding">
-    <div class="row" style="padding-top:20px">
-        <div class="col-md-12 plugin_updated_h4 pb-2 px-0">
-            <h4 class="mb-0">Automatic theme update management
+    <div class="row" style="padding-top: 20px;">
+        <div class="col-md-12 theme_updated_h4 pb-2 px-0">
+            <h4 class="mb-0">
+                Automatic theme update management
                 <?php
                 /**
                  * Handle Blocked domain or license failure.
                  */
-                if ( isset( $license_histories->result )
-                &&   in_array( $license_histories->result, array( 'domainblocked', 'failed' ) ) ) :
+                if ( isset( $fv_api->result )
+                &&   fv_api_call_failed( $fv_api->result ) ) :
                     ?>
                     <button class="btn btn-sm float-end btn-custom-color btn-danger">
-                        <?= ( 'domainblocked' == $license_histories->result ) ? 'DOMAIN IS BLOCKED' : ''; ?>
-                        <?= ( 'failed'        == $license_histories->result ) ? 'NO ACTIVE LICENSE' : ''; ?>
+                    <?php
+                        switch ( true ) {
+                            case fv_domain_blocked( $fv_api->result ):
+                                echo 'DOMAIN IS BLOCKED';
+                                break;
+
+                            case fv_license_failed( $fv_api->result ):
+                                echo 'NO ACTIVE LICENSE';
+                                break;
+
+                            default:
+                                break;
+                        }
+                    ?>
                     </button>
-                    <div class="row" style="padding-top:20px">
+                    <div class="row" style="padding-top: 20px;">
                         <div class="alert alert-danger alert-dismissible" role="alert">
                             <strong>Whoops!</strong>
-                            <?= ( 'domainblocked' == $license_histories->result ) ? 'Your domain is blocked' : ''; ?>
-                            <?= ( 'failed'        == $license_histories->result ) ? 'No active license was found' : ''; ?>
-                            <?= $license_histories->msg ? ": " . $license_histories->msg : ''; ?>
+                            <?php
+                            switch ( true ) {
+                                case fv_domain_blocked( $fv_api->result ):
+                                    echo 'Your domain is blocked';
+                                    break;
+
+                                case fv_license_failed( $fv_api->result ):
+                                    echo 'No active license was found, please activate a license first';
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                            echo $fv_api->msg ? ": " . $fv_api->msg : '';
+                            ?>
                         </div>
                     </div>
                     <?php
@@ -30,10 +67,11 @@
                 /**
                  * Render force update buttons.
                  */
-                if ( isset( $license_histories->manual_force_update )
-                &&  $license_histories->manual_force_update == 'yes' ):
-                    if ( $is_update_available ):
-                        ?>
+                if ( isset( $fv_api->manual_force_update )
+                &&          $fv_api->manual_force_update == 'yes' ):
+
+                    if ( empty( $fv_themes_update ) ):
+                    ?>
                         <!-- Force update now button -->
                         <form class="float-end" name="force_theme_update" method="POST">
                             <button class="btn btn-sm float-end primary-btn" id="themeforceupdate" type="submit" name="themeforceupdate" value="theme">
@@ -42,7 +80,7 @@
                         </form>
                         <!-- Instant update all button -->
                         <form class="float-end" name="force_theme_update" method="POST">
-                            <button class="btn btn-sm float-end primary-btn" id="themeforceupdate_instant" type="submit" name="themeforceupdate_instant" style="margin-right:10px" value="theme">
+                            <button class="btn btn-sm float-end primary-btn" id="themeforceupdate_instant" type="submit" name="themeforceupdate_instant" style="margin-right: 10px;" value="theme">
                                 Instant Update All
                             </button>
                         </form>
@@ -51,7 +89,7 @@
                         <button class="btn btn-sm float-end primary-btn" id="no_update_available">
                             NO UPDATES AVAILABLE
                         </button>
-                        <button class="btn btn-sm float-end primary-btn" style="margin-right:10px" id="no_instant_update_available">
+                        <button class="btn btn-sm float-end primary-btn" style="margin-right: 10px;" id="no_instant_update_available">
                             No updates available
                         </button>
 
@@ -63,46 +101,48 @@
                     <button class="btn btn-sm float-end primary-btn" id="manual_force_update_r">
                         FORCE UPDATE not in plan
                     </button>
-                    <button class="btn btn-sm float-end primary-btn" style="margin-right:10px;" id="manual_force_update_instant_r">
+                    <button class="btn btn-sm float-end primary-btn" style="margin-right: 10px;" id="manual_force_update_instant_r">
                         Instant update not in plan
                     </button>
                 <?php endif; ?>
             </h4>
         </div>
     </div>
-    <?php
-    $success_message = fv_get_succes_message( context: 'themes' );
-    if ( $success_message ) :
-    ?>
-        <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
-            <strong><?php echo $success_message; ?></strong>
-            <a href="<?= admin_url( 'admin.php?page=festinger-vault-theme-updates' ); ?>" class="btn-close" aria-label="Close"></a>
-        </div>
-    <?php endif; ?>
+    <div class="row" style="padding-top:20px;">
+        <?php
+        /**
+         * Render success message if theme update or rollback has been performed.
+         */
+        $success_message = fv_get_succes_message( context: 'themes' );
+        if ( $success_message ) :
+        ?>
+            <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
+                <strong><?php echo $success_message; ?></strong>
+                <a href="<?= admin_url( 'admin.php?page=festinger-vault-theme-updates' ); ?>" class="btn-close" aria-label="Close"></a>
+            </div>
+        <?php endif; ?>
 
         <div class="col-md-12 card-bg-cus" style="overflow-x: scroll;">
             <table
-                class="table table-responsive borderless table-borderless update_plugin"
+                class="table table-responsive borderless table-borderless update_theme"
                 style="border-collapse: separate; border-spacing: 0 12px;">
+                <!-- table headers -->
                 <tr>
                     <th class="text-grey">Name</th>
                     <th class="text-grey">Description</th>
                     <th class="text-grey">Plan</th>
                     <th class="text-grey" style="min-width: 130px;">Version</th>
-                    <th class="text-grey text-center plugin_update_width_10">Auto update</th>
-                    <th class="text-grey text-center plugin_update_width_10">Instant update</th>
-                    <th class="text-grey plugin_update_width_15 text-center" style=" min-width: 125px;">Rollback</th>
+                    <th class="text-grey text-center theme_update_width_10">Auto update</th>
+                    <th class="text-grey text-center theme_update_width_10">Instant update</th>
+                    <th class="text-grey theme_update_width_15 text-center" style="min-width: 125px;   ">Rollback</th>
                 </tr>
                 <?php
-                /**
-                 * If remote Vault didn't return themes,
-                 * then just render a message and skip further processing.
-                 */
-                if ( empty( $fvault_themes_slugs ) ):
-                    ?>
+                // No theme data to show
+                if ( empty( $fv_themes ) ):
+                ?>
                     <tr>
                         <td colspan='5'>
-                            <span style='color:#fff; text-align:center;'>
+                            <span style='color: #fff; text-align: center;'>
                                 No theme data found.
                             </span>
                         </td>
@@ -113,136 +153,100 @@
                     return;
                 endif;
 
+                $active_theme = wp_get_theme(); // Defaults to the active theme.
+
                 /**
                  * Render theme rows
                  */
-                foreach( $allThemes as $theme ) {
+                foreach( $fv_themes as $fv_theme_stylesheet => $fv_theme ) {
 
-                    $theme_slug           = fv_get_wp_theme_slug( $theme );
-                    $theme_update_version = '';
+                    if ( isset( $fv_theme_updates[ $fv_theme_stylesheet ] ) ) {
+                        $fv_theme_has_update  = true;
+                        $bgredhere            = 'style="background: #f33059; border-radius: 5px;"';
+                    } else {
+                        $fv_theme_has_update  = false;
+                        $bgredhere            = '';
+                    }
 
-                    if ( fv_should_auto_update_theme( $theme_slug ) ) {
+                    if ( fv_should_auto_update_theme( $fv_theme['slug'] ) ) {
                         $auto_update_toggle_checked = 'checked';
                     } else {
                         $auto_update_toggle_checked = '';
                     }
-
-                    if ( in_array( $theme_slug, $fvault_themes_slugs ) ) {
-
-                        $active_theme_marker = '';
-                        if ( $activeTheme->Name == $theme->Name ) {
-                            $active_theme_marker = "<span class='badge bg-tag'>Active</span>";
-                        }
-                        ?>
-
-                        <tr class="table-tr mb-2">
-                            <!-- Name -->
-                            <td class='plugin_update_width_20'>
-                                <?php echo $theme->name; ?> <br/>
-                                <?php echo $active_theme_marker; ?>
-                            </td>
-                            <!-- Desctription -->
-                            <td class='plugin_update_width_40'><?php echo substr( wp_strip_all_tags( text: $theme->Description,  remove_breaks: true ), 0, 50 ) ?>...</td>
-                            <!-- Plan -->
-                            <td class='plugin_update_width_10'>
-                                <span class='badge bg-tag'>
-                                    <?php
-                                    foreach( $fvault_themes as $single_t ) {
-                                        if ( $single_t->slug == $theme_slug ) {
-                                            switch ( $single_t->pkg_str_t ) {
-                                                case '1':
-                                                    echo 'Onetime';
-                                                    break;
-
-                                                case '0':
-                                                    echo 'Recurring';
-                                                    break;
-
-                                                default:
-                                                    echo 'Unknown';
-                                                    break;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    ?>
-                                </span>
-                            </td>
-                            <!-- Version -->
-                            <td class='plugin_update_width_10'>
+                    ?>
+                    <tr class="table-tr mb-2">
+                        <!-- Name -->
+                        <td class='theme_update_width_20'>
+                            <?php echo $fv_theme['name']; ?> <br/>
+                            <?php if ( $fv_theme_stylesheet === $active_theme->stylesheet ): ?>
+                                <span class='badge bg-tag'>Active</span>
+                            <?php endif; ?>
+                        </td>
+                        <!-- Desctription -->
+                        <td class='theme_update_width_40'>
+                            <?php echo substr( wp_strip_all_tags( text: $fv_theme['description'], remove_breaks: true ), 0, 50 ) ?>...
+                        </td>
+                        <!-- Plan -->
+                        <td class='theme_update_width_10'>
+                            <span class='badge bg-tag'>
+                                <?php echo ucfirst( fv_get_package_type( $fv_theme['pkg_str_t'] ) ); ?>
+                            </span>
+                        </td>
+                        <!-- Version -->
+                        <td class='theme_update_width_10'>
+                            <div class='row'>
                                 <!-- currently installed version -->
-                                <div class='row'>
-                                    <div class='col-6 text-left text-grey'>Current</div>
-                                    <div class='col-6 text-left'><?php echo $theme->Version; ?>
+                                <div class='col-6 text-left text-grey'>Current</div>
+                                <div class='col-6 text-left'>
+                                    <?php echo $fv_theme['installed-version']; ?>
                                 </div>
                                 <!-- available update -->
                                 <?php
-                                $bgredhere = '';
-
-                                foreach( $fvault_themes as $single_t ) {
-
-                                    if ( $single_t->slug == $theme_slug
-                                    &&   version_compare( $single_t->version, $theme->Version, '>' ) ) {
-                                        /**
-                                         * if more than one theme update available,
-                                         * take the highest version.
-                                         */
-                                        if ( empty( $theme_update_version )
-                                        ||  version_compare( $single_t->version, $theme_update_version, '>' ) ) {
-                                            $theme_update_version = $single_t->version;
-                                            $bgredhere            = 'style="background: #f33059; border-radius: 5px;"';
-                                        }
-                                        continue;
-                                    }
-                                }
-                                if ( ! empty( $theme_update_version ) ) {
+                                if ( $fv_theme_has_update ):
                                 ?>
                                     <div class="col-6 text-left text-grey">New</div>
                                     <div class="col-6 text-left" <?php echo $bgredhere; ?> >
-                                        <?php echo $theme_update_version; ?>
+                                        <?php echo $fv_theme['version']; ?>
                                     </div>
-                                <?php
-                                }
-                                ?>
-                            </td>
-                            <!-- Auto-update -->
-                            <td class='position-relative auto_theme_update_switch'>
-                                <center style='white-space:nowrap!important; word-break:nowrap; position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );'>
-                                    <input class='auto_theme_update_switch' data-id='<?php echo $theme_slug; ?>' type='checkbox' <?php echo $auto_update_toggle_checked; ?> data-toggle='toggle' data-style='custom' data-size='xs'>
-                                </center>
-                            </td>
-                            <!-- Instant Update -->
-                            <td class="text-center">
-                                <?php
-                                if ( ! empty( $theme_update_version ) ):
-                                ?>
-                                    <span style="position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50% );">
-                                        <form name="singlethemeupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
-                                            <input type="hidden" name="theme_name" value="<?= $theme->name; ?>" />
-                                            <input type="hidden" name="slug" value="<?= $theme_slug; ?>" />
-                                            <input type="hidden" name="version" value="<?= $theme_update_version; ?>" />
-                                            <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="singlethemeupdaterequest" value="single_item_update">
-                                                Update <?= $theme_update_version; ?>
-                                            </button>
-                                        </form>
-                                    </span>
-                                <?php
-                                endif;
-                                ?>
-                            </td>
-                            <!-- Rollback -->
-                            <td class="position-relative auto_theme_update_switch" style="display: table-cell; vertical-align: middle;  text-align:center;">
-                                <div style="display: inline-block;">
-                                <?php
-                                    // NOTE: The name of this function is confusing.
-                                    //       It checks, but also renders the html for this column.
-                                    check_rollback_availability( $theme_slug, $theme->Version, 'theme' );
-                                ?>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php
-                    }
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                        <!-- Auto-update toggle -->
+                        <td class='position-relative auto_theme_update_switch'>
+                            <center style='white-space:nowrap!important; word-break:nowrap; position: absolute; top: 50%; left:50%;  transform: translate(-50%,-50%);'>
+                                <input class='auto_theme_update_switch' data-id='<?php echo $fv_theme['slug']; ?>' type='checkbox' <?php echo $auto_update_toggle_checked; ?> data-toggle='toggle' data-style='custom' data-size='xs'>
+                            </center>
+                        </td>
+                        <!-- Instant Update -->
+                        <td class="text-center">
+                            <?php
+                            if ( $fv_theme_has_update ):
+                            ?>
+                                <span style="position: absolute; top: 50%; left: 50%; transform: translate( -50%, -50% );">
+                                    <form name="singlethemeupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
+                                        <input type="hidden" name="theme_name" value="<?= $fv_theme['name']; ?>" />
+                                        <input type="hidden" name="slug" value="<?= $fv_theme['slug']; ?>" />
+                                        <input type="hidden" name="version" value="<?= $fv_theme['version']; ?>" />
+                                        <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="themeforceupdate_instant" type="submit" name="singlethemeupdaterequest" value="single_item_update">
+                                            Update <?= $fv_theme['version']; ?>
+                                        </button>
+                                    </form>
+                                </span>
+                            <?php
+                            endif;
+                            ?>
+                        </td>
+                        <!-- Rollback -->
+                        <td class="position-relative" style="display: table-cell; vertical-align: middle; text-align: center;">
+                        <td class="position-relative">
+                            <div style="display: inline-block;">
+                                <span style='position: absolute; top: 50%; left:50%;  transform: translate( -50%,-50% );'>
+                                    <?php fv_print_theme_rollback_button( $fv_theme_stylesheet, $fv_theme['installed-version'], 'theme' ); ?>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                <?php
                 }
                 ?>
             </table>

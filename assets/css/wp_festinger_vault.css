@@ -179,34 +179,43 @@ body {
   margin-left: 60px;
 }
 
+.update_theme td,
 .update_plugin td {
   color: #fff !important;
 }
 
+.update_theme th,
 .update_plugin th {
   color: #fff !important;
 }
 
+.theme_updated_h4,
 .plugin_updated_h4 {
   color: #fff;
   /* border-bottom: 1px solid #3c3c3c;                             REVAMP */
 }
 
+.theme_update_width_60,
 .plugin_update_width_60 {
   width: 40% !important;
 }
+.theme_update_width_40,
 .plugin_update_width_40 {
   width: 30% !important;
 }
+.theme_update_width_30,
 .plugin_update_width_30 {
   width: 20% !important;
 }
+.theme_update_width_20,
 .plugin_update_width_20 {
   width: 20% !important;
 }
+.theme_update_width_15,
 .plugin_update_width_15 {
   width: 15% !important;
 }
+.theme_update_width_10,
 .plugin_update_width_10 {
   width: 12% !important;
 }

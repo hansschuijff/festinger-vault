@@ -17,11 +17,11 @@
         <div class="mx-auto" style="width:100%; max-width:1400px; justify-content:flex-end!important; display: block;">
             <div class="navbar-brand float-start margin-bottom-xs" style="margin-top: 10px;">
 
-                <img src="<?= get_adm_men_img();?> " style="margin-top: -4px;margin-right: 3px;">
+                <img src="<?= fv_perhaps_whitelist_plugin_icon_url();?> " style="margin-top: -4px;margin-right: 3px;">
 
-                <?= get_adm_men_name();?> <br />
+                <?= fv_perhaps_whitelist_plugin_name();?> <br />
                 <small class="d-none d-sm-block" style="margin-left: 24px;font-size: 14px;">
-                    <?= get_adm_men_slogan();?>
+                    <?= fv_perhaps_whitelist_plugin_slogan();?>
                 </small>
 
             </div>

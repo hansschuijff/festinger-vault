@@ -232,7 +232,7 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 					'gitlab' => 'GitLab URI',
 					'bucket' => 'BitBucket URI',
 				);
-				$seek = apply_filters('puc_get_source_uri', $seek);
+				$seek = apply_filters( 'puc_get_source_uri', $seek);
 				$data = get_file_data($fullPath, $seek);
 				foreach ($data as $key => $uri) {
 					if ( $uri ) {
@@ -277,7 +277,7 @@ if ( !class_exists('Puc_v4p11_Factory', false) ):
 				}
 			}
 
-			return apply_filters('puc_get_vcs_service', $service, $host, $path, $metadataUrl);
+			return apply_filters( 'puc_get_vcs_service', $service, $host, $path, $metadataUrl);
 		}
 
 		/**
