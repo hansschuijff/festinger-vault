@@ -237,7 +237,6 @@
                             ?>
                         </td>
                         <!-- Rollback -->
-                        <td class="position-relative" style="display: table-cell; vertical-align: middle; text-align: center;">
                         <td class="position-relative">
                             <div style="display: inline-block;">
                                 <span style='position: absolute; top: 50%; left:50%;  transform: translate( -50%,-50% );'>

@@ -1781,7 +1781,6 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 		}
 	}
 
-
 	$allThemes         = fv_get_themes();
 	$requested_themes  = [];
 
@@ -1855,18 +1854,17 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 				$get_theme_directory=[];
 
 				foreach( $allThemes as $theme ) {
-					$get_theme_slug = fv_get_wp_theme_slug( $theme );
-					if (  empty( $get_theme_slug ) ) {
-						$get_theme_slug = $theme->get( 'TextDomain' );
-					}
-					$get_theme_directory[] = [
+					$get_theme_slug        = fv_get_wp_theme_slug( $theme );
+					$get_theme_directory[] = array(
 						'dir'     => $theme->get_stylesheet(),
 						'slug'    => $get_theme_slug,
-						'version' => $theme->Version];
+						'version' => $theme->Version,
+					);
 				}
 
 				foreach ( $license_histories->themes as $u ) {
 					foreach( $get_theme_directory as $single_th ) {
+
 						if ( $single_th['slug'] == $u->slug
 						&& version_compare( $u->version, $single_th['version'], '>' ) ) {
 
@@ -1882,7 +1880,7 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 									$fv_theme_zip_upload_dir = $upload_dir["basedir"]."/fv_auto_update_directory/themes/";
 									$tmpfile                 = download_url( $u->dl_link, $timeout = 300 );
 
-									if ( is_wp_error( $tmpfile ) == true ) {
+									if ( is_wp_error( $tmpfile ) ) {
 
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 										if ( $chk_fl_dl_sz > 0 ) {
