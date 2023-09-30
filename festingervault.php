@@ -33,9 +33,10 @@ require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
 
 add_action( 'rest_api_init', function() {
 	register_rest_route( 'fv_endpoint/v1', '/fvforceupdateautoupdate', [
-		'method'   => WP_REST_Server::READABLE,
-		'callback' => 'fv_custom_endpoint_create_auto',
-		'args'     => [
+		'method'              => WP_REST_Server::READABLE,
+		'callback'            => 'fv_custom_endpoint_create_auto',
+		'permission_callback' => '__return_true',
+		'args'                => [
 			'license_key' => [
 				'required' => true,
 				'type'     => 'string',
@@ -142,9 +143,10 @@ function fv_custom_endpoint_create_auto( $request ) {
 
 add_action( 'rest_api_init', function() {
 	register_rest_route( 'fv_endpoint/v1', '/fvforceupdate', [
-		'method'   => WP_REST_Server::READABLE,
-		'callback' => 'fv_custom_endpoint_create',
-		'args'     => [
+		'method'              => WP_REST_Server::READABLE,
+		'callback'            => 'fv_custom_endpoint_create',
+		'permission_callback' => '__return_true',
+		'args'                => [
 			'salt_id' => [
 				'required' => true,
 				'type'     => 'number',
@@ -1715,8 +1717,8 @@ function fv_curlRemoteFilesize( $file_url, $formatSize = true ) {
 
 	// right now $formatSize doesn't seem to have impact on the return value.
 	if ( ! $formatSize ) {
-		return $clen;
 		// return size in bytes
+		return $clen;
 	}
 
 	return $clen;
@@ -1884,7 +1886,7 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz+=$chk_fl_dl_sz;
+											$t_dl_fl_sz += $chk_fl_dl_sz;
 										}
 
 										// Initialize the cURL session
@@ -2426,7 +2428,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									if ( is_wp_error( $tmpfile ) == true ) {
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz+=$chk_fl_dl_sz;
+											$t_dl_fl_sz += $chk_fl_dl_sz;
 										}
 										// Initialize the cURL session
 										$ch = curl_init( $u->dl_link );
@@ -2514,7 +2516,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 								if ( is_wp_error( $tmpfile ) == true ) {
 									$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 									if ( $chk_fl_dl_sz > 0 ) {
-										$t_dl_fl_sz+=$chk_fl_dl_sz;
+										$t_dl_fl_sz += $chk_fl_dl_sz;
 									}
 									// Initialize the cURL session
 									$ch = curl_init( $u->dl_link );
@@ -2637,7 +2639,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									if ( is_wp_error( $tmpfile ) == true ) {
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz+=$chk_fl_dl_sz;
+											$t_dl_fl_sz += $chk_fl_dl_sz;
 										}
 										// Initialize the cURL session
 										$ch = curl_init( $u->dl_link );
@@ -2720,7 +2722,7 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									if ( is_wp_error( $tmpfile ) == true ) {
 										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
 										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz+=$chk_fl_dl_sz;
+											$t_dl_fl_sz += $chk_fl_dl_sz;
 										}
 										// Initialize the cURL session
 										$ch = curl_init( $u->dl_link );
