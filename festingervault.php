@@ -3271,7 +3271,7 @@ if ( isset( $_POST )
  */
 if ( isset( $_POST )
 && ! empty( $_POST['singlepuginupdaterequest'] ) && $_POST['singlepuginupdaterequest'] ) {
-	add_action( 'init', 'fv_do_single_plugin_auto_update_request' );
+	add_action( 'init', 'fv_do_single_plugin_forced_update_request' );
 }
 
 /**
