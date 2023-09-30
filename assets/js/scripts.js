@@ -2,6 +2,13 @@ jQuery(document).ready(function (jQuery) {
 
   var productHashJson = null;
 
+  jQuery('#history_table').DataTable({
+      "pageLength": 50,
+      "order": [
+          [6, "DESC"]
+      ]
+  })
+
   jQuery(".auto_theme_update_switch").change(function () {
     var theme_slug_capture = jQuery(this).data("id");
     var theme_switch_is_checked = true;

@@ -155,9 +155,9 @@
                 /**
                  * Render plugin rows
                  */
-                 foreach( $fv_plugins as $plugin_basename => $fv_plugin_data ):
+                foreach( $fv_plugins as $fv_plugin_basename => $fv_plugin_data ):
 
-                    if ( isset( $fv_plugin_updates[ $plugin_basename ] ) ) {
+                    if ( isset( $fv_plugin_updates[ $fv_plugin_basename ] ) ) {
                         $fv_plugin_has_update = true;
                         $bgredhere            = 'style="background: #f33059; border-radius: 5px;"';
                     } else {
@@ -169,7 +169,7 @@
                     } else {
                         $auto_update_toggle_checked = '';
                     }
-                    $is_active_plugin = is_plugin_active( $plugin_basename );
+                    $is_active_plugin = is_plugin_active( $fv_plugin_basename );
                     ?>
                     <tr class="table-tr mb-2">
                         <!-- Name  -->
@@ -227,7 +227,7 @@
                         <!-- Rollback  -->
                         <td class='position-relative'>
                             <span style='position: absolute; top: 50%; left:50%;  transform: translate( -50%,-50% );'>
-                                <?php fv_print_plugin_rollback_button( $plugin_basename, $fv_plugin_data['installed-version'] ); ?>
+                                <?php fv_print_plugin_rollback_button( $fv_plugin_basename, $fv_plugin_data['installed-version'] ); ?>
                             </span>
                         </td>
                     </tr>
