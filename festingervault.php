@@ -67,11 +67,11 @@ function fv_custom_endpoint_create_auto( $request ) {
 	$getLicenseKey    = $request->get_param( 'license_key' );
 	$getLicenseStatus = $request->get_param( 'enable_disable' );
 
+	$license_enabled   = 1;
 	$requested_plugins = [];
 	$requested_themes  = [];
 
 	$all_plugins          = fv_get_plugins();
-
 	if ( ! empty( $all_plugins ) ) {
 		foreach ( $all_plugins as $plugin_slug => $values ) {
 			$version                = fv_esc_version( $values['Version'] );
@@ -85,7 +85,6 @@ function fv_custom_endpoint_create_auto( $request ) {
 	}
 
 	$allThemes = fv_get_themes();
-
 	foreach( $allThemes as $theme ) {
 		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 		$requested_themes[]=[
@@ -95,7 +94,8 @@ function fv_custom_endpoint_create_auto( $request ) {
 		];
 	}
 
-	$plugin_api_param = array(
+	$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
+	$query_args     = array(
 		'license_key'     => fv_get_license_key(),
 		'license_key_2'   => fv_get_license_key_2(),
 		'license_d'       => fv_get_license_domain_id(),
@@ -108,37 +108,34 @@ function fv_custom_endpoint_create_auto( $request ) {
 		'license_v'       => FV_PLUGIN_VERSION,
 	 );
 
-	$query_pl_updater      = esc_url_raw( add_query_arg( $plugin_api_param, FV_REST_API_URL .'plugin-theme-updater' ) );
+	$query_pl_updater      = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response_pl_updater   = fv_remote_run_query( $query_pl_updater );
 	$pluginUpdate_get_data = json_decode( wp_remote_retrieve_body( $response_pl_updater ) );
 
 	// note: if is_wp_error(), can we still trust and use response->plugins and ->themes?
 
-	if ( ! isset( $pluginUpdate_get_data->result )
-	||   ! in_array( $pluginUpdate_get_data->result, array( 'domainblocked', 'failed' ) ) ) {
+	if ( isset( $pluginUpdate_get_data->result )
+	&&   fv_api_call_failed( $pluginUpdate_get_data->result ) ) {
+		return ( 'failed' );
+	}
 
-		$remote_plugins_list = [];
-		foreach( $pluginUpdate_get_data->plugins as $plugin ) {
-			$remote_plugins_list[] = $plugin->slug;
-		}
-
-		$remote_themes_list = [];
-		foreach( $pluginUpdate_get_data->themes as $theme ) {
-			$remote_themes_list[] = $theme->slug;
-		}
-
-		if ( ( $getLicenseKey == fv_get_license_key() || $getLicenseKey == fv_get_license_key_2() ) && $getLicenseStatus == 1 ) {
-			update_option( 'fv_plugin_auto_update_list', $remote_plugins_list );
-			update_option( 'fv_themes_auto_update_list', $remote_themes_list );
-		} else {
-			update_option( 'fv_plugin_auto_update_list', [] );
-			update_option( 'fv_themes_auto_update_list', [] );
-		}
-
+	if ( ! $fv_is_active_license_key( $getLicenseKey ) || $license_enabled != $getLicenseStatus ) {
+		fv_remove_auto_updates();
 		return ( 'success' );
 	}
 
-	return ( 'failed' );
+	$remote_plugins_list = [];
+	foreach( $pluginUpdate_get_data->plugins as $plugin ) {
+		$remote_plugins_list[] = $plugin->slug;
+	}
+	$remote_themes_list = [];
+	foreach( $pluginUpdate_get_data->themes as $theme ) {
+		$remote_themes_list[] = $theme->slug;
+	}
+	fv_set_plugins_auto_update( $remote_plugins_list );
+	fv_set_themes_auto_update( $remote_themes_list );
+
+	return ( 'success' );
 }
 
 add_action( 'rest_api_init', function() {
@@ -180,16 +177,17 @@ function fv_custom_endpoint_create( $request ) {
 	$get_fv_salt    = $request->get_param( 'salt' );
 
 	if ( ! empty( $get_fv_salt_id ) && ! empty( $get_fv_salt ) ) {
-		$api_params = array(
+
+		$query_base_url = FV_REST_API_URL . 'salt-verification'
+		$query_args     = array(
 		    'salt_id'      => $get_fv_salt_id,
 		    'salt'         => $get_fv_salt,
 		    'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		    'license_host' => $_SERVER['HTTP_HOST'],
 		    'license_mode' => 'salt_verification',
 		    'license_v'    => FV_PLUGIN_VERSION,
-		 );
-
-		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'salt-verification' ) );
+		);
+		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 		$response = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -240,7 +238,8 @@ function fv_custom_endpoint_create( $request ) {
 				}
 			}
 
-			$api_params_2222 = array(
+			$query_base_url = FV_REST_API_URL . 'salt-push-update-result';
+			$query_args     = array(
 				'salt_id'             => $get_fv_salt_id,
 				'salt'                => $get_fv_salt,
 				'push_update_status'  => $push_update_result,
@@ -251,13 +250,14 @@ function fv_custom_endpoint_create( $request ) {
 				'license_v'           => FV_PLUGIN_VERSION,
 			 );
 
-			$query_232     = esc_url_raw( add_query_arg( $api_params_2222, FV_REST_API_URL . 'salt-push-update-result' ) );
+			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 			$response23232 = fv_remote_run_query( $query_232 );
 		}
 
 		if ( $response->result == 0 && $response->status == 0 ) {
 
-			$api_params_2222 = array(
+			$query_base_url = FV_REST_API_URL . 'salt-push-update-result';
+			$query_args     = array(
 				'salt_id'             => $get_fv_salt_id,
 				'salt'                => $get_fv_salt,
 				'push_update_status'  => 1,
@@ -268,7 +268,7 @@ function fv_custom_endpoint_create( $request ) {
 				'license_v'           => FV_PLUGIN_VERSION,
 			 );
 
-			$query_232     = esc_url_raw( add_query_arg( $api_params_2222, FV_REST_API_URL . 'salt-push-update-result' ) );
+			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 			$response23232 = fv_remote_run_query( $query_232 );
 		}
 	}
@@ -303,16 +303,8 @@ function get_plugin_name_by_slug( $slug ) {
 function fv_activate() {
 
 	fv_create_upload_dirs();
-
-	if ( get_option( 'wl_fv_plugin_wl_enable' ) == true ) {
-		delete_option( 'wl_fv_plugin_wl_enable' );
-	}
-	if ( get_option( 'fv_plugin_auto_update_list' ) == true ) {
-		delete_option( 'fv_plugin_auto_update_list' );
-	}
-	if ( get_option( 'fv_themes_auto_update_list' ) == true ) {
-		delete_option( 'fv_themes_auto_update_list' );
-	}
+	fv_forget_white_label_switch();
+	fv_forget_auto_update_lists();
 }
 register_activation_hook( __FILE__, 'fv_activate' );
 
@@ -368,7 +360,8 @@ function fv_deactivation() {
 
 	if ( fv_has_license_1() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'license-deactivation';
+		$$query_args    = array(
 			'license_key'  => fv_get_license_key(),
 			'license_d'    => fv_get_license_domain_id(),
 			'license_pp'   => $_SERVER['REMOTE_ADDR'],
@@ -376,7 +369,7 @@ function fv_deactivation() {
 			'license_mode' => 'deactivation',
 			'license_v'    => FV_PLUGIN_VERSION,
 		 );
-		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-deactivation' ) );
+		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 
 		fv_forget_license();
@@ -384,7 +377,8 @@ function fv_deactivation() {
 
 	if ( fv_has_license_2() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'license-deactivation';
+		$query_args     = array(
 			'license_key'  => fv_get_license_key_2(),
 			'license_d'    => fv_get_license_domain_id_2(),
 			'license_pp'   => $_SERVER['REMOTE_ADDR'],
@@ -392,7 +386,7 @@ function fv_deactivation() {
 			'license_mode' => 'deactivation',
 			'license_v'    => FV_PLUGIN_VERSION,
 		 );
-		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-deactivation' ) );
+		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 
 		fv_forget_license_2();
@@ -425,13 +419,13 @@ function fv_plugin_check_info( $obj, $action, $arg ) {
 	&& $arg->slug === 'festingervault' ) {
 		$obj               = new stdClass();
 		$obj->slug         = 'festingervault';
-		$obj->name         = fv_perhaps_whitelist_plugin_name();
-		$obj->author       = fv_perhaps_whitelist_plugin_author();
+		$obj->name         = fv_perhaps_white_label_plugin_name();
+		$obj->author       = fv_perhaps_white_label_plugin_author();
 		$obj->requires     = '3.0';
 		$obj->tested       = '3.3.1';
 		$obj->last_updated = '2021-07-13';
 		$obj->sections     = array(
-			'description' => fv_perhaps_whitelist_plugin_description(),
+			'description' => fv_perhaps_white_label_plugin_description(),
 		 );
 
 		return $obj;
@@ -451,14 +445,14 @@ function filter_admin_plugins_page( $plugins ) {
 
 	$key = plugin_basename( FV_PLUGIN_DIR . '/festingervault.php' );
 
-	$plugins[ $key ]['Name']        = fv_perhaps_whitelist_plugin_name();
-	$plugins[ $key ]['Description'] = fv_perhaps_whitelist_plugin_description();
+	$plugins[ $key ]['Name']        = fv_perhaps_white_label_plugin_name();
+	$plugins[ $key ]['Description'] = fv_perhaps_white_label_plugin_description();
 
-	$plugins[ $key ]['Author']      = fv_perhaps_whitelist_plugin_author();
-	$plugins[ $key ]['AuthorName']  = fv_perhaps_whitelist_plugin_author();
+	$plugins[ $key ]['Author']      = fv_perhaps_white_label_plugin_author();
+	$plugins[ $key ]['AuthorName']  = fv_perhaps_white_label_plugin_author();
 
-	$plugins[ $key ]['AuthorURI']   = fv_perhaps_whitelist_plugin_author_uri();
-	$plugins[ $key ]['PluginURI']   = fv_perhaps_whitelist_plugin_author_uri();
+	$plugins[ $key ]['AuthorURI']   = fv_perhaps_white_label_plugin_author_uri();
+	$plugins[ $key ]['PluginURI']   = fv_perhaps_white_label_plugin_author_uri();
 
 	return $plugins;
 }
@@ -466,7 +460,7 @@ add_filter( 'all_plugins', 'filter_admin_plugins_page' );
 
 /**
  * Change the plugin name to the name from the settings,
- * to enable whitelisting.
+ * to enable white labeling.
  *
  * Question: FV doesn't seem to use translations. Why do this?
  *
@@ -477,7 +471,7 @@ add_filter( 'all_plugins', 'filter_admin_plugins_page' );
  */
 function name_change_wl_fv( $translated_text, $text, $domain ) {
 	if ( 'Festinger Vault' == $text ) {
-		$translated_text = fv_perhaps_whitelist_plugin_name();
+		$translated_text = fv_perhaps_white_label_plugin_name();
 	}
 	return $translated_text;
 }
@@ -508,12 +502,12 @@ function festinger_vault_admin_menu_section() {
 	}
 
 	add_menu_page(
-		page_title: fv_perhaps_whitelist_plugin_name(),
-		menu_title: fv_perhaps_whitelist_plugin_name(),
+		page_title: fv_perhaps_white_label_plugin_name(),
+		menu_title: fv_perhaps_white_label_plugin_name(),
 		capability: 'read',
 		menu_slug:  'festinger-vault',
 		callback:   'render_festinger_vault_page',
-		icon_url:   fv_perhaps_whitelist_plugin_icon_url(),
+		icon_url:   fv_perhaps_white_label_plugin_icon_url(),
 		position:   99
 	 );
 
@@ -527,7 +521,7 @@ function festinger_vault_admin_menu_section() {
 	 );
 
 	// Only add Activation page when white labeling is not enabled
-	if ( get_option( 'wl_fv_plugin_wl_enable' ) != 1 ) {
+	if ( ! fv_should_white_label() ) {
 
 		add_submenu_page(
 			parent_slug: 'festinger-vault',
@@ -558,7 +552,7 @@ function festinger_vault_admin_menu_section() {
 	 );
 
 	// Only add History and Settings page when white labeling is not enabled
-	if ( get_option( 'wl_fv_plugin_wl_enable' ) != 1 ) {
+	if ( ! fv_should_white_label() ) {
 
 		add_submenu_page(
 			parent_slug: 'festinger-vault',
@@ -629,7 +623,7 @@ function festinger_vault_admin_styles( $hook ) {
 	wp_enqueue_script( 'bootstrap-toggle', 'https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
 
 	$show_title_img_fv_link = 1;
-	if ( get_option( 'wl_fv_plugin_wl_enable' ) == true ) {
+	if ( fv_should_white_label()  ) {
 		$show_title_img_fv_link = 0;
 	}
 
@@ -651,12 +645,13 @@ function festinger_vault_admin_styles( $hook ) {
 /**
  * Performs a data request query, used mosly used for license data and history.
  *
- * @param array $params $args to add to the query
+ * @param array $query_args $args to add to the query
  * @return void
  */
-function request_data_activation( $params ) {
-	$query    = esc_url_raw( add_query_arg( $params, FV_REST_API_URL . 'request-data' ) );
-	$response = fv_remote_run_query( $query );
+function request_data_activation( $query_args ) {
+	$query_base_url = FV_REST_API_URL . 'request-data';
+	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+	$response       = fv_remote_run_query( $query );
 }
 
 add_action( 'admin_enqueue_scripts', 'festinger_vault_admin_styles' );
@@ -670,7 +665,8 @@ add_action( 'wp_ajax_nopriv_fv_activation_ajax', 'fv_activation_ajax' );
  */
 function fv_activation_ajax() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'license-activation';
+	$query_args     = array(
 		'license_key'  => $_POST['licenseKeyInput'],
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
@@ -678,7 +674,7 @@ function fv_activation_ajax() {
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
 
-	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-activation' ) );
+	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -713,7 +709,8 @@ add_action( 'wp_ajax_nopriv_fv_deactivation_ajax', 'fv_deactivation_ajax' );
  */
 function fv_deactivation_ajax() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'license-deactivation';
+	$query_args     = array(
 		'license_key'  => $_POST['license_key'],
 		'license_d'    => $_POST['license_d'],
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
@@ -722,7 +719,7 @@ function fv_deactivation_ajax() {
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
 
-	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-deactivation' ) );
+	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -776,7 +773,8 @@ add_action( 'wp_ajax_nopriv_fv_deactivation_ajax_2', 'fv_deactivation_ajax_2' );
  */
 function fv_deactivation_ajax_2() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'license-deactivation';
+	$query_args     = array(
 		'license_key'  => $_POST['license_key'],
 		'license_d'    => $_POST['license_d'],
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
@@ -785,7 +783,7 @@ function fv_deactivation_ajax_2() {
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
 
-	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'license-deactivation' ) );
+	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -855,7 +853,8 @@ function fv_search_ajax_data() {
 	$searchedValue = isset( $_POST['ajax_search'] ) ? $_POST['ajax_search'] : '';
 	$pagenmber     = isset( $_POST['page'] ) ? $_POST['page'] : '1';
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'search-data';
+	$api_params     = array(
 		'license_key'          => fv_get_license_key(),
 		'license_key_2'        => fv_get_license_key_2(),
 		'datasrc'	           => $searchedValue,
@@ -869,7 +868,7 @@ function fv_search_ajax_data() {
 		'queryd'               => 'wordpress',
 	 );
 
-	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'search-data' ) );
+	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1009,7 +1008,8 @@ function get_all_data_return_fresh( $data = null ) {
 
 	get_plugin_theme_data_details( 'all_plugins_themes' );
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+	$api_params     = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -1020,7 +1020,7 @@ function get_all_data_return_fresh( $data = null ) {
 		'license_v'     => FV_PLUGIN_VERSION,
 	 );
 
-	$query            = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
+	$query            = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response         = fv_remote_run_query( $query );
 	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1052,7 +1052,8 @@ function get_all_data_return_fresh( $data = null ) {
  */
 function render_festinger_vault_activation_page() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+	$api_params     = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -1063,7 +1064,7 @@ function render_festinger_vault_activation_page() {
 		'license_v'     => FV_PLUGIN_VERSION,
 	 );
 
-	$query            = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
+	$query            = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response         = fv_remote_run_query( $query );
 	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1079,7 +1080,7 @@ function render_festinger_vault_activation_page() {
 		fv_forget_license_by_key( $all_license_data->license_2->license_data->license_key );
 	}
 
-	/* White labling not allowed in license */
+	/* White labeling not allowed in license */
 	if ( $all_license_data->license_1->options->white_label == 'no'
 	&&   $all_license_data->license_2->options->white_label == 'no' ) {
 		fv_forget_white_label_settings();
@@ -1092,26 +1093,16 @@ function render_festinger_vault_activation_page() {
 }
 
 /**
- * Clear all whitelisting settings.
+ * Clear all white labeling settings.
  *
  * @return void
  */
 function fv_forget_white_label_settings() {
 
-	$options = array(
-		'wl_fv_plugin_wl_enable',
-		'wl_fv_plugin_agency_author_wl_',
-		'wl_fv_plugin_author_url_wl_',
-		'wl_fv_plugin_name_wl_',
-		'wl_fv_plugin_slogan_wl_',
-		'wl_fv_plugin_icon_url_wl_',
-		'wl_fv_plugin_description_wl_',
-	 );
+	$options = fv_get_wl_option_keys('all');
 
 	foreach ( $options as $option ) {
-		if ( get_option( $option ) ) {
-			delete_option( $option );
-		}
+		fv_delete_option( $option );
 	}
 }
 
@@ -1243,16 +1234,11 @@ function fv_get_remote_matches( array $plugins = array(), array $themes = array(
 		'license_v'       => FV_PLUGIN_VERSION,
 	);
 
-	$query = esc_url_raw(
-		add_query_arg( $query_args, $query_base_url )
-	);
+	$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
-	return
-		json_decode(
-			wp_remote_retrieve_body(
-				fv_remote_run_query( $query )
-			)
-		);
+	return	json_decode( wp_remote_retrieve_body(
+		fv_remote_run_query( $query )
+	));
 }
 
 /**
@@ -3165,7 +3151,7 @@ function render_festinger_vault_page () {
 	$response         = fv_remote_run_query( $query );
 	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
-	// remove white_list settings if the plugin isn't set to use them.
+	// remove white_label settings if the plugin isn't set to use them.
 	if ( $all_license_data->license_1->options->white_label == 'no'
 	&&   $all_license_data->license_2->options->white_label == 'no' ) {
 		fv_forget_white_label_settings();
@@ -3177,63 +3163,142 @@ function render_festinger_vault_page () {
 	// get_plugin_theme_data_details( 'all_plugins_themes' );
 }
 
-function fv_perhaps_whitelist_plugin_author() {
-	if ( get_option( 'wl_fv_plugin_agency_author_wl_' ) == true ) {
-		return get_option( 'wl_fv_plugin_agency_author_wl_' );
-	} else {
-		return 'Festinger Vault';
-	}
-}
-function fv_perhaps_whitelist_plugin_author_uri() {
-	if ( get_option( 'wl_fv_plugin_author_url_wl_' ) == true ) {
-		return get_option( 'wl_fv_plugin_author_url_wl_' );
-	} else {
-		return 'https://festingervault.com/';
-	}
-}
-
 /**
- * Should Festinger Vault be whitelisted (based on settings)?
+ * Should Festinger Vault be white labeled (based on settings)?
  *
  * @return boolean
  */
-function fv_use_white_label_settings() : bool {
+function fv_should_white_label() : bool {
 	return (bool) get_option( 'wl_fv_plugin_name_wl_' );
 }
 
-
-function fv_perhaps_whitelist_plugin_name() {
-	if ( fv_use_white_label_settings() ) {
-		return get_option( 'wl_fv_plugin_name_wl_' );
-	} else {
-		return 'Festinger Vault';
-	}
+/**
+ * White label plugin author name, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_author(): string {
+	return fv_white_label('plugin_agency_author') ?: 'Festinger Vault';
 }
 
-function fv_perhaps_whitelist_plugin_description() {
-	if ( fv_use_white_label_settings() ) {
-		return get_option( 'wl_fv_plugin_description_wl_' );
-	} else {
-		return 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+/**
+ * Gets an array of option names and their query-vars.
+ *
+ * query-var names and the white labeling toggle option
+ * are optional based on the value of $context.
+ *
+ * @param string $context Optional, defaults to 'labels'.
+ *                        'labels' to get the options that contain the white label plugin data.
+ *                        'all'    to get the toggle option too.
+ *                        'post'   to get the toggle option and the query-var names.
+ * @return array Depending on $context just the option names, or an associated array with names and query-vars.
+ */
+function fv_get_wl_option_keys( string $context = 'whitelabel' ) : array {
+
+	$options = array(
+		'wl_fv_plugin_agency_author_wl_' => 'agency_author',
+		'wl_fv_plugin_author_url_wl_'    => 'agency_author_url',
+		'wl_fv_plugin_name_wl_'          => 'fv_plugin_name',
+		'wl_fv_plugin_slogan_wl_'        => 'fv_plugin_slogan',
+		'wl_fv_plugin_icon_url_wl_'      => 'fv_plugin_icon_url',
+		'wl_fv_plugin_description_wl_'   => 'fv_plugin_description',
+	);
+
+	// add white labeling switch option
+	if ( in_array( $context, array( 'all', 'post' ), true ) ) {
+		$options['wl_fv_plugin_wl_enable'] = 'fv_plugin_wl_enable';
 	}
+
+	// Remove Query var names.
+	if ( 'post' !== $context ) {
+		// No query vars names if context is not post.
+		$options = array_keys( $options );
+	}
+
+	return $options;
 }
 
-function fv_perhaps_whitelist_plugin_slogan() {
-
-	if ( fv_use_white_label_settings() ) {
-		return get_option( 'wl_fv_plugin_slogan_wl_' );
-	} else {
-		return 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. <br/>Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
-	}
-
+/**
+ * Is option the switch that enables white labeling?
+ *
+ * @param string $option The name of an option.
+ * @return boolean true is option is "wl_fv_plugin_wl_enable"
+ */
+function fv_is_white_label_switch( string $option ): bool {
+	return ( 'wl_fv_plugin_wl_enable' === $option );
 }
 
-function fv_perhaps_whitelist_plugin_icon_url() {
-	if ( fv_use_white_label_settings() ) {
-		return get_option( 'wl_fv_plugin_icon_url_wl_' );
-	} else {
-		return FV_PLUGIN_ABSOLUTE_PATH.'assets/images/logo.png';
+function fv_white_label( string $option ): string {
+
+	$wl_options = fv_get_wl_option_keys('whitelabel');
+
+	if ( empty( $option ) ) {
+		// bail out: option required.
+		return false;
 	}
+
+	// Translate short option names.
+	if ( ! str_starts_with( $option, 'wl_fv_' ) ) {
+		$option = 'wl_fv_'. $option . '_wl_';
+	}
+
+	if ( ! in_array( $option, $wl_options, true ) ) {
+		// bail out: invalid option.
+		return false;
+	}
+
+	if ( ! fv_should_white_label() || ! get_option( $option ) ) {
+		// no white label to return.
+		return false;
+	}
+
+	// Return white-label content from settings.
+	return get_option( $option );
+}
+
+/**
+ * White label plugin author url, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_author_uri(): string {
+	return fv_white_label( 'plugin_author_url' ) ?: 'https://festingervault.com/';
+}
+
+/**
+ * White label plugin name, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_name(): string {
+	return fv_white_label( 'plugin_name' ) ?: 'Festinger Vault';
+}
+
+/**
+ * White label plugin description, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_description(): string {
+	return fv_white_label( 'plugin_description' ) ?: 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+}
+
+/**
+ * White label plugin slogan, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_slogan(): string {
+	return fv_white_label( 'plugin_slogan' ) ?: 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. <br/>Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+}
+
+/**
+ * White label plugin icon url, based on settings.
+ *
+ * @return string
+ */
+function fv_perhaps_white_label_plugin_icon_url(): string {
+	return fv_white_label( 'plugin_icon_url' ) ?: FV_PLUGIN_ABSOLUTE_PATH.'assets/images/logo.png';
 }
 
 /**
@@ -4030,9 +4095,9 @@ function fv_has_license_2(): bool {
  * @return void
  */
 function fv_forget_license() {
-	delete_option( '_data_ls_key_no_id_vf' );
-	delete_option( '_ls_domain_sp_id_vf' );
-	delete_option( '_ls_d_sf' );
+	fv_delete_option( '_data_ls_key_no_id_vf' );
+	fv_delete_option( '_ls_domain_sp_id_vf' );
+	fv_delete_option( '_ls_d_sf' );
 }
 
 /**
@@ -4041,9 +4106,9 @@ function fv_forget_license() {
  * @return void
  */
 function fv_forget_license_2() {
-	delete_option( '_data_ls_key_no_id_vf_2' );
-	delete_option( '_ls_domain_sp_id_vf_2' );
-	delete_option( '_ls_d_sf_2' );
+	fv_delete_option( '_data_ls_key_no_id_vf_2' );
+	fv_delete_option( '_ls_domain_sp_id_vf_2' );
+	fv_delete_option( '_ls_d_sf_2' );
 }
 
 /**
@@ -4105,9 +4170,9 @@ function fv_save_license_1( array $license_data ) {
 		return false;
 	}
 
-	add_option( '_data_ls_key_no_id_vf', $license_data['license-key'] );
-	add_option( '_ls_domain_sp_id_vf',   $license_data['domain-id'] );
-	add_option( '_ls_d_sf',              $license_data['_ls_d_sf'] );
+	fv_set_option( '_data_ls_key_no_id_vf', $license_data['license-key'] );
+	fv_set_option( '_ls_domain_sp_id_vf',   $license_data['domain-id'] );
+	fv_set_option( '_ls_d_sf',              $license_data['_ls_d_sf'] );
 
 	return true;
 }
@@ -4128,9 +4193,9 @@ function fv_save_license_2( array $license_data ) {
 		return false;
 	}
 
-	add_option( '_data_ls_key_no_id_vf_2', $license_data['license-key'] );
-	add_option( '_ls_domain_sp_id_vf_2',   $license_data['domain-id'] );
-	add_option( '_ls_d_sf_2',              $license_data['_ls_d_sf'] );
+	fv_set_option( '_data_ls_key_no_id_vf_2', $license_data['license-key'] );
+	fv_set_option( '_ls_domain_sp_id_vf_2',   $license_data['domain-id'] );
+	fv_set_option( '_ls_d_sf_2',              $license_data['_ls_d_sf'] );
 
 	return true;
 }
@@ -4515,30 +4580,17 @@ function fv_api_call_failed( string $result ) : bool {
  */
 function fv_do_white_label_settings_form() {
 
-	$options = array(
-		'wl_fv_plugin_agency_author_wl_' => 'agency_author',
-		'wl_fv_plugin_author_url_wl_'    => 'agency_author_url',
-		'wl_fv_plugin_name_wl_'          => 'fv_plugin_name',
-		'wl_fv_plugin_slogan_wl_'        => 'fv_plugin_slogan',
-		'wl_fv_plugin_icon_url_wl_'      => 'fv_plugin_icon_url',
-		'wl_fv_plugin_description_wl_'   => 'fv_plugin_description',
-		'wl_fv_plugin_wl_enable'         => 'fv_plugin_wl_enable',
-	);
+	$options = fv_get_wl_option_keys('post');
 
 	foreach ( $options as $option => $query_var ) {
-
 		if ( isset( $_POST[ $query_var ] ) ) {
-			if ( get_option( $option ) ) {
-				update_option( $option, htmlspecialchars( $_POST[ $query_var ] ) );
-			} else {
-				add_option( $option, htmlspecialchars( $_POST[ $query_var ] ) );
-			}
-		} elseif ( 'wl_fv_plugin_wl_enable' !== $option ) {
-			delete_option( $option );
+			fv_set_option( $option, htmlspecialchars( $_POST[ $query_var ] ) );
+		} elseif ( ! fv_is_white_label_switch( $option ) ) {
+			fv_delete_option( $option );
 		}
-
 	}
-	if ( fv_use_white_label_settings() ) {
+
+	if ( fv_should_white_label() ) {
 		// if white labeling is active redirect to plugins Vault
 		wp_redirect( admin_url( 'admin.php?page=festinger-vault' ) );
 		exit;
@@ -4563,13 +4615,9 @@ function fv_do_admin_notices_settings_form() {
 
 	foreach ( $options as $option => $query_var ) {
 		if ( empty( $_POST[ $query_var ] ) ) {
-			delete_option( $option );
+			fv_delete_option( $option );
 		} else {
-			if ( false === get_option( $option ) ) {
-				add_option( $option, 1 );
-			} else {
-				update_option( $option, 1 );
-			}
+			fv_set_option( $option, 1 );
 		}
 	}
 }
@@ -4741,4 +4789,103 @@ function fv_hide_all_admin_notices() : void {
 function fv_hide_wp_rocket_warnings() {
 	remove_action( 'admin_notices', 'rocket_warning_htaccess_permissions' );
 	remove_action( 'admin_notices', 'rocket_warning_config_dir_permissions' );
+}
+
+/**
+ * Reset the white label switch to not white label the plugin.
+ *
+ * @return void
+ */
+function fv_forget_white_label_switch() : void {
+	fv_delete_option( 'wl_fv_plugin_wl_enable' );
+}
+
+/**
+ * Resets the auto-update switches for plugins and themes.
+ *
+ * @return void
+ */
+function fv_forget_auto_update_lists() : void {
+	fv_delete_option( 'fv_plugin_auto_update_list' );
+	fv_delete_option( 'fv_themes_auto_update_list' );
+}
+
+/**
+ * Just a wrapper around delete_option that
+ * includes first checking if the option exists.
+ *
+ * @param string $option
+ * @return boolean
+ */
+function fv_delete_option( string $option ) : bool {
+	if ( false !== get_option( $option ) ) {
+		delete_option( $option );
+	}
+}
+
+
+/**
+ * Adds or updates an option.
+ *
+ * @param string $option The name of the option.
+ * @param mixed $value The value of the option.
+ * @param string|bool $autoload Should WordPress autoload the option?
+ * @return boolean The result of the add_option or update_option call.
+ */
+function fv_set_option( string $option, mixed $value = '', string|bool $autoload = null ): bool {
+
+	if ( false !== get_option( $option ) ) {
+		if ( null === $autoload ) {
+			return update_option( $option, $value );
+		}
+		return update_option( $option, $value, $autoload );
+	}
+
+	if ( null === $autoload ) {
+		return add_option( $option, $value );
+	}
+	return add_option( $option, $value, $autoload );
+}
+
+/**
+ * Checks if a license key is active in this install.
+ *
+ * @param string $license_key
+ * @return boolean True if entered key is one of the keys in options, otherwise false
+ */
+function fv_is_active_license_key( string $license_key ) : bool {
+	if ( empty( $license_key ) ) {
+		return false;
+	}
+
+	return in_array( $license_key, array( fv_get_license_key(), fv_get_license_key_2() ), true );
+}
+/**
+ * Save auto update list for plugins in options.
+ *
+ * @param array $list Slugs of plugins that need to be auto-updated.
+ * @return void
+ */
+function fv_set_plugins_auto_update_list( array $list ) : void {
+	fv_set_option( 'fv_plugin_auto_update_list', $list );
+}
+
+/**
+ * Save auto update list for themes in options.
+ *
+ * @param array $list Slugs of themes that need to be auto-updated.
+ * @return void
+ */
+function fv_set_themes_auto_update_list( array $list ) : void {
+	fv_set_option( 'fv_themes_auto_update_list', $list );
+}
+
+/**
+ * Initializes auto update list for plugins and themes in options.
+ *
+ * @return void
+ */
+function fv_remove_auto_updates() : void {
+	fv_set_option( 'fv_plugin_auto_update_list', array() );
+	fv_set_option( 'fv_themes_auto_update_list', array() );
 }
