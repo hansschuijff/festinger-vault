@@ -4953,10 +4953,98 @@ function fv_get_license_status_text( string $license_status ): string {
     return ucfirst( $license_status );
 }
 
+/**
+ * Calculates the number of hours (one decimal) untill midnight (time zone UTC).
+ *
+ * @return string
+ */
 function get_hours_to_midnight() : string {
     date_default_timezone_set( "UTC" );
     $now                 = date( 'Y-m-d H:i:s' );
     $next_day_start      = ( new DateTime( 'tomorrow' ) )->format( 'Y-m-d H:i:s' );
     $hours_to_midnight   = round( ( strtotime( $next_day_start ) - strtotime( $now ) ) / 3600, 1 );
     return (string) $hours_to_midnight;
+}
+
+/**
+ * A fork of the push-notification FV adds after installation to the Vault page.
+ *
+ * Adds a script that replaces a div with id='push-notice-container'
+ * with a notifaction.
+ *
+ * The script is adapted for the themes and plugins updates pages.
+ *
+ * @return void
+ */
+function fv_print_no_license_push_message() : void {
+	?>
+	<script type="text/javascript">
+        $(document).ready(
+            function(){
+                var containerdiv = $("#push-notice-container").eq(0);
+				console.log(containerdiv);
+                containerdiv.replaceWith(
+                    "<div class='container-fluid mt-4 push-notification' style='background-color: #201943 !important; padding: 1rem 0 !important; margin: 0 !important;'><div class='push-notification-div' style='background: #222222; box-shadow: #121212 -8px 12px 18px 0px; color: #ff2a9c; padding:5px 10px; margin-bottom:5px;font-family: Arial, Helvetica, sans-serif;font-size:16px;'><i class='fas fa-info'></i> <b class='push-notification-title' style='color:#FFF;'>Activate Your License</b> You're one step away from downloading 25K+ premium WordPress themes and plugins! You can find your license key from your <a href='https://festingervault.com/dashboard' target='_blank'>account's dashboard</a>. If you need any help, please send an email to hello@festingervault.com.</div> </div>"
+                );
+            }
+        );
+    </script>
+    <?php
+}
+
+/**
+ * Print buttons and messages in case of domain blocked
+ * or license failure.
+ *
+ * It is build to fit in the plugins and themes updates pages.
+ *
+ * @param stdClass $fv_api A result object of the remote FV api call.
+ * @return void
+ */
+function fv_print_api_call_failed_notices( stdClass $fv_api ) : void {
+
+    if ( ! isset( $fv_api->result )
+    ||   ! fv_api_call_failed( $fv_api->result ) ) {
+        return;
+    }
+
+    ?>
+    <button class="btn btn-sm float-end btn-custom-color btn-danger">
+        <?php
+        switch ( true ) {
+            case fv_domain_blocked( $fv_api->result ):
+                echo 'DOMAIN IS BLOCKED';
+                break;
+
+            case fv_license_failed( $fv_api->result ):
+                echo 'NO ACTIVE LICENSE';
+                break;
+
+            default:
+                break;
+        }
+        ?>
+    </button>
+    <div class="row" style="padding-top:20px; width: 100%; margin-left:auto; margin-right: auto;">
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <strong>Whoops!</strong>
+            <?php
+            switch ( true ) {
+                case fv_domain_blocked( $fv_api->result ):
+                    echo 'Your domain is blocked';
+                    break;
+
+                case fv_license_failed( $fv_api->result ):
+                    echo 'No active license was found, please activate a license first';
+                    break;
+
+                default:
+                    break;
+            }
+            echo $fv_api->msg ? ": " . $fv_api->msg : '';
+            ?>
+        </div>
+    </div>
+	</h4><div id='push-notice-container' class='push-notice-container'></div></div></div></div>
+    <?php
 }

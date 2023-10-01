@@ -16,51 +16,16 @@
             <h4 class="mb-0">
                 Automatic theme update management
                 <?php
-                /**
-                 * Handle Blocked domain or license failure.
-                 */
                 if ( isset( $fv_api->result )
-                &&   fv_api_call_failed( $fv_api->result ) ) :
-                    ?>
-                    <button class="btn btn-sm float-end btn-custom-color btn-danger">
-                    <?php
-                        switch ( true ) {
-                            case fv_domain_blocked( $fv_api->result ):
-                                echo 'DOMAIN IS BLOCKED';
-                                break;
+                && fv_api_call_failed( $fv_api->result ) ) {
 
-                            case fv_license_failed( $fv_api->result ):
-                                echo 'NO ACTIVE LICENSE';
-                                break;
+                    fv_print_api_call_failed_notices( $fv_api );
+                    if ( ! fv_has_any_license() ) {
+                        fv_print_no_license_push_message();
+                    }
 
-                            default:
-                                break;
-                        }
-                    ?>
-                    </button>
-                    <div class="row" style="padding-top: 20px;">
-                        <div class="alert alert-danger alert-dismissible" role="alert">
-                            <strong>Whoops!</strong>
-                            <?php
-                            switch ( true ) {
-                                case fv_domain_blocked( $fv_api->result ):
-                                    echo 'Your domain is blocked';
-                                    break;
-
-                                case fv_license_failed( $fv_api->result ):
-                                    echo 'No active license was found, please activate a license first';
-                                    break;
-
-                                default:
-                                    break;
-                            }
-                            echo $fv_api->msg ? ": " . $fv_api->msg : '';
-                            ?>
-                        </div>
-                    </div>
-                    <?php
                     return;
-                endif;
+                }
 
                 /**
                  * Render force update buttons.
