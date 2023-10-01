@@ -5,7 +5,7 @@
 /**
  * Plugin Name: Festinger Vault ONDER HANSEN
  * description: Festinger vault - The largest plugin market
- * Version: 4.1.0-h2
+ * Version: 4.1.0-h3
  * Author: Festinger Vault
  * License: GPLv2 or later
  * Text Domain: festingervault
