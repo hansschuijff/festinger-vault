@@ -69,92 +69,72 @@ function fv_register_rest_routes() {
 		],
 	] );
 }
-
 add_action( 'rest_api_init', 'fv_register_rest_routes' );
 
-
 /**
- * Callback of Rest Api Route "fv_endpoint/v1/fvforceupdateautoupdate"
+ * Callback of Rest Api Route/endpoint "fv_endpoint/v1/fvforceupdateautoupdate"
  *
- * It looks like this function just builds the list of plugins and themes
- * from Festinger Vault that are installed locally and save it in options.
+ * Calls api to find matching plugins and themes
+ * and saves the slugs of them in the auto-update lists.
  *
  * @param WP_REST_Request $request
  * @return string 'succes' or 'failed'
  */
 function fv_custom_endpoint_create_auto( $request ) {
 
-	$getLicenseKey    = $request->get_param( 'license_key' );
-	$getLicenseStatus = $request->get_param( 'enable_disable' );
+	// get parameters from the rest request.
+	$req_license_key    = $request->get_param( 'license_key' );
+	$req_license_status = $request->get_param( 'enable_disable' );
 
-	$license_enabled   = 1;
-	$requested_plugins = [];
-	$requested_themes  = [];
+	// if invalid license, just empty auto update liest..
+	if ( ! fv_is_active_license_key( $req_license_key )
+	|| ! fv_is_license_enabled( $req_license_status  )  ) {
 
-	$all_plugins          = fv_get_plugins();
-	if ( ! empty( $all_plugins ) ) {
-		foreach ( $all_plugins as $plugin_slug => $values ) {
-			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = fv_get_slug( $plugin_slug );
-			$requested_plugins[] = [
-				'slug'    => $slug,
-				'version' => $version,
-				'dl_link' => ''
-			];
-		}
-	}
-
-	$allThemes = fv_get_themes();
-	foreach( $allThemes as $theme ) {
-		$get_theme_slug = fv_get_wp_theme_slug( $theme );
-		$requested_themes[]=[
-			'slug'    => $get_theme_slug,
-			'version' => $theme->Version,
-			'dl_link' => ''
-		];
-	}
-
-	$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
-	$query_args     = array(
-		'license_key'     => fv_get_license_key(),
-		'license_key_2'   => fv_get_license_key_2(),
-		'license_d'       => fv_get_license_domain_id(),
-		'license_d_2'     => fv_get_license_domain_id_2(),
-		'all_plugin_list' => $requested_plugins,
-		'all_theme_list'  => $requested_themes,
-		'license_pp'      => $_SERVER['REMOTE_ADDR'],
-		'license_host'    => $_SERVER['HTTP_HOST'],
-		'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
-		'license_v'       => FV_PLUGIN_VERSION,
-	);
-	$query_pl_updater      = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-	$response_pl_updater   = fv_remote_run_query( $query_pl_updater );
-	$pluginUpdate_get_data = json_decode( wp_remote_retrieve_body( $response_pl_updater ) );
-
-	// note: if is_wp_error(), can we still trust and use response->plugins and ->themes?
-
-	if ( isset( $pluginUpdate_get_data->result )
-	&&   fv_api_call_failed( $pluginUpdate_get_data->result ) ) {
-		return ( 'failed' );
-	}
-
-	if ( ! $fv_is_active_license_key( $getLicenseKey ) || $license_enabled != $getLicenseStatus ) {
 		fv_remove_auto_updates();
 		return ( 'success' );
 	}
 
-	$remote_plugins_list = [];
-	foreach( $pluginUpdate_get_data->plugins as $plugin ) {
-		$remote_plugins_list[] = $plugin->slug;
+	// get installed plugins and themes.
+	$plugins  = fv_get_installed_plugins_for_api_request();
+	$themes   = fv_get_installed_themes_for_api_request();
+
+	$fv_plugins  = array();
+	$fv_themes   = array();
+
+	foreach ( fv_array_split( $plugins, count( $themes ), 80 ) as $plugins ) {
+
+		$fv_api = fv_get_remote_matches( $plugins, $themes );
+
+		// if license fails, or domain is blocked,just bail out.
+		if ( isset( $fv_api->result )
+		&&   fv_api_call_failed( $fv_api->result ) ) {
+			return ( 'failed' );
+		}
+
+		// only send themes in the first iterations (if there are more)
+		$themes = array();
+
+		$fv_plugins = array_merge( $fv_plugins, $fv_api->plugins );
+		$fv_themes  = array_merge( $fv_themes,  $fv_api->themes );
 	}
-	$remote_themes_list = [];
-	foreach( $pluginUpdate_get_data->themes as $theme ) {
-		$remote_themes_list[] = $theme->slug;
-	}
-	fv_set_plugins_auto_update( $remote_plugins_list );
-	fv_set_themes_auto_update( $remote_themes_list );
+
+	$fv_plugin_slugs = array_keys( fv_remove_duplicate_plugins( $fv_plugins ) );
+	$fv_theme_slugs  = array_keys( fv_remove_duplicate_themes( $fv_themes ) );
+
+	fv_set_plugins_auto_update_list( $fv_plugin_slugs );
+	fv_set_themes_auto_update_list( $fv_theme_slugs );
 
 	return ( 'success' );
+}
+
+/**
+ * Checks license_status for active status (=1).
+ *
+ * @param string|integer $license_status
+ * @return boolean True if license_status is 1.
+ */
+function fv_is_license_enabled( string|int $license_status ) : bool {
+	return ( 1 != $license_status );
 }
 
 /**
@@ -165,111 +145,84 @@ function fv_custom_endpoint_create_auto( $request ) {
  */
 function fv_custom_endpoint_create( $request ) {
 
-	$_data_all_license_array = [];
-	if ( fv_get_license_key() ) {
-		array_push( $_data_all_license_array, fv_get_license_key() );
-	}
-	if ( fv_get_license_key_2() ) {
-		array_push( $_data_all_license_array, fv_get_license_key_2() );
-	}
-	array_push( $_data_all_license_array, '98yiuyiy1861' );
+	// build an array with all active license keys.
+
+	$License_keys   = fv_get_license_keys();
+	$License_keys[] = '98yiuyiy1861';
 
 	$get_fv_salt_id = $request->get_param( 'salt_id' );
 	$get_fv_salt    = $request->get_param( 'salt' );
 
-	if ( ! empty( $get_fv_salt_id ) && ! empty( $get_fv_salt ) ) {
+	if ( empty( $get_fv_salt_id ) || empty( $get_fv_salt ) ) {
+		return 'failed';
+	}
 
-		$query_base_url = FV_REST_API_URL . 'salt-verification';
+	$query_base_url = FV_REST_API_URL . 'salt-verification';
+	$query_args     = array(
+		'salt_id'      => $get_fv_salt_id,
+		'salt'         => $get_fv_salt,
+		'license_pp'   => $_SERVER['REMOTE_ADDR'],
+		'license_host' => $_SERVER['HTTP_HOST'],
+		'license_mode' => 'salt_verification',
+		'license_v'    => FV_PLUGIN_VERSION,
+	);
+	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+	$response = fv_remote_run_query( $query );
+	$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+	$push_update_result   = 1;
+	$push_update_message  = 'Failed';
+	$run_salt_push_update = false;
+
+	// What is result 1 and status 0?
+	if ( $response->result == 1 && $response->status == 0 ) {
+
+		if ( in_array( $response->license_key, $License_keys )
+		&& ( ( 'license' === $response->data_method )
+		||   (  'domain' === $response->data_method && $response->domain_name === $_SERVER['HTTP_HOST'] ) ) ) {
+
+			switch ( $response->push_for ) {
+				case 'all':
+					fv_auto_update_download();
+					$push_update_message = 'All themes & plugins successfully updated';
+					break;
+
+				case 'plugin':
+					fv_auto_update_download( 'plugin' );
+					$push_update_message = 'All plugins are successfully updated';
+					break;
+
+				case 'theme':
+					fv_auto_update_download( 'theme' );
+					$push_update_message = 'All themes are successfully updated';
+					break;
+
+				default:
+					break;
+			}
+		}
+		$run_salt_push_update = true;
+	}
+
+	if ( $response->result == 0 && $response->status == 0 ) {
+		$push_update_message = 'Already updated';
+		$run_salt_push_update = true;
+	}
+
+	if ( $run_salt_push_update ) {
+		$query_base_url = FV_REST_API_URL . 'salt-push-update-result';
 		$query_args     = array(
-		    'salt_id'      => $get_fv_salt_id,
-		    'salt'         => $get_fv_salt,
-		    'license_pp'   => $_SERVER['REMOTE_ADDR'],
-		    'license_host' => $_SERVER['HTTP_HOST'],
-		    'license_mode' => 'salt_verification',
-		    'license_v'    => FV_PLUGIN_VERSION,
-		);
-		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response = fv_remote_run_query( $query );
-		$response = json_decode( wp_remote_retrieve_body( $response ) );
-
-		$push_update_result  = 1;
-		$push_update_message = 'Failed';
-
-		if ( $response->result == 1 && $response->status == 0 ) {
-
-			if ( $response->data_method == 'domain'
-			&& $_SERVER['HTTP_HOST'] == $response->domain_name
-			&& in_array( $response->license_key, $_data_all_license_array ) ) {
-
-				if ( $response->push_for == 'all' ) {
-					fv_auto_update_download();
-					$push_update_result  = 1;
-					$push_update_message = 'All themes & plugins successfully updated';
-				}
-				if ( $response->push_for == 'theme' ) {
-					fv_auto_update_download( 'theme' );
-					$push_update_result  = 1;
-					$push_update_message = 'All themes are successfully updated';
-
-				}
-				if ( $response->push_for == 'plugin' ) {
-					fv_auto_update_download( 'plugin' );
-					$push_update_result  = 1;
-					$push_update_message = 'All plugins are successfully updated';
-				}
-			}
-
-			if (  $response->data_method == 'license' && in_array( $response->license_key, $_data_all_license_array ) ) {
-
-				if ( $response->push_for == 'all' ) {
-					fv_auto_update_download();
-					$push_update_result  = 1;
-					$push_update_message = 'All themes & plugins successfully updated';
-				}
-				if ( $response->push_for == 'theme' ) {
-					fv_auto_update_download( 'theme' );
-					$push_update_result  = 1;
-					$push_update_message = 'All themes are successfully updated';
-
-				}
-				if ( $response->push_for == 'plugin' ) {
-					fv_auto_update_download( 'plugin' );
-					$push_update_result  = 1;
-					$push_update_message = 'All plugins are successfully updated';
-				}
-			}
-
-			$query_base_url = FV_REST_API_URL . 'salt-push-update-result';
-			$query_args     = array(
-				'salt_id'             => $get_fv_salt_id,
-				'salt'                => $get_fv_salt,
-				'push_update_status'  => $push_update_result,
-				'push_update_message' => $push_update_message,
-				'license_pp'          => $_SERVER['REMOTE_ADDR'],
-				'license_host'        => $_SERVER['HTTP_HOST'],
-				'license_mode'        => 'salt_push_update_result',
-				'license_v'           => FV_PLUGIN_VERSION,
+			'salt_id'             => $get_fv_salt_id,
+			'salt'                => $get_fv_salt,
+			'push_update_status'  => $push_update_result,
+			'push_update_message' => $push_update_message,
+			'license_pp'          => $_SERVER['REMOTE_ADDR'],
+			'license_host'        => $_SERVER['HTTP_HOST'],
+			'license_mode'        => 'salt_push_update_result',
+			'license_v'           => FV_PLUGIN_VERSION,
 			);
-			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-			$response23232 = fv_remote_run_query( $query_232 );
-		}
-
-		if ( $response->result == 0 && $response->status == 0 ) {
-
-			$query_base_url = FV_REST_API_URL . 'salt-push-update-result';
-			$query_args     = array(
-				'salt_id'             => $get_fv_salt_id,
-				'salt'                => $get_fv_salt,
-				'push_update_status'  => 1,
-				'push_update_message' => 'Already updated',
-				'license_pp'          => $_SERVER['REMOTE_ADDR'],
-				'license_host'        => $_SERVER['HTTP_HOST'],
-				'license_mode'        => 'salt_push_update_result',
-				'license_v'           => FV_PLUGIN_VERSION,
-			 );
-			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-			$response23232 = fv_remote_run_query( $query_232 );
-		}
+		$query         = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+		$response      = fv_remote_run_query( $query );
 	}
 }
 
@@ -1155,7 +1108,7 @@ function render_festinger_vault_plugin_updates_page() {
 	/**
 	 * Some pre-processing so rendering is easier.
 	 */
-	if ( ! empty( $fv_plugin ) ) {
+	if ( ! empty( $fv_plugins ) ) {
 		$fv_plugins           = fv_remove_duplicate_plugins( $fv_plugins );
 		$fv_plugins           = fv_add_current_plugins_data( $fv_plugins );
 		$fv_plugin_updates    = fv_get_plugin_updates( $fv_plugins );
@@ -2056,7 +2009,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 			}
 		}
 
-		if ( $theme_plugin == null || $theme_plugin == 'plugin' ) {
+		if ( $theme_plugin == null
+		|| $theme_plugin == 'plugin' ) {
 
 			if ( ! empty( $license_histories->plugins ) ) {
 
@@ -4061,6 +4015,25 @@ function fv_get_license( bool $refresh = false ): array {
 }
 
 /**
+ * Get the active license keys.
+ *
+ * $return array
+ */
+function fv_get_license_keys() : array {
+
+	$licenses     = fv_get_licenses();
+	$license_keys = array();
+
+	foreach ( $licenses as $license ) {
+		if ( ! empty( $license['license-key'] ) ) {
+			$license_keys[] = $license['license-key'];
+		}
+	}
+
+	return $license_keys;
+}
+
+/**
  * Gets license key of the first activated license from the settings.
  *
  * @param boolean $refresh set tot true to refresh the staticly saved options.
@@ -4921,7 +4894,7 @@ function fv_set_option( string $option, mixed $value = '', string|bool $autoload
 }
 
 /**
- * Checks if a license key is active in this install.
+ * Checks if a license key is activated in this install.
  *
  * @param string $license_key
  * @return boolean True if entered key is one of the keys in options, otherwise false
