@@ -31,7 +31,8 @@ require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
 require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
 
-add_action( 'rest_api_init', function() {
+function fv_register_rest_routes() {
+
 	register_rest_route( 'fv_endpoint/v1', '/fvforceupdateautoupdate', [
 		'method'              => WP_REST_Server::READABLE,
 		'callback'            => 'fv_custom_endpoint_create_auto',
@@ -51,7 +52,26 @@ add_action( 'rest_api_init', function() {
 			],
 		],
 	] );
-} );
+
+	register_rest_route( 'fv_endpoint/v1', '/fvforceupdate', [
+		'method'              => WP_REST_Server::READABLE,
+		'callback'            => 'fv_custom_endpoint_create',
+		'permission_callback' => '__return_true',
+		'args'                => [
+			'salt_id' => [
+				'required' => true,
+				'type'     => 'number',
+			],
+			'salt' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+		],
+	] );
+}
+
+add_action( 'rest_api_init', 'fv_register_rest_routes' );
+
 
 /**
  * Callback of Rest Api Route "fv_endpoint/v1/fvforceupdateautoupdate"
@@ -136,24 +156,6 @@ function fv_custom_endpoint_create_auto( $request ) {
 
 	return ( 'success' );
 }
-
-add_action( 'rest_api_init', function() {
-	register_rest_route( 'fv_endpoint/v1', '/fvforceupdate', [
-		'method'              => WP_REST_Server::READABLE,
-		'callback'            => 'fv_custom_endpoint_create',
-		'permission_callback' => '__return_true',
-		'args'                => [
-			'salt_id' => [
-				'required' => true,
-				'type'     => 'number',
-			],
-			'salt' => [
-				'required' => true,
-				'type'     => 'string',
-			],
-		],
-	] );
-} );
 
 /**
  * Callback of Rest Api Route "fv_endpoint/v1/fvforceupdate"
@@ -1103,14 +1105,23 @@ function fv_forget_white_label_settings() {
  */
 function render_festinger_vault_theme_updates_page() {
 
-	$themes           = get_installed_themes_for_api_request();
-	$fv_api           = fv_get_remote_themes( $themes );
-
 	$fv_themes        = array();
 	$fv_theme_updates = array();
 
+	/**
+	 * If no licenses are activated, build page with initial data.
+	 */
+	if ( ! fv_has_any_license() ) {
+		$fv_api = fv_updates_empty_api_result();
+		return include( FV_PLUGIN_DIR . '/sections/fv_theme_updates.php' );
+	}
+
+	$req_themes = fv_get_installed_themes_for_api_request();
+
+	$fv_api     = fv_get_remote_themes( $req_themes );
+
 	if ( ! isset( $fv_api->result )
-	||   ! in_array( $fv_api->result, array( 'domainblocked', 'failed' ) ) ) {
+	||   ! in_array( fv_api_call_failed( $fv_api->result ) ) ) {
 		/**
 		 * Some pre-processing so rendering is easier.
 		 */
@@ -1132,14 +1143,26 @@ function render_festinger_vault_theme_updates_page() {
  */
 function render_festinger_vault_plugin_updates_page() {
 
-	$plugins = get_installed_plugins_for_api_request();
+	$fv_plugins        = array();
+	$fv_plugin_updates = array();
 
 	/**
-	 * Split the requested plugins array and Iterate the api call, when number of plugins would make the query too large.
+	 * If no licenses are activated, build page with initial data.
 	 */
-	foreach ( fv_array_equal_split( array: $plugins, chunkSize: 75 ) as $plugins ) {
+	if ( ! fv_has_any_license() ) {
+		$fv_api = fv_updates_empty_api_result();
+		return include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php' );
+	}
 
-		$fv_api = fv_get_remote_plugins( $plugins );
+	$req_plugins = fv_get_installed_plugins_for_api_request();
+
+	/**
+	 * Split the requested plugins array and Iterate the api call,
+	 * when number of plugins would make the query too large.
+	 */
+	foreach ( fv_array_equal_split( array: $req_plugins, chunkSize: 75 ) as $p ) {
+
+		$fv_api = fv_get_remote_plugins( $p );
 
 		if ( isset( $fv_api->result )
 		&&   fv_api_call_failed( $fv_api->result ) ) {
@@ -1150,27 +1173,41 @@ function render_festinger_vault_plugin_updates_page() {
 			break;
 		}
 
-		/**
-		 * collect returned plugins in $fv_plugins
-		 */
-		if ( empty( $fv_plugins ) ) {
-			$fv_plugins = (array) $fv_api->plugins;
-		} else {
-			$fv_plugins = array_merge( $fv_plugins, (array) $fv_api->plugins );
-		}
+		$fv_plugins = array_merge( $fv_plugins, (array) $fv_api->plugins );
 	}
-
 	/**
 	 * Some pre-processing so rendering is easier.
 	 */
-	$fv_plugins           = fv_remove_duplicate_plugins( $fv_plugins );
-	$fv_plugins           = fv_add_current_plugins_data( $fv_plugins );
-	$fv_plugin_updates    = fv_get_plugin_updates( $fv_plugins );
+	if ( ! empty( $fv_plugin ) ) {
+		$fv_plugins           = fv_remove_duplicate_plugins( $fv_plugins );
+		$fv_plugins           = fv_add_current_plugins_data( $fv_plugins );
+		$fv_plugin_updates    = fv_get_plugin_updates( $fv_plugins );
+	}
 
 	/**
 	 * Render the plugin update page.
 	 */
 	include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php' );
+}
+
+/**
+ * Returns an minimal api result object
+ * with properties that are
+ * used by the themes and plugins update pages.
+ *
+ * @return stdClass
+ */
+function fv_updates_empty_api_result() : stdClass {
+
+	$fp_api                      = new stdClass();
+	$fp_api->result              = 'no-license';
+	$fp_api->msg                 = '';
+	$fp_api->manual_force_update = 'No';
+	$fp_api->plugins             = array();
+	$fp_api->themes              = array();
+
+	return $fp_api;
+
 }
 
 /**
@@ -1202,11 +1239,15 @@ function fv_get_remote_themes( array $themes ) : stdClass|false {
  */
 function fv_get_remote_matches( array $plugins = array(), array $themes = array() ) : stdClass|false {
 
-	if ( empty( $plugins ) && empty( $themes ) ) {
-		return false;
-	}
 	if ( ! is_array( $plugins ) || ! is_array( $themes ) ) {
 		return false;
+	}
+
+	/**
+	 * If no license was activated, no need to go remote.
+	 */
+	if ( ! fv_has_any_license() ) {
+		return fv_updates_empty_api_result();
 	}
 
 	// build Query
@@ -4390,8 +4431,6 @@ function fv_add_current_plugins_data( array $fv_plugins ): array {
 		$fv_plugins_new[ $basename ]['installed-version'] = $plugin_data['Version'];
     }
 
-	// sort array asc by plugin basename
-    ksort( $fv_plugins_new );
 	return $fv_plugins_new;
 }
 
@@ -4509,7 +4548,7 @@ function fv_get_package_type( string $pkg_str ): string {
  *
  * @return array
  */
-function get_installed_plugins_for_api_request(): array {
+function fv_get_installed_plugins_for_api_request(): array {
 
 	$plugins = [];
 
@@ -4529,7 +4568,7 @@ function get_installed_plugins_for_api_request(): array {
  *
  * @return array
  */
-function get_installed_themes_for_api_request(): array {
+function fv_get_installed_themes_for_api_request(): array {
 
 	$themes = [];
 
@@ -4565,11 +4604,11 @@ function fv_domain_blocked( string $result ) : bool {
 }
 
 function fv_license_failed( string $result ) : bool {
-	return 'failed' === $result;
+	return in_array( $result, array( 'failed', 'no-license' ), true );
 }
 
 function fv_api_call_failed( string $result ) : bool {
-	return in_array( $result, array( 'domainblocked', 'failed' ) );
+	return in_array( $result, array( 'domainblocked', 'failed', 'no-license' ) );
 }
 
 /**
@@ -4785,7 +4824,7 @@ function fv_hide_all_admin_notices() : void {
 /**
  * Remove WP-Rocket admin notices.
  */
-function fv_hide_wp_rocket_warnings() {
+function fv_hide_wp_rocket_warnings() : void {
 	remove_action( 'admin_notices', 'rocket_warning_htaccess_permissions' );
 	remove_action( 'admin_notices', 'rocket_warning_config_dir_permissions' );
 }
@@ -4818,10 +4857,10 @@ function fv_forget_auto_update_lists() : void {
  */
 function fv_delete_option( string $option ) : bool {
 	if ( false !== get_option( $option ) ) {
-		delete_option( $option );
+		return delete_option( $option );
 	}
+	return true;
 }
-
 
 /**
  * Adds or updates an option.

@@ -1,5 +1,3 @@
-<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
-
 <?php
 /**
  * This file uses the following vars/data:
@@ -11,7 +9,7 @@
  * $fv_theme_updates
  */
 ?>
-
+<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
 <div class="container-padding">
     <div class="row" style="padding-top: 20px;">
         <div class="col-md-12 theme_updated_h4 pb-2 px-0">
