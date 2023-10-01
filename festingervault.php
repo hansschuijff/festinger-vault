@@ -106,8 +106,7 @@ function fv_custom_endpoint_create_auto( $request ) {
 		'license_host'    => $_SERVER['HTTP_HOST'],
 		'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 		'license_v'       => FV_PLUGIN_VERSION,
-	 );
-
+	);
 	$query_pl_updater      = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response_pl_updater   = fv_remote_run_query( $query_pl_updater );
 	$pluginUpdate_get_data = json_decode( wp_remote_retrieve_body( $response_pl_updater ) );
@@ -178,7 +177,7 @@ function fv_custom_endpoint_create( $request ) {
 
 	if ( ! empty( $get_fv_salt_id ) && ! empty( $get_fv_salt ) ) {
 
-		$query_base_url = FV_REST_API_URL . 'salt-verification'
+		$query_base_url = FV_REST_API_URL . 'salt-verification';
 		$query_args     = array(
 		    'salt_id'      => $get_fv_salt_id,
 		    'salt'         => $get_fv_salt,
@@ -248,8 +247,7 @@ function fv_custom_endpoint_create( $request ) {
 				'license_host'        => $_SERVER['HTTP_HOST'],
 				'license_mode'        => 'salt_push_update_result',
 				'license_v'           => FV_PLUGIN_VERSION,
-			 );
-
+			);
 			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 			$response23232 = fv_remote_run_query( $query_232 );
 		}
@@ -267,7 +265,6 @@ function fv_custom_endpoint_create( $request ) {
 				'license_mode'        => 'salt_push_update_result',
 				'license_v'           => FV_PLUGIN_VERSION,
 			 );
-
 			$query_232     = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 			$response23232 = fv_remote_run_query( $query_232 );
 		}
@@ -581,7 +578,7 @@ add_action( 'admin_menu', 'festinger_vault_admin_menu_section' );
  * @param string $string A string value.
  * @return string String without dashes, underscores and capitalized.
  */
-function remove_under_middle_score( $string ) {
+function fv_slug_to_title( $string ) {
 	$rem_dash    = str_replace( "-", " ", $string );
 	$rem_unscore = str_replace( "_", " ", $rem_dash );
 	return ucfirst( $rem_unscore );
@@ -673,7 +670,6 @@ function fv_activation_ajax() {
 		'license_mode' => 'activation',
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
-
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -718,7 +714,6 @@ function fv_deactivation_ajax() {
 		'license_mode' => 'deactivation',
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
-
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -782,7 +777,6 @@ function fv_deactivation_ajax_2() {
 		'license_mode' => 'deactivation',
 		'license_v'    => FV_PLUGIN_VERSION,
 	 );
-
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -835,7 +829,6 @@ function fv_search_ajax_data() {
 
 	$starttime               = microtime( true );
 
-
 	$fv_cache_status = 0;
 
 	$fv_cache_status_server = get_all_data_return_fresh( 'cchsts' );
@@ -854,7 +847,7 @@ function fv_search_ajax_data() {
 	$pagenmber     = isset( $_POST['page'] ) ? $_POST['page'] : '1';
 
 	$query_base_url = FV_REST_API_URL . 'search-data';
-	$api_params     = array(
+	$query_args     = array(
 		'license_key'          => fv_get_license_key(),
 		'license_key_2'        => fv_get_license_key_2(),
 		'datasrc'	           => $searchedValue,
@@ -867,10 +860,9 @@ function fv_search_ajax_data() {
 		'license_v'            => FV_PLUGIN_VERSION,
 		'queryd'               => 'wordpress',
 	 );
-
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
-	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+	$license_data = wp_remote_retrieve_body( $response );
 
 	echo( $license_data );
 
@@ -1009,7 +1001,7 @@ function get_all_data_return_fresh( $data = null ) {
 	get_plugin_theme_data_details( 'all_plugins_themes' );
 
 	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
-	$api_params     = array(
+	$query_args     = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -1019,7 +1011,6 @@ function get_all_data_return_fresh( $data = null ) {
 		'license_mode'  => 'get_all_license_data',
 		'license_v'     => FV_PLUGIN_VERSION,
 	 );
-
 	$query            = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response         = fv_remote_run_query( $query );
 	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -1053,7 +1044,7 @@ function get_all_data_return_fresh( $data = null ) {
 function render_festinger_vault_activation_page() {
 
 	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
-	$api_params     = array(
+	$query_args     = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -1063,7 +1054,6 @@ function render_festinger_vault_activation_page() {
 		'license_mode'  => 'get_all_license_data',
 		'license_v'     => FV_PLUGIN_VERSION,
 	 );
-
 	$query            = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response         = fv_remote_run_query( $query );
 	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -1233,7 +1223,6 @@ function fv_get_remote_matches( array $plugins = array(), array $themes = array(
 		'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 		'license_v'       => FV_PLUGIN_VERSION,
 	);
-
 	$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
 	return	json_decode( wp_remote_retrieve_body(
@@ -1317,8 +1306,8 @@ function activeThemesVersions() {
 
 	if ( fv_has_any_license() ) {
 
-		// API query parameters
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
+		$query_args     = array(
 			'license_key'     => fv_get_license_key(),
 			'license_key_2'   => fv_get_license_key_2(),
 			'license_d'       => fv_get_license_domain_id(),
@@ -1329,9 +1318,8 @@ function activeThemesVersions() {
 			'license_host'    => $_SERVER['HTTP_HOST'],
 			'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 			'license_v'       => FV_PLUGIN_VERSION,
-		 );
-
-		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-theme-updater' ) );
+		);
+		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response          = fv_remote_run_query( $query );
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1409,7 +1397,8 @@ function activePluginsVersions() {
 
 	if ( fv_has_any_license() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
+		$query_args     = array(
 			'license_key'     => fv_get_license_key(),
 			'license_key_2'   => fv_get_license_key_2(),
 			'license_d'       => fv_get_license_domain_id(),
@@ -1420,8 +1409,8 @@ function activePluginsVersions() {
 			'license_host'    => $_SERVER['HTTP_HOST'],
 			'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 			'license_v'       => FV_PLUGIN_VERSION,
-		 );
-		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-theme-updater' ) );
+		);
+		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response          = fv_remote_run_query( $query );
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1491,7 +1480,8 @@ function render_festinger_vault_theme_history_page() {
 
 	if ( fv_has_any_license() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'get-license-history';
+		$query_args     = array(
 			'license_key'   => fv_get_license_key(),
 			'license_key_2' => fv_get_license_key_2(),
 			'license_d'     => fv_get_license_domain_id(),
@@ -1500,9 +1490,8 @@ function render_festinger_vault_theme_history_page() {
 			'license_host'  => $_SERVER['HTTP_HOST'],
 			'license_mode'  => 'get_history',
 			'license_v'     => FV_PLUGIN_VERSION,
-		 );
-
-		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-license-history' ) );
+		);
+		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response          = fv_remote_run_query( $query );
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1522,23 +1511,22 @@ function render_festinger_vault_theme_history_page() {
 function festinger_vault_get_multi_purpose_data() {
 
 	// if ( fv_has_any_license() ) {
+	$query_args = FV_REST_API_URL . 'get-multi-purpose-data';
+	$api_params = array(
+		'license_key'   => fv_get_license_key(),
+		'license_key_2' => fv_get_license_key_2(),
+		'license_d'     => fv_get_license_domain_id(),
+		'license_d_2'   => fv_get_license_domain_id_2(),
+		'license_pp'    => $_SERVER['REMOTE_ADDR'],
+		'license_host'  => $_SERVER['HTTP_HOST'],
+		'license_mode'  => 'get_multi_purpose_data_status',
+		'license_v'     => FV_PLUGIN_VERSION,
+	);
+	$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+	$response          = fv_remote_run_query( $query );
+	$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
-		$api_params = array(
-			'license_key'   => fv_get_license_key(),
-			'license_key_2' => fv_get_license_key_2(),
-			'license_d'     => fv_get_license_domain_id(),
-			'license_d_2'   => fv_get_license_domain_id_2(),
-			'license_pp'    => $_SERVER['REMOTE_ADDR'],
-			'license_host'  => $_SERVER['HTTP_HOST'],
-			'license_mode'  => 'get_multi_purpose_data_status',
-			'license_v'     => FV_PLUGIN_VERSION,
-		 );
-
-		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-multi-purpose-data' ) );
-		$response          = fv_remote_run_query( $query );
-		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
-
-		return $license_histories;
+	return $license_histories;
 	//}
 }
 
@@ -1552,16 +1540,16 @@ add_action( 'wp_ajax_nopriv_fv_license_refill_ajax', 'fv_license_refill_ajax' );
  */
 function fv_license_refill_ajax() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'refill-license';
+	$query_args     = array(
 		'license_key'  => $_POST['license_key'],
 		'refill_key'   => $_POST['refill_key'],
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
 		'license_mode' => 'refill_history',
 		'license_v'    => FV_PLUGIN_VERSION,
-	 );
-
-	$query       = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'refill-license' ) );
+	);
+	$query       = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response    = fv_remote_run_query( $query );
 
 	$refill_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -1808,7 +1796,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 
 	if ( fv_has_any_license() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
+		$query_args     = array(
 			'license_key'     => fv_get_license_key(),
 			'license_key_2'   => fv_get_license_key_2(),
 			'license_d'       => fv_get_license_domain_id(),
@@ -1820,9 +1809,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 			'license_v'       => FV_PLUGIN_VERSION,
 			'all_plugin_list' => $requested_plugins,
 			'all_theme_list'  => $requested_themes,
-		 );
-
-		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-theme-updater' ) );
+		);
+		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response          = fv_remote_run_query( $query );
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -1929,7 +1917,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 										$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
 										$un       = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -1940,9 +1929,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$response  = fv_remote_run_query( $query_dif );
 										if ( ! is_wp_error( $un ) ) {
 											unlink( $fv_theme_zip_upload_dir . '/' . $basename );
@@ -2021,7 +2009,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 										$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
 										$un       = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -2032,9 +2021,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$response  = fv_remote_run_query( $query_dif );
 
 										if ( ! is_wp_error( $un ) ) {
@@ -2142,7 +2130,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 										}
 										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -2153,9 +2142,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$res       = fv_remote_run_query( $query_dif );
 
 										if ( !is_wp_error( $un ) ) {
@@ -2227,7 +2215,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 										}
 										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -2238,9 +2227,8 @@ function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slu
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$res       = fv_remote_run_query( $query_dif );
 
 										if ( ! is_wp_error( $un ) ) {
@@ -2344,7 +2332,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 	if ( fv_has_any_license() ) {
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
+		$query_args     = array(
 			'license_key'     => fv_get_license_key(),
 			'license_key_2'   => fv_get_license_key_2(),
 			'license_d'       => fv_get_license_domain_id(),
@@ -2356,10 +2345,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 			'license_v'       => FV_PLUGIN_VERSION,
 			'all_plugin_list' => $requested_plugins,
 			'all_theme_list'  => $requested_themes,
-		 );
-
-		$query = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-theme-updater' ) );
-
+		);
+		$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => false ) );
 
 		if (is_wp_error( $response ) ) {
@@ -2469,7 +2456,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 										$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
 										$un = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename,get_theme_root() );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -2480,8 +2468,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$response  = fv_remote_run_query( $query_dif );
 										if ( ! is_wp_error( $un ) ) {
 											unlink( $fv_theme_zip_upload_dir . '/' . $basename );
@@ -2558,7 +2546,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
 									$un= unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
 
-									$api_params_dif = array(
+									$query_base_url = FV_REST_API_URL . 'update-request-load';
+									$query_args     = array(
 										'license_key'          => fv_get_license_key(),
 										'license_key_2'        => fv_get_license_key_2(),
 										'license_d'            => fv_get_license_domain_id(),
@@ -2569,8 +2558,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 										'license_host'         => $_SERVER['HTTP_HOST'],
 										'license_mode'         => 'update_request_load',
 										'license_v'            => FV_PLUGIN_VERSION,
-									 );
-									$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+									);
+									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 									$response  = fv_remote_run_query( $query_dif );
 
 									if ( ! is_wp_error( $un ) ) {
@@ -2670,20 +2659,20 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 										}
 										$un= unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
 
-										$api_params_dif = array(
-											'license_key' => fv_get_license_key(),
-											'license_key_2' => fv_get_license_key_2(),
-											'license_d' => fv_get_license_domain_id(),
-											'license_d_2' => fv_get_license_domain_id_2(),
-											'plugin_theme_slug' => $u->slug,
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
+											'license_key'          => fv_get_license_key(),
+											'license_key_2'        => fv_get_license_key_2(),
+											'license_d'            => fv_get_license_domain_id(),
+											'license_d_2'          => fv_get_license_domain_id_2(),
+											'plugin_theme_slug'    => $u->slug,
 											'plugin_theme_version' => $u->version,
-											'license_pp' => $_SERVER['REMOTE_ADDR'],
-											'license_host'=> $_SERVER['HTTP_HOST'],
-											'license_mode'=> 'update_request_load',
-											'license_v'=> FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+											'license_pp'           => $_SERVER['REMOTE_ADDR'],
+											'license_host'         => $_SERVER['HTTP_HOST'],
+											'license_mode'         => 'update_request_load',
+											'license_v'            => FV_PLUGIN_VERSION,
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$res       = fv_remote_run_query( $query_dif );
 										if ( !is_wp_error( $un ) ) {
 											unlink( $fv_plugin_zip_upload_dir.'/'.$basename );
@@ -2755,7 +2744,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 										}
 										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
 
-										$api_params_dif = array(
+										$query_base_url = FV_REST_API_URL . 'update-request-load';
+										$query_args     = array(
 											'license_key'          => fv_get_license_key(),
 											'license_key_2'        => fv_get_license_key_2(),
 											'license_d'            => fv_get_license_domain_id(),
@@ -2766,9 +2756,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 											'license_host'         => $_SERVER['HTTP_HOST'],
 											'license_mode'         => 'update_request_load',
 											'license_v'            => FV_PLUGIN_VERSION,
-										 );
-
-										$query_dif = esc_url_raw( add_query_arg( $api_params_dif, FV_REST_API_URL . 'update-request-load' ) );
+										);
+										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 										$res       = fv_remote_run_query( $query_dif );
 										if ( !is_wp_error( $un ) ) {
 											unlink( $fv_plugin_zip_upload_dir . '/' . $basename );
@@ -2809,7 +2798,8 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 
 function download_and_istall_plugin() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'plugin-download';
+	$query_args     = array(
 		'license_d'            => fv_get_license_domain_id(),
 		'license_pp'           => $_SERVER['REMOTE_ADDR'],
 		'license_host'         => $_SERVER['HTTP_HOST'],
@@ -2817,9 +2807,8 @@ function download_and_istall_plugin() {
 		'license_v'            => FV_PLUGIN_VERSION,
 		'plugin_download_hash' => 'ff4e1b8e4bc36381389eaac20fae1169',
 		'license_key'          => '53fd42a77eb617e31fca2439f4e51fd20bd96754',
-	 );
-
-	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-download' ) );
+	);
+	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response     = fv_remote_run_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
@@ -2952,7 +2941,8 @@ function fv_auto_update_install() {
 
 function render_festinger_vault_settings_page() {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+	$query_args     = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -2961,9 +2951,8 @@ function render_festinger_vault_settings_page() {
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'get_all_license_data',
 		'license_v'     => FV_PLUGIN_VERSION,
-	 );
-
-	$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
+	);
+	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response = fv_remote_run_query( $query );
 
 	if ( is_wp_error( $response ) ) {
@@ -2976,7 +2965,8 @@ function render_festinger_vault_settings_page() {
 		// so the same code is run three times when is_wp_error
 		// occurs on the first time. The third time is unconditional.
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+		$query_args     = array(
 			'license_key'   => fv_get_license_key(),
 			'license_key_2' => fv_get_license_key_2(),
 			'license_d'     => fv_get_license_domain_id(),
@@ -2985,16 +2975,16 @@ function render_festinger_vault_settings_page() {
 			'license_host'  => $_SERVER['HTTP_HOST'],
 			'license_mode'  => 'get_all_license_data',
 			'license_v'     => FV_PLUGIN_VERSION,
-		 );
-
-		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
+		);
+		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 
 		// just repeating the same code unconditionally seems senseless.
 		// this can't be right. Is this just to repeat in the hope it will work?
 		// then at least it should first check if it is needed.
 
-		$api_params = array(
+		$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+		$query_args     = array(
 			'license_key'   => fv_get_license_key(),
 			'license_key_2' => fv_get_license_key_2(),
 			'license_d'     => fv_get_license_domain_id(),
@@ -3003,9 +2993,8 @@ function render_festinger_vault_settings_page() {
 			'license_host'  => $_SERVER['HTTP_HOST'],
 			'license_mode'  => 'get_all_license_data',
 			'license_v'     => FV_PLUGIN_VERSION,
-		 );
-
-		$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
+		);
+		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 	}
 
@@ -3098,7 +3087,8 @@ function get_plugin_theme_data_details( $request_list = 'all' ) {
 				chunkSize: 49
 			 );
 			foreach( $all_plugins_list_chunks as $splitted_list ) {
-				$api_params = array(
+				$query_base_url = FV_REST_API_URL . 'licensedinfolist';
+				$query_args     = array(
 					'license_key'             => fv_get_license_key(),
 					'license_key_2'           => fv_get_license_key_2(),
 					'license_d'               => fv_get_license_domain_id(),
@@ -3111,9 +3101,8 @@ function get_plugin_theme_data_details( $request_list = 'all' ) {
 						'plugins' => $splitted_list,
 						'themes'  => $all_themes_list,
 					 ),
-				 );
-
-				$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'licensedinfolist' ) );
+				);
+				$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 				$response = fv_remote_run_query( $query );
 			}
 			// QUESTION: Why is there no return in this case? All others return something.
@@ -3136,7 +3125,8 @@ function get_plugin_theme_data_details( $request_list = 'all' ) {
 
 function render_festinger_vault_page () {
 
-	$api_params = array(
+	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
+	$query_args = array(
 		'license_key'   => fv_get_license_key(),
 		'license_key_2' => fv_get_license_key_2(),
 		'license_d'     => fv_get_license_domain_id(),
@@ -3145,15 +3135,14 @@ function render_festinger_vault_page () {
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'get_all_license_data',
 		'license_v'     => FV_PLUGIN_VERSION,
-	 );
-
-	$query            = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-all-license-data' ) );
-	$response         = fv_remote_run_query( $query );
-	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
+	);
+	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+	$response = fv_remote_run_query( $query );
+	$fv_api   = json_decode( wp_remote_retrieve_body( $response ) );
 
 	// remove white_label settings if the plugin isn't set to use them.
-	if ( $all_license_data->license_1->options->white_label == 'no'
-	&&   $all_license_data->license_2->options->white_label == 'no' ) {
+	if ( $fv_api->license_1->options->white_label == 'no'
+	&&   $fv_api->license_2->options->white_label == 'no' ) {
 		fv_forget_white_label_settings();
 	}
 
@@ -3776,7 +3765,7 @@ function fv_get_themes() {
 function fv_remote_run_query( string $query ) {
 	$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => false ) );
 	if (is_wp_error( $response ) ) {
-		$response = wp_remote_post( $query_232, array( 'timeout' => 200, 'sslverify' => true ) );
+		$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => true ) );
 		if ( is_wp_error( $response ) ) {
 				echo 'SSLVERIFY ERROR';
 		}
@@ -4559,7 +4548,17 @@ function get_installed_themes_for_api_request(): array {
 	return $themes;
 }
 
+function fv_active_license( string $status ) : bool {
+	return 'valid' === $status;
+}
 
+function fv_license_found( string $license_validation ) : bool {
+	return ! fv_license_not_found( $license_validation );
+}
+
+function fv_license_not_found( string $license_validation ) : bool {
+	return 'notfound' === $license_validation;
+}
 
 function fv_domain_blocked( string $result ) : bool {
 	return 'domainblocked' === $result;
@@ -4888,4 +4887,37 @@ function fv_set_themes_auto_update_list( array $list ) : void {
 function fv_remove_auto_updates() : void {
 	fv_set_option( 'fv_plugin_auto_update_list', array() );
 	fv_set_option( 'fv_themes_auto_update_list', array() );
+}
+
+
+/**
+ * Translates the license status, as it is returned by the fv api,
+ * to a human readable text.
+ *
+ * @param string $license_status Status as returned by the api.
+ * @return string Human readable status.
+ */
+function fv_get_license_status_text( string $license_status ): string {
+    switch ( $license_status ) {
+        case 'valid':
+            return 'Active';
+            break;
+
+        case 'invalid':
+            return 'Suspended';
+            break;
+
+        // default:
+        //     break;
+    }
+
+    return ucfirst( $license_status );
+}
+
+function get_hours_to_midnight() : string {
+    date_default_timezone_set( "UTC" );
+    $now                 = date( 'Y-m-d H:i:s' );
+    $next_day_start      = ( new DateTime( 'tomorrow' ) )->format( 'Y-m-d H:i:s' );
+    $hours_to_midnight   = round( ( strtotime( $next_day_start ) - strtotime( $now ) ) / 3600, 1 );
+    return (string) $hours_to_midnight;
 }
