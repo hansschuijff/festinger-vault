@@ -13,7 +13,7 @@
  * Plugin Name:       Festinger Vault Fork
  * Plugin URI:        https://github.com/hansschuijff/festinger-vault
  * GitHub Plugin URI: hansschuijff/festinger-vault
- * Version:           4.1.0-h4
+ * Version:           4.1.0-h5
  * Version date:      2023-10-2
  * description:       Festinger vault - The largest plugin market
  * Author:            Hans Schuijff
