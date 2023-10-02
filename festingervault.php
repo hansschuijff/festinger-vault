@@ -30,7 +30,25 @@ define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
 require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
+require_once( FV_PLUGIN_DIR . '/includes/update-this-plugin.php' );
 
+// probably dead code, but just in case still included.
+require_once( FV_PLUGIN_DIR . '/includes/dead.php' );
+
+/**
+ * Check for updates of this plugin.
+ */
+$MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
+	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
+	__FILE__,
+	'festingervault'
+ );
+
+/**
+ * Registers the REST API Routes/Endpoints for this plugin.
+ *
+ * @return void
+ */
 function fv_register_rest_routes() {
 
 	register_rest_route( 'fv_endpoint/v1', '/fvforceupdateautoupdate', [
@@ -128,16 +146,6 @@ function fv_custom_endpoint_create_auto( $request ) {
 }
 
 /**
- * Checks license_status for active status (=1).
- *
- * @param string|integer $license_status
- * @return boolean True if license_status is 1.
- */
-function fv_is_license_enabled( string|int $license_status ) : bool {
-	return ( 1 != $license_status );
-}
-
-/**
  * Callback of Rest Api Route "fv_endpoint/v1/fvforceupdate"
  *
  * @param WP_REST_Request $request
@@ -227,27 +235,6 @@ function fv_custom_endpoint_create( $request ) {
 }
 
 /**
- * Get the name of a plugin based on the plugin slug.
- *
- * NOTE: can this be removed since it isn't called anymore?
- *
- * @param string $slug A plugins slug.
- * @return string Name of a plugin.
- */
-function get_plugin_name_by_slug( $slug ) {
-
-	$all_plugins = get_plugins();
-	if ( empty( $all_plugins ) ) {
-		return $slug;
-	}
-	foreach ( $all_plugins as $plugin_basename => $plugin_data ) {
-		if ( $slug === fv_get_slug( $plugin_basename ) ) {
-			return $values['Name'];
-		}
-	}
-}
-
-/**
  * Initial setup at activation.
  *
  * @return void
@@ -266,11 +253,16 @@ register_activation_hook( __FILE__, 'fv_activate' );
  * @return void
  */
 function fv_create_upload_dirs() {
+
 	$upload_dir                      = wp_upload_dir();
+
+	// Define dirs to upload zip-files to.
 	$fv_plugin_zip_upload_dir        = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins";
 	$fv_plugin_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup";
 	$fv_theme_zip_upload_dir         = $upload_dir["basedir"] . "/fv_auto_update_directory/themes";
 	$fv_theme_zip_upload_dir_backup  = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup";
+
+	// Define files to create.
 	$files = array(
 		array(
 			'base' 		=> $fv_plugin_zip_upload_dir,
@@ -293,8 +285,13 @@ function fv_create_upload_dirs() {
 			'content' 	=> ''
 		 )
 	 );
+
+	// build file and directory structure.
 	foreach ( $files as $file ) {
-		if ( wp_mkdir_p( $file['base'] ) && ! file_exists( trailingslashit( $file['base'] ) . $file['file'] ) ) {
+
+		if ( wp_mkdir_p( $file['base'] ) // Makes dir based on full path.
+		&& ! file_exists( trailingslashit( $file['base'] ) . $file['file'] ) ) {
+
 			if ( $file_handle = @fopen( trailingslashit( $file['base'] ) . $file['file'], 'w' ) ) {
 				fwrite( $file_handle, $file['content'] );
 				fclose( $file_handle );
@@ -324,23 +321,37 @@ function fv_deactivation() {
 }
 register_deactivation_hook( __FILE__, 'fv_deactivation' );
 
-
-$MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
-	__FILE__,
-	'festingervault'
- );
-
 /**
- * Filters the result of the wordpress plugins rest api
- * to change requested info for this plugin.
  *
- * @param false|object|array $obj The result object or array. Default false.
- * @param string $action The type of information being requested from the Plugin Installation API.
- * @param object $arg Plugin API arguments.
+ *
+ * This filter is used to override the default result
+ * of the response for the current WordPress.org Plugin Installation API request.
+ * By returning a non-false value this function will effectively short-circuit
+ * the WordPress.org API request.
+ *
+ * It is used in plugin_api() en when returning a non-false value,
+ * it will skip most of the function and just pass it through.
+ *
+ * If $action is:
+ *   ‘query_plugins’ or
+ *   ‘plugin_information’, an object MUST be passed.
+ *   ‘hot_tags’ or
+ *   ‘hot_categories’, an array should be passed.
+ *
+ *
+ * Filters plugin data requests through the wordpress plugin api
+ * and white labels the data based on settings.
+ * NOTE Some of this data is presented when user clicks on details in the plugins wp_admin page.
+ * the hardcoded data isn't maintained properly and should be taken from the plugins header.
+ *
+ * @see https://developer.wordpress.org/reference/functions/plugins_api/
+ *
+ * @param false|object|array $obj    The result object or array. Default false.
+ * @param string             $action The type of information being requested from the Plugin Installation API.
+ * @param object             $arg    Plugin API arguments.
  * @return false|object|array
  */
-function fv_plugin_check_info( $obj, $action, $arg ) {
+function fv_perhaps_white_label_plugin_data( $obj, $action, $arg ) {
 
 	if ( ( $action == 'query_plugins' || $action == 'plugin_information' )
 	&& isset( $arg->slug )
@@ -349,9 +360,9 @@ function fv_plugin_check_info( $obj, $action, $arg ) {
 		$obj->slug         = 'festingervault';
 		$obj->name         = fv_perhaps_white_label_plugin_name();
 		$obj->author       = fv_perhaps_white_label_plugin_author();
-		$obj->requires     = '3.0';
-		$obj->tested       = '3.3.1';
-		$obj->last_updated = '2021-07-13';
+		$obj->requires     = '3.0';        // ??? doesn't seem right
+		$obj->tested       = '3.3.1';	   // ??? doesn't seem right
+		$obj->last_updated = '2021-07-13'; // ???? doesn't seem right
 		$obj->sections     = array(
 			'description' => fv_perhaps_white_label_plugin_description(),
 		 );
@@ -361,7 +372,15 @@ function fv_plugin_check_info( $obj, $action, $arg ) {
 
 	return $obj;
 }
-add_filter( 'plugins_api', 'fv_plugin_check_info', 20, 3 );
+/**
+ * Filters the response for the current WordPress.org Plugin Installation API request.
+ * Returning a non-false value will effectively short-circuit the WordPress.org API request.
+ *
+ * If $action is ‘query_plugins’ or ‘plugin_information’, an object MUST be passed.
+ * If $action is ‘hot_tags’ or ‘hot_categories’, an array should be passed.
+ */
+apply_filters( 'plugins_api', false|object|array $result, string $action, object $args )
+add_filter( 'plugins_api', 'fv_perhaps_white_label_plugin_data', 20, 3 );
 
 /**
  * Perhaps whitelist this WordPress plugins in admins plugins page.
@@ -1226,220 +1245,6 @@ function fv_esc_version( $slug ) {
 
 	$version = preg_replace( "/[^0-9.]/", "", $slug );
 	return $version;
-}
-
-/**
- * Renders a list of installed themes that are also in Festinger Vault
- *
- * Doesn't seem to be called anymore, so dead code.
- *
- * @return void
- */
-function activeThemesVersions() {
-
-	$allThemes            = fv_get_themes();
-	$activeTheme          = wp_get_theme();
-
-	$requested_plugins = [];
-	$requested_themes  = [];
-
-	// build an array of installed plugins
-
-	$all_plugins = fv_get_plugins(); // Filters out any plugin from wordpress.org repo.
-
-	if ( ! empty( $all_plugins ) ) {
-		foreach ( $all_plugins as $plugin_slug => $values ) {
-			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = fv_get_slug( $plugin_slug );
-			$requested_plugins[] = [
-				'slug'    => $slug,
-				'version' => $version,
-				'dl_link' => ''
-			];
-
-		}
-	}
-
-	// Build an array of installed themes.
-
-	$allThemes = fv_get_themes(); // Filters out any plugin from wordpress.org repo.
-
-	foreach( $allThemes as $theme ) {
-		$get_theme_slug = fv_get_wp_theme_slug( $theme );
-		$requested_themes[] = [
-			'slug'    => $get_theme_slug,
-			'version' => $theme->Version,
-			'dl_link' => ''
-		];
-	}
-
-	// Call Festinger vault api and match result with installed plugins and themes.
-
-	if ( fv_has_any_license() ) {
-
-		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
-		$query_args     = array(
-			'license_key'     => fv_get_license_key(),
-			'license_key_2'   => fv_get_license_key_2(),
-			'license_d'       => fv_get_license_domain_id(),
-			'license_d_2'     => fv_get_license_domain_id_2(),
-			'all_plugin_list' => $requested_plugins,
-			'all_theme_list'  => $requested_themes,
-			'license_pp'      => $_SERVER['REMOTE_ADDR'],
-			'license_host'    => $_SERVER['HTTP_HOST'],
-			'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
-			'license_v'       => FV_PLUGIN_VERSION,
-		);
-		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response          = fv_remote_run_query( $query );
-		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
-
-		// render a list of installed themes that are also in Festinger Vault
-
-		$fvault_themes_slugs = [];
-		foreach( $license_histories->themes as $theme ) {
-			$fvault_themes_slugs[] = $theme->slug;
-		}
-
-		foreach( $allThemes as $theme ) {
-
-			if ( in_array( fv_get_wp_theme_slug( $theme ), $fvault_themes_slugs ) ) {
-
-				$active_theme = '';
-				if ( $activeTheme->Name == $theme->Name ) {
-					$active_theme = "<span class='badge bg-info'>Active</span>";
-				}
-
-				echo '<tr>';
-				echo "<td class='plugin_update_width_30'>
-						{$theme->name} <br/>
-					" . $active_theme . "
-				</td>";
-				echo "<td class='plugin_update_width_60'>". substr( $theme->Description, 0, 180 )."...
-					 </td>";
-				echo "<td>{$theme->Version}</td>";
-				echo "<td>2.0</td>";
-				echo "<td><center><input type='checkbox' checked data-toggle='toggle' data-size='xs'></center></td>";
-				echo '</tr>';
-
-			}
-		}
-	}
-}
-
-/**
- * Renders a list of plugins that are both in Festinger Vault and installed.
- *
- * Doesn't seem to be called anywhere.
- *
- * @return void
- */
-function activePluginsVersions() {
-
-	$allPlugins           = fv_get_plugins();
-	$requested_themes  = [];
-
-	if ( ! empty( $all_plugins ) ) {
-
-		foreach ( $all_plugins as $plugin_slug=>$values ) {
-
-			$version                = fv_esc_version( $values['Version'] );
-			$slug                   = fv_get_slug( $plugin_slug );
-			$requested_plugins[] = [
-				'slug'    => $slug,
-				'version' => $version,
-				'dl_link' => ''
-			];
-		}
-	}
-
-	$allThemes            = fv_get_themes();
-	$requested_plugins = [];
-	foreach( $allThemes as $theme ) {
-		$get_theme_slug = fv_get_wp_theme_slug( $theme );
-		$requested_themes[]=[
-			'slug'    => $get_theme_slug,
-			'version' => $theme->Version,
-			'dl_link' => ''
-		];
-	}
-
-	/* Find matches of plugins and themes in Festinger Vault */
-
-	if ( fv_has_any_license() ) {
-
-		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
-		$query_args     = array(
-			'license_key'     => fv_get_license_key(),
-			'license_key_2'   => fv_get_license_key_2(),
-			'license_d'       => fv_get_license_domain_id(),
-			'license_d_2'     => fv_get_license_domain_id_2(),
-			'all_plugin_list' => $requested_plugins,
-			'all_theme_list'  => $requested_themes,
-			'license_pp'      => $_SERVER['REMOTE_ADDR'],
-			'license_host'    => $_SERVER['HTTP_HOST'],
-			'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
-			'license_v'       => FV_PLUGIN_VERSION,
-		);
-		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response          = fv_remote_run_query( $query );
-		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
-
-		// build an array of plugin slugs from festinger vault results
-		$fvault_plugins_slugs = [];
-		foreach( $license_histories->plugins as $plugin ) {
-			$fvault_plugins_slugs[] = $plugin->slug;
-		}
-
-		$activePlugins = get_option( 'active_plugins' );
-
-		foreach( $allPlugins as $key => $value ) {
-
-			if ( in_array( fv_get_slug( $key ) ) ) {
-
-				// installed plugin also in festinger vault.
-
-				if ( in_array( $key, $activePlugins ) ) {
-
-					// plugin is active
-					echo '<tr>';
-					echo "<td class='plugin_update_width_30'>
-							{$value['Name']} <br/>
-							<span class='badge bg-success'>Active</span>
-							</td>";
-					echo "<td class='plugin_update_width_60'>". substr( $value['Description'], 0, 180 )."...
-							<br/>Slug: " . fv_get_slug( $key )."
-					</td>";
-					echo "<td>{$value['Version']}</td>";
-
-					$repoVersion = fv_esc_version( $value['Version'] );
-
-					echo "<td>{$repoVersion}</td>";
-					echo "<td><center><input type='checkbox' checked data-toggle='toggle' data-size='xs'></center></td>";
-					echo '</tr>';
-				} else {
-
-					// plugin is NOT active
-					echo '<tr>';
-					echo "<td class='plugin_update_width_30'>
-							{$value['Name']} <br/>
-							<span class='badge bg-danger'>Deactive</span>
-
-							</td>";
-					echo "<td class='plugin_update_width_60'>". substr( $value['Description'], 0, 180 )."...
-
-							<br/>Slug: " . fv_get_slug( $key )."
-
-						</td>";
-					echo "<td>{$value['Version']}</td>";
-					$repoVersion = fv_esc_version( $value['Version'] );
-					echo "<td>{$repoVersion}</td>";
-					echo "<td><center><input type='checkbox' checked data-toggle='toggle' data-size='xs'></center></td>";
-					echo '</tr>';
-				}
-			}
-		}
-	}
 }
 
 /**
@@ -5055,4 +4860,14 @@ function fv_print_api_call_failed_notices( stdClass $fv_api ) : void {
     </div>
 	</h4><div id='push-notice-container' class='push-notice-container'></div></div></div></div>
     <?php
+}
+
+/**
+ * Checks license_status for active status (=1).
+ *
+ * @param string|integer $license_status
+ * @return boolean True if license_status is 1.
+ */
+function fv_is_license_enabled( string|int $license_status ) : bool {
+	return ( 1 != $license_status );
 }
