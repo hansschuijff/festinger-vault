@@ -3,13 +3,60 @@
 //ini_set( 'memory_limit', '256' );
 
 /**
- * Plugin Name: Festinger Vault ONDER HANSEN
- * description: Festinger vault - The largest plugin market
- * Version: 4.1.0-h3
- * Author: Festinger Vault
- * License: GPLv2 or later
- * Text Domain: festingervault
+ * Festinger Vault Fork
+ *
+ * @package     festingervault
+ * @author      Festinger Vault
+ * @license     GPL-2.0-or-later
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Festinger Vault Fork
+ * Plugin URI:        https://github.com/hansschuijff/festinger-vault
+ * GitHub Plugin URI: hansschuijff/festinger-vault
+ * Version:           4.1.0-h4
+ * Version date:      2023-10-2
+ * description:       Festinger vault - The largest plugin market
+ * Author:            Hans Schuijff
+ * Author URI:        https://dewitteprins.nl
+ * Text Domain:       festinger-vault
+ * Domain Path:       /languages
+ * Requires at least: 6.x
+ * Tested up to:      6.3.1
+ * Requires PHP:      8.0
+ * Tested PHP:        8.2.10
+ * License:           GNU General Public License v2.0 or later
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
+
+/**
+ * Add some non-standard plugin data headers to be found by get_plugin_data();
+ *
+ * $param
+ * @return array
+ */
+// function fv_add_plugin_data_headers( $extra_headers ) {
+
+// 	if ( ! isset( $headers['LastUpdated'] ) ) {
+// 		$headers['LastUpdated'] = 'Version date';
+// 	}
+// 	// if ( ! isset( 'PluginURI', $headers ) ) {
+// 	// 	$headers['PluginURI'] = 'Tested with';
+// 	// }
+// 	return $extra_headers;
+// }
+// add_filter( 'extra_plugin_headers', 'fv_add_plugin_data_headers' );
+
+// function my_extra_theme_headers( $headers ) {
+
+// 	if ( ! in_array( 'Support URI', $headers ) )
+// 		$headers[] = 'Support URI';
+
+// 	if ( !in_array( 'Documentation URI', $headers ) )
+// 		$headers[] = 'Documentation URI';
+
+// 	return $headers;
+// }
+// add_filter( 'extra_theme_headers', 'my_extra_theme_headers' );
 
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
@@ -30,19 +77,17 @@ define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
 require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
-require_once( FV_PLUGIN_DIR . '/includes/update-this-plugin.php' );
-
 // probably dead code, but just in case still included.
 require_once( FV_PLUGIN_DIR . '/includes/dead.php' );
 
 /**
  * Check for updates of this plugin.
  */
-$MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
-	__FILE__,
-	'festingervault'
- );
+// $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
+// 	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
+// 	__FILE__,
+// 	'festingervault'
+//  );
 
 /**
  * Registers the REST API Routes/Endpoints for this plugin.
@@ -352,7 +397,6 @@ register_deactivation_hook( __FILE__, 'fv_deactivation' );
  * @return false|object|array
  */
 function fv_perhaps_white_label_plugin_data( $obj, $action, $arg ) {
-
 	if ( ( $action == 'query_plugins' || $action == 'plugin_information' )
 	&& isset( $arg->slug )
 	&& $arg->slug === 'festingervault' ) {
@@ -360,9 +404,9 @@ function fv_perhaps_white_label_plugin_data( $obj, $action, $arg ) {
 		$obj->slug         = 'festingervault';
 		$obj->name         = fv_perhaps_white_label_plugin_name();
 		$obj->author       = fv_perhaps_white_label_plugin_author();
-		$obj->requires     = '3.0';        // ??? doesn't seem right
-		$obj->tested       = '3.3.1';	   // ??? doesn't seem right
-		$obj->last_updated = '2021-07-13'; // ???? doesn't seem right
+		$obj->requires     = '3.0';        // Minimum WP version
+		$obj->tested       = '3.3.1';	   // Max. tested WP version
+		$obj->last_updated = '2021-07-13'; // Last update date.
 		$obj->sections     = array(
 			'description' => fv_perhaps_white_label_plugin_description(),
 		 );
@@ -379,8 +423,8 @@ function fv_perhaps_white_label_plugin_data( $obj, $action, $arg ) {
  * If $action is ‘query_plugins’ or ‘plugin_information’, an object MUST be passed.
  * If $action is ‘hot_tags’ or ‘hot_categories’, an array should be passed.
  */
-apply_filters( 'plugins_api', false|object|array $result, string $action, object $args )
-add_filter( 'plugins_api', 'fv_perhaps_white_label_plugin_data', 20, 3 );
+// apply_filters( 'plugins_api', false|object|array $result, string $action, object $args )
+// add_filter( 'plugins_api', 'fv_perhaps_white_label_plugin_data', 20, 3 );
 
 /**
  * Perhaps whitelist this WordPress plugins in admins plugins page.
