@@ -51,6 +51,7 @@ define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
 
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
+require_once( FV_PLUGIN_DIR . '/includes/polyfills.php' );
 // This include contains probably dead code, but just in case for now.
 require_once( FV_PLUGIN_DIR . '/includes/dead.php' );
 // check for plugin updates
@@ -420,20 +421,8 @@ add_filter( 'gettext', 'name_change_wl_fv', 20, 3 );
  */
 function festinger_vault_admin_menu_section() {
 
-	$user_has_access = 0;
-	if ( fv_current_user_has_access() ) {
-		$user_has_access = 1;
-	}
-
-	// QUESTION: Where would this echo be visible
-	//           and is it clear to the user that it is about Festinger Vault?
-	//           should there be a message when this callback is run
-	//           on every admin page just to build the admin menu?
-	//           probably is should remain silent and just don't add the menu-pages.
-	if ( ! $user_has_access ) {
+	if ( ! fv_current_user_has_access() ) {
 		echo "Permission denied";
-		// wp_redirect( admin_url( './' ) );
-		// exit;
 		return;
 	}
 
@@ -529,54 +518,48 @@ function fv_slug_to_title( $string ) {
  * @param string $hook Hook suffix for the current admin page (so you can check the current admin page ).
  * @return void
  */
-function festinger_vault_admin_styles( $hook ) {
+function fv_enqueue_styles_and_scripts( $hook ) {
 
 	$current_screen = get_current_screen();
 
 	// bail out if not on a festinger-vault admin page.
-	if ( false === strpos( haystack: $current_screen->base, needle: 'festinger-vault' ) ) {
+	if ( false === strpos( $current_screen->base, 'festinger-vault' ) ) {
 		return;
 	}
 
-	wp_enqueue_style( 'pagicss',          'https://pagination.js.org/dist/2.6.0/pagination.css', array(), FV_PLUGIN_VERSION );
-	wp_enqueue_style( 'fwv_font_style',   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css' );
-	wp_enqueue_style( 'fv_bootstrap',     'https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css', array(), FV_PLUGIN_VERSION );
-	wp_enqueue_style( 'fv_festinger_css', FV_PLUGIN_ABSOLUTE_PATH.'assets/css/wp_festinger_vault.css', array(), FV_PLUGIN_VERSION );
-	wp_enqueue_style( 'custom-alert-css', '//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css', array(), FV_PLUGIN_VERSION );
-	wp_enqueue_style( 'custom-dt-css',    'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css', array(), FV_PLUGIN_VERSION );
-	wp_enqueue_style( 'roboto-dt-css',    'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap', array(), FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'pagicss',          src: 'https://pagination.js.org/dist/2.6.0/pagination.css',                           deps: array(), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'fwv_font_style',   src: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css' );
+	wp_enqueue_style( handle: 'fv_bootstrap',     src: 'https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css', deps: array(), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'fv_festinger_css', src:  FV_PLUGIN_ABSOLUTE_PATH.'assets/css/wp_festinger_vault.css',                    deps: array(), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'custom-alert-css', src: '//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css',  deps: array(), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'custom-dt-css',    src: 'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css',                  deps: array(), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_style( handle: 'roboto-dt-css',    src: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',     deps: array(), ver: FV_PLUGIN_VERSION );
 
-	wp_deregister_script( 'jquery' ); // Deregisters the built-in version of jQuery
-	wp_register_script( 'jquery',  FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js' , false, FV_PLUGIN_VERSION, true );
-	wp_enqueue_script( 'jquery' );
+	wp_deregister_script( handle: 'jquery' ); // Deregisters the built-in version of jQuery
+	wp_register_script(   handle: 'jquery',           src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',                                    deps: false,             ver: FV_PLUGIN_VERSION, args: true );
+	wp_enqueue_script(    handle: 'jquery' );
 
-	wp_enqueue_script( 'jquery-cookie', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js', array( 'jquery' ), '1.4.1', true );
-
-	wp_enqueue_script( 'custom-alert-js', FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-confirm.min.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
-	wp_enqueue_script( 'pagi-js', 'https://pagination.js.org/dist/2.6.0/pagination.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
-	wp_enqueue_script( 'pagid-js', FV_PLUGIN_ABSOLUTE_PATH.'assets/js/bootstrap.bundle.min.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
-	wp_enqueue_script( 'dt-js', FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery.dataTables.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
-	wp_enqueue_script( 'bootstrap-toggle', 'https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
-
-	$show_title_img_fv_link = 1;
-	if ( fv_should_white_label()  ) {
-		$show_title_img_fv_link = 0;
-	}
-
-	wp_enqueue_script( 'script-js', FV_PLUGIN_ABSOLUTE_PATH.'assets/js/scripts.js' ,array( 'jquery' ), FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'jquery-cookie',    src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js',          deps: array( 'jquery' ), ver: '1.4.1',           args: true );
+	wp_enqueue_script(    handle: 'custom-alert-js',  src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-confirm.min.js',                                deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'pagi-js',          src: 'https://pagination.js.org/dist/2.6.0/pagination.js',                                       deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'pagid-js',         src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/bootstrap.bundle.min.js',                              deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'dt-js',            src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery.dataTables.js',                                 deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'bootstrap-toggle', src: 'https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js', deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
+	wp_enqueue_script(    handle: 'script-js',        src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/scripts.js',                                           deps: array( 'jquery' ), ver: FV_PLUGIN_VERSION );
 
 	// passes data from php to js.
-	wp_localize_script( 'script-js', 'plugin_ajax_object', array(
-		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'get_all_active_plugins_js'		 => get_plugin_theme_data( 'active_plugins' ) ,
-		'get_all_inactive_plugins_js'	 => get_plugin_theme_data( 'inactive_plugins' ),
-		'get_all_active_themes_js'		 => get_plugin_theme_data( 'active_themes' ),
-		'get_all_inactive_themes_js'     => get_plugin_theme_data( 'inactive_themes' ),
-		'show_title_img_fv_link'     	 => $show_title_img_fv_link,
+	wp_localize_script( handle: 'script-js', object_name: 'plugin_ajax_object', l10n: array(
+		'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+		'get_all_active_plugins_js'		 => json_encode( fv_get_active_plugins_slugs()  ),
+		'get_all_inactive_plugins_js'	 => json_encode( fv_get_inactive_plugins_slugs() ),
+		'get_all_active_themes_js'		 => json_encode( fv_get_active_themes_slugs() ),
+		'get_all_inactive_themes_js'     => json_encode( fv_get_inactive_themes_slugs() ),
+		'show_title_img_fv_link'     	 => fv_should_white_label() ? 0 : 1,
 		'cdl_allow' 					 => get_all_data_return_fresh( 'dllimit' ),
 		'get_curr_screen'				 => $current_screen->base
-	 ) );
+	));
 }
+add_action( 'admin_enqueue_scripts', 'fv_enqueue_styles_and_scripts' );
 
 /**
  * Performs a data request query, used mosly used for license data and history.
@@ -589,9 +572,6 @@ function request_data_activation( array $query_args ) {
 	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response       = fv_remote_run_query( $query );
 }
-
-add_action( 'admin_enqueue_scripts', 'festinger_vault_admin_styles' );
-
 add_action( 'wp_ajax_fv_activation_ajax',        'fv_activation_ajax' );
 add_action( 'wp_ajax_nopriv_fv_activation_ajax', 'fv_activation_ajax' );
 
@@ -1029,7 +1009,7 @@ function render_festinger_vault_activation_page() {
  */
 function fv_forget_white_label_settings() {
 
-	$options = fv_get_wl_option_keys('all');
+	$options = fv_get_white_label_option_keys('all');
 
 	foreach ( $options as $option ) {
 		fv_delete_option( $option );
@@ -1353,86 +1333,268 @@ function fv_license_refill_ajax() {
  * Get data about installed themes and plugins.
  *
  * @param string $request_list Type of data requested.
- * @return array Array with themes and/or plugins as requested by $request_list.
+ * @return string Json encoded array with slugs of themes and/or plugins as requested.
  */
-function get_plugin_theme_data( $request_list = 'all' ) {
-
-	$request_list_plugins_only = array( 'active_plugins', 'inactive_plugins' );
-	$request_list_themes_only  = array( 'active_themes', 'inactive_themes' );
-
-	// collect themes data except when only plugin data is needed.
-	if ( ! in_array( $request_list, $request_list_plugins_only ) ) {
-
-		$allThemes           = fv_get_themes();
-		$get_active_themes   = [];
-		$get_inactive_themes = [];
-		$all_themes_list     = [];
-
-		foreach( $allThemes as $theme ) {
-			if ( fv_is_active_theme( $theme->Name ) ) {
-				$get_active_themes[] = $theme->get_template();
-			} else {
-				$get_inactive_themes[] = $theme->get_template();
-			}
-			$all_themes_list[] = $theme->get_template();
-		}
-	}
-
-	// collect plugins data except when only theme data is needed.
-	if ( ! in_array( $request_list, $request_list_themes_only ) ) {
-
-		$allPlugins           = fv_get_plugins();
-		$activePlugins        = get_option( 'active_plugins' );
-		$all_plugins_list     = [];
-		$get_active_plugins   = [];
-		$get_inactive_plugins = [];
-
-		foreach( $allPlugins as $plugin_basename => $plugin_data ) {
-
-			$plugin_slug         = fv_get_slug( $plugin_basename );
-			$all_plugins_list [] = $plugin_slug;
-
-			if (  in_array( $plugin_basename, $activePlugins ) ) {
-				$get_active_plugins[]   = $plugin_slug;
-			} else {
-				$get_inactive_plugins[] = $plugin_slug;
-			}
-		}
-	}
+function get_plugin_theme_data( string $request_list = 'all' ): string {
 
 	switch ( $request_list ) {
 		case 'active_plugins':
-			return json_encode( $get_active_plugins );
+			return json_encode( fv_get_active_plugins_slugs() );
 			break;
 
 		case 'inactive_plugins':
-			return json_encode( $get_inactive_plugins );
+			return json_encode( fv_get_inactive_plugins_slugs() );
 			break;
 
 		case 'active_themes':
-			return json_encode( $get_active_themes );
+			return json_encode( fv_get_active_themes_slugs() );
 			break;
 
 		case 'inactive_themes':
-			return json_encode( $get_inactive_themes );
+			return json_encode( fv_get_inactive_themes_slugs() );
 			break;
 
 		case 'all_plugins_themes':
-			return  json_encode( $final_return_list = [
-				'plugins' => $all_plugins_list,
-				'themes'  => $all_themes_list,
-			] );
+			return  json_encode( array(
+				'plugins' => fv_get_plugins_slugs(),
+				'themes'  => fv_get_themes_slugs(),
+			));
 			break;
 
 		default:
-			return  json_encode( $final_return_list = [
-				'active_plugins'   => $get_active_plugins,
-				'inactive_plugins' => $get_inactive_plugins,
-				'active_themes'    => $get_active_themes,
-				'inactive_themes'  => $get_inactive_themes,
-			] );
+			return  json_encode( array(
+				'active_plugins'   => fv_get_active_plugins_slugs(),
+				'inactive_plugins' => fv_get_inactive_plugins_slugs(),
+				'active_themes'    => fv_get_active_themes_slugs(),
+				'inactive_themes'  => fv_get_inactive_themes_slugs(),
+			));
 			break;
 	}
+}
+
+/**
+ * Gets fv (shortened) slugs of all plugins.
+ *
+ * @return array Fv (shortened) slugs of all plugins.
+ */
+function fv_get_plugins_slugs(): array {
+	return fv_get_plugins_data( slugs_only: true );
+}
+
+/**
+ * Gets data of all plugins.
+ *
+ * @param bool $slug_only true if only slugs are needed.
+ * @return array Array of fv_slugs or fv_slugs and names of plugins.
+ */
+function fv_get_plugins_data( bool $slugs_only = false ): array {
+	$plugins        = fv_get_plugins();
+	$plugins_data   = array();
+	foreach( $plugins as $basename => $plugin ) {
+		$data = fv_get_slug( $basename );
+		if ( ! $slugs_only ) {
+			$data = array(
+				'name' => urlencode( $plugin['Name'] ),
+				'slug' => $data,
+			);
+		}
+		$plugins_data[] = $data;
+	}
+	return $plugins_data;
+}
+
+/**
+ * Gets fv (shortened) slugs of active plugins.
+ *
+ * @return array Fv (shortened) slugs of active plugins.
+ */
+function fv_get_active_plugins_slugs(): array {
+	return fv_get_active_plugins_data( slugs_only: true );
+}
+
+/**
+ * Gets fv (shortened) slugs and name of active plugins.
+ *
+ * @param bool $slug_only If true only slugs are returned.
+ * @return array Fv (shortened) slugs and names of active plugins.
+ */
+function fv_get_active_plugins_data( bool $slugs_only = false ): array {
+
+	$active_plugins_basenames = get_option( 'active_plugins', default_value: array() );
+	if ( $slugs_only && ! $active_plugins_basenames ) {
+		return array();
+	}
+
+	$plugins      = fv_get_plugins();
+	$plugins_data = array();
+	foreach( $active_plugins_basenames as $basename ) {
+
+		// skip if plugin doesn't exist ( should be a wp-org plugin)
+		if ( ! isset( $plugins[ $basename ] ) ) {
+			continue;
+		}
+		$data = fv_get_slug( $basename );
+
+		if ( ! $slugs_only ) {
+			$data = array(
+				'name' => isset( $plugins[ $basename ]['Name'] ) ? urlencode( $plugins[ $basename ]['Name'] ) : '',
+				'slug' => $data,
+			);
+		}
+		$plugins_data[] = $data;
+	}
+
+	return $plugins_data;
+}
+
+/**
+ * Gets fv (shortened) slugs of inactive plugins.
+ *
+ * @return array Fv (shortened) slugs of inactive plugins.
+ */
+function fv_get_inactive_plugins_slugs(): array {
+	return fv_get_inactive_plugins_data( slugs_only: true );
+}
+
+/**
+ * Gets fv (shortened) slugs and name of inactive plugins.
+ *
+ * @param bool $slug_only If true only slugs are returned.
+ * @return array Fv (shortened) slugs and names of inactive plugins.
+ */
+function fv_get_inactive_plugins_data( bool $slugs_only = false ): array {
+
+	$plugins                  = fv_get_plugins();
+	$active_plugins_basenames = get_option( 'active_plugins', default_value: array() );
+
+	if ( ! $active_plugins_basenames ) {
+		if ( $slugs_only ) {
+			return array_keys( $plugins );
+		}
+	}
+
+	$plugins_data = array();
+	foreach( $plugins as $basename => $plugin ) {
+
+		if ( in_array( $basename, $active_plugins_basenames ) ) {
+			continue;
+		}
+
+		$data = fv_get_slug( $basename );
+		if ( ! $slugs_only ) {
+			$data = array(
+				'name' => isset( $plugin['Name'] ) ? urlencode( $plugin['Name'] ) : '',
+				'slug' => $data,
+			);
+		}
+		$plugins_data[] = $data;
+	}
+	return $plugins_data;
+}
+
+/**
+ * Gets stylesheet slugs of all themes.
+ *
+ * @return array Stylesheet slugs of all themes.
+ */
+function fv_get_themes_slugs(): array {
+	return array_keys( fv_get_themes() );
+}
+
+/**
+ * Gets stylesheet slugs and names of all themes.
+ *
+ * @param bool $slug_only If true only stylesheet slugs are returned.
+ * @return array Stylesheet slugs and names of all themes.
+ */
+function fv_get_themes_data( bool $slug_only = false ): array {
+
+	if ( $slug_only ) {
+		return fv_get_themes_slugs();
+	}
+
+	$themes      = fv_get_themes();
+	$themes_data = array();
+	foreach( $themes as $stylesheet => $theme ) {
+		$themes_data[] = array(
+			'name' => urlencode( $theme['Name'] ),
+			'slug' => $stylesheet,
+		);
+	}
+	return $themes_data;
+}
+
+/**
+ * Gets stylesheet slugs of active themes.
+ *
+ * @return array Stylesheet slugs of active themes.
+ */
+function fv_get_active_themes_slugs(): array {
+	return fv_get_active_themes_data( slug_only: true );
+}
+
+/**
+ * Gets stylesheet slugs and names of active themes.
+ *
+ * @param bool $slug_only If true only stylesheet slugs are returned.
+ * @return array Stylesheet slugs and names of active themes.
+ */
+function fv_get_active_themes_data( bool $slug_only = false ): array {
+
+	$active_theme = wp_get_theme();
+	if ( ! $active_theme->exists() ) {
+		return array();
+	}
+	if ( $slug_only ) {
+		return array( $active_theme->stylesheet );
+	}
+	return array( array(
+		'name' => urlencode( $active_theme->Name ),
+		'slug' => $active_theme->stylesheet,
+	));
+}
+
+/**
+ * Gets stylesheet slugs of inactive themes.
+ *
+ * @return array Stylesheet slugs of inactive themes.
+ */
+function fv_get_inactive_themes_slugs() {
+	return fv_get_inactive_themes_data( slug_only: true );
+}
+
+/**
+ * Gets stylesheet slugs and names of inactive themes.
+ *
+ * @param bool $slug_only If true only stylesheet slugs are returned.
+ * @return array Stylesheet slugs and names of inactive themes.
+ */
+function fv_get_inactive_themes_data( bool $slug_only = false ): array {
+
+	$themes = fv_get_themes();
+	unset( $themes[ fv_get_active_theme_stylesheet() ] );
+
+	if ( $slug_only ) {
+		return array_keys( $themes );
+	}
+
+	$themes_data = array();
+	foreach ( $themes as $stylesheet => $theme ) {
+		$themes_data[] = array(
+			'name' => urlencode( $theme->Name ),
+			'slug' => $stylesheet,
+		);
+	}
+	return $themes_data;
+}
+
+/**
+ * Gets the stylesheet slug of the active theme.
+ *
+ * @return string|false Stylesheet slug of active theme, or false if no active theme exists.
+ */
+function fv_get_active_theme_stylesheet(): string|false {
+	return wp_get_theme()->exists() ? wp_get_theme()->stylesheet : false;
 }
 
 /**
@@ -2705,6 +2867,11 @@ function fv_auto_update_install() {
 	}
 }
 
+/**
+ * Collect license data and render the Settings page.
+ *
+ * @return void
+ */
 function render_festinger_vault_settings_page() {
 
 	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
@@ -2722,33 +2889,6 @@ function render_festinger_vault_settings_page() {
 	$response = fv_remote_run_query( $query );
 
 	if ( is_wp_error( $response ) ) {
-
-		// there seems something is wrong here. Why is the next code run when is_wp_error?
-		// Is there an ending curly bracket missing in the original code?
-		// also it gets the same options twice and runs the same remote query twice.
-		// this code doesn't seem right.
-		// and the query had been run allready above this point,
-		// so the same code is run three times when is_wp_error
-		// occurs on the first time. The third time is unconditional.
-
-		$query_base_url = FV_REST_API_URL . 'get-all-license-data';
-		$query_args     = array(
-			'license_key'   => fv_get_license_key(),
-			'license_key_2' => fv_get_license_key_2(),
-			'license_d'     => fv_get_license_domain_id(),
-			'license_d_2'   => fv_get_license_domain_id_2(),
-			'license_pp'    => $_SERVER['REMOTE_ADDR'],
-			'license_host'  => $_SERVER['HTTP_HOST'],
-			'license_mode'  => 'get_all_license_data',
-			'license_v'     => FV_PLUGIN_VERSION,
-		);
-		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response = fv_remote_run_query( $query );
-
-		// just repeating the same code unconditionally seems senseless.
-		// this can't be right. Is this just to repeat in the hope it will work?
-		// then at least it should first check if it is needed.
-
 		$query_base_url = FV_REST_API_URL . 'get-all-license-data';
 		$query_args     = array(
 			'license_key'   => fv_get_license_key(),
@@ -2763,132 +2903,103 @@ function render_festinger_vault_settings_page() {
 		$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response = fv_remote_run_query( $query );
 	}
+	$fv_api = json_decode( wp_remote_retrieve_body( $response ) );
 
-	$all_license_data = json_decode( wp_remote_retrieve_body( $response ) );
-
-	if ( $all_license_data->license_1->options->white_label == 'no'
-	&&   $all_license_data->license_2->options->white_label == 'no' ) {
+	// Remove the white label settings when none of the licenses
+	// allow white labeling.
+	if ( $fv_api->license_1->options->white_label == 'no'
+	&&   $fv_api->license_2->options->white_label == 'no' ) {
 		fv_forget_white_label_settings();
 	}
 
 	include( FV_PLUGIN_DIR . '/sections/fv_settings.php' );
 
+	// this call doesn't get any data, so why is it called?
 	get_plugin_theme_data_details( 'all_plugins_themes' );
 
 }
 
 function get_plugin_theme_data_details( $request_list = 'all' ) {
-
-	$get_active_themes    = [];
-	$get_inactive_themes  = [];
-
-	$get_active_plugins   = [];
-	$get_inactive_plugins = [];
-
-	$all_plugins_list     = [];
-	$all_themes_list      = [];
-
-	$allPlugins           = fv_get_plugins();
-	$activePlugins        = get_option( 'active_plugins' );
-
-	$allThemes            = fv_get_themes();
-
-	foreach( $allThemes as $theme ) {
-		if ( fv_is_active_theme( $theme->Name ) ) {
-			$get_active_themes[]   = [
-				'name' => urlencode( $theme['Name'] ),
-				'slug' => $theme->get_template()
-			];
-		} else {
-			$get_inactive_themes[] = [
-				'name' => urlencode( $theme['Name'] ),
-				'slug' => $theme->get_template()
-			];
-		}
-		$all_themes_list[]     = [
-			'name' => urlencode( $theme['Name'] ),
-			'slug' => $theme->get_template()
-		];
-	}
-
-	foreach( $allPlugins as $key => $value ) {
-		if ( in_array( $key, $activePlugins ) ) {
-			$all_plugins_list []    = [
-				'name' => urlencode( $value['Name'] ),
-				'slug' => fv_get_slug( $key )
-			];
-		} else {
-			$all_plugins_list []    = [
-				'name'=> urlencode( $value['Name'] ),
-				'slug'=> fv_get_slug( $key )
-			];
-		}
-		$get_inactive_plugins[] = [
-			'name'=> urlencode( $value['Name'] ),
-			'slug'=> fv_get_slug( $key )
-		];
-	}
-
 	switch ( $request_list ) {
 		case 'active_plugins':
-			return json_encode( $get_active_plugins );
+			return json_encode( fv_get_active_plugins_data() );
 			break;
 
 		case 'active_plugins':
-			return json_encode( $get_inactive_plugins );
+			return json_encode( fv_get_inactive_plugins_data() );
 			break;
 
 		case 'active_themes':
-			return json_encode( $get_active_themes );
+			return json_encode( fv_get_active_themes_data() );
 			break;
 
 		case 'inactive_themes':
-			return json_encode( $get_inactive_themes );
+			return json_encode( fv_get_inactive_themes_data() );
 			break;
 
 		case 'all_plugins_themes':
-			$all_plugins_list_chunks = fv_array_split(
-				array: $all_plugins_list,
-				firstChunkSize: count( $all_themes_list ),
-				chunkSize: 49
-			 );
-			foreach( $all_plugins_list_chunks as $splitted_list ) {
-				$query_base_url = FV_REST_API_URL . 'licensedinfolist';
-				$query_args     = array(
-					'license_key'             => fv_get_license_key(),
-					'license_key_2'           => fv_get_license_key_2(),
-					'license_d'               => fv_get_license_domain_id(),
-					'license_d_2'             => fv_get_license_domain_id_2(),
-					'license_pp'              => $_SERVER['REMOTE_ADDR'],
-					'license_host'            => $_SERVER['HTTP_HOST'],
-					'license_mode'            => 'licensedinfolist',
-					'license_v'               => FV_PLUGIN_VERSION,
-					'plugins_and_themes_data' => array(
-						'plugins' => $splitted_list,
-						'themes'  => $all_themes_list,
-					 ),
-				);
-				$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-				$response = fv_remote_run_query( $query );
-			}
-			// QUESTION: Why is there no return in this case? All others return something.
-			// actually this is the only branch currently called for and no return value is needed.
-			// the rest of the branches are basically dead wood.
+			fv_run_remote_licensed_info_list( fv_get_plugins_data(), fv_get_themes_data() );
 			break;
 
 		default:
 			return json_encode(
 				$final_return_list = array (
-					'active_plugins'   => $get_active_plugins,
-					'inactive_plugins' => $get_inactive_plugins,
-					'active_themes'    => $get_active_themes,
-					'inactive_themes'  => $get_inactive_themes,
+					'active_plugins'   => fv_get_active_plugins_data(),
+					'inactive_plugins' => fv_get_inactive_plugins_data(),
+					'active_themes'    => fv_get_active_themes_data(),
+					'inactive_themes'  => fv_get_inactive_themes_data(),
 				 )
 			 );
 			break;
 	}
 }
 
+/**
+ * Run remote query 'licensedinfolist' via the fv api for all themes and plugins.
+ *
+ * Don't know what this query does.
+ *
+ * @param array $plugins Array containing names and slugs of all plugins.
+ * @param array $themes Array containing names and stylesheet slugs of all themes.
+ * @return void
+ */
+function fv_run_remote_licensed_info_list( array $plugins, array $themes ) {
+
+	$query_base_url = FV_REST_API_URL . 'licensedinfolist';
+	$query_args     = array(
+		'license_key'             => fv_get_license_key(),
+		'license_key_2'           => fv_get_license_key_2(),
+		'license_d'               => fv_get_license_domain_id(),
+		'license_d_2'             => fv_get_license_domain_id_2(),
+		'license_pp'              => $_SERVER['REMOTE_ADDR'],
+		'license_host'            => $_SERVER['HTTP_HOST'],
+		'license_mode'            => 'licensedinfolist',
+		'license_v'               => FV_PLUGIN_VERSION,
+	);
+
+	$chunks  = fv_array_split( $plugins, count( $themes ), 75 );
+
+	foreach( $chunks as $plugins_chunk ) {
+
+		$query_args['plugins_and_themes_data'] = array(
+			'plugins' => $plugins_chunk,
+			'themes'  => $themes,
+		);
+		$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+
+		// this query returns an empty response-body, so no collect results
+		fv_remote_run_query( $query );
+
+		// Only send themes in the first iteration.
+		$themes = array();
+	}
+}
+
+/**
+ * Collect data through the fv api and render the vault page.
+ *
+ * @return void
+ */
 function render_festinger_vault_page () {
 
 	$query_base_url = FV_REST_API_URL . 'get-all-license-data';
@@ -2906,7 +3017,7 @@ function render_festinger_vault_page () {
 	$response = fv_remote_run_query( $query );
 	$fv_api   = json_decode( wp_remote_retrieve_body( $response ) );
 
-	// remove white_label settings if the plugin isn't set to use them.
+	// Remove white_label settings if there is no active license that allows white labeling.
 	if ( $fv_api->license_1->options->white_label == 'no'
 	&&   $fv_api->license_2->options->white_label == 'no' ) {
 		fv_forget_white_label_settings();
@@ -2914,8 +3025,6 @@ function render_festinger_vault_page () {
 
 	// render the vault page.
 	include( FV_PLUGIN_DIR . '/sections/fv_plugins.php' );
-
-	// get_plugin_theme_data_details( 'all_plugins_themes' );
 }
 
 /**
@@ -2954,7 +3063,7 @@ function fv_perhaps_white_label_plugin_author( $default = null ): string {
  *                        'post'   to get the toggle option and the query-var names.
  * @return array Depending on $context just the option names, or an associated array with names and query-vars.
  */
-function fv_get_wl_option_keys( string $context = 'whitelabel' ) : array {
+function fv_get_white_label_option_keys( string $context = 'whitelabel' ) : array {
 
 	$options = array(
 		'wl_fv_plugin_agency_author_wl_' => 'agency_author',
@@ -2991,7 +3100,7 @@ function fv_is_white_label_switch( string $option ): bool {
 
 function fv_get_white_label_option( string $option ): string {
 
-	$wl_options = fv_get_wl_option_keys('whitelabel');
+	$wl_options = fv_get_white_label_option_keys('whitelabel');
 
 	if ( empty( $option ) ) {
 		// bail out: option required.
@@ -3089,65 +3198,113 @@ function fv_perhaps_white_label_plugin_icon_url( string $default = null ): strin
 	return fv_get_white_label_option( 'plugin_icon_url' ) ?: $default;
 }
 
-/**
- * The white label settings form has been submitted.
- */
-if ( isset( $_POST ) && ! empty( $_POST['fv_wl_submit'] ) && $_POST['fv_wl_submit'] ) {
-	add_action( 'init', 'fv_do_white_label_settings_form' );
+if ( isset( $_POST ) ) {
+	process_POST_requests();
 }
 
-/**
- *  The "Hide/Block admin notices" settings form has been submitted.
- */
-if ( isset( $_POST ) && ! empty( $_POST['fv_admin_notice'] ) && $_POST['fv_admin_notice'] ) {
-	fv_do_admin_notices_settings_form();
+function process_POST_requests() {
+
+	if ( ! isset( $_POST ) ) {
+		return;
+	}
+
+	foreach ( $_POST as $key => $value ) {
+		switch ($key) {
+			/**
+			 * White label settings form.
+			 */
+			case 'fv_wl_submit':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_white_label_settings_form' );
+				};
+				break;
+
+			/**
+			 *  The "Hide/Block admin notices" settings form.
+			 */
+			case 'fv_admin_notice':
+				if ( ! empty( $value ) ) {
+					fv_do_admin_notices_settings_form();
+				};
+				break;
+
+			/**
+			 * The "FORCE UPDATE NOW" button on the Plugins updates page.
+			 */
+			case 'pluginforceupdate':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_plugins_forced_update' );
+				};
+				break;
+
+			/**
+			 * The "Instant update all" button on the Plugins updates page.
+			 */
+			case 'pluginforceupdateinstant':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_plugins_instant_updates' );
+				};
+				break;
+
+			/**
+			 * The update button for a specific plugin on the PLUGIN updates page.
+			 */
+			case 'singlepuginupdaterequest':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_single_plugin_forced_update_request' );
+				};
+				break;
+
+			/**
+			 * The  FORCE UPDATE NOW button has been submitted on the themes update page.
+			 */
+			case 'themeforceupdate':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_themes_forced_update' );
+				};
+				break;
+
+			/**
+			 * The Instant update all has been submitted on the themes update page.
+			 */
+			case 'themeforceupdate_instant':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_themes_instant_updates' );
+				};
+				break;
+
+			/**
+			 * The update button for a specific theme  on the THEME updates page..
+			 */
+			case 'singlethemeupdaterequest':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_single_theme_forced_update_request' );
+				};
+				break;
+
+			/**
+			 * The Rollback button is used on a single plugin on the plugins updates page.
+			 */
+			case 'pluginrollback':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_rollback_single_plugin_form' );
+				};
+				break;
+
+			/**
+			 * The Rollback button is used on a single plugin on the plugins updates page.
+			 */
+			case 'themerollback':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_rollback_single_theme_form' );
+				};
+				break;
+
+			default:
+				break;
+		}
+	}
 }
-
-/**
- * The "FORCE UPDATE NOW" button is used
- */
-if ( isset( $_POST )
-&& ! empty( $_POST['pluginforceupdate'] ) && $_POST['pluginforceupdate'] ) {
-	add_action( 'init', 'fv_do_plugins_forced_update' );
-}
-
-/**
- * The "Instant update all" button has been used
- */
-if ( isset( $_POST )
-&& ! empty( $_POST['pluginforceupdateinstant'] ) && $_POST['pluginforceupdateinstant'] ) {
-	add_action( 'init', 'fv_do_plugins_instant_updates' );
-}
-
-/**
- * The update button for a specific single plugin has been used.
- */
-if ( isset( $_POST )
-&& ! empty( $_POST['singlepuginupdaterequest'] ) && $_POST['singlepuginupdaterequest'] ) {
-	add_action( 'init', 'fv_do_single_plugin_forced_update_request' );
-}
-
-/**
- * The update button for a specific single theme has been used.
- */
-if ( isset( $_POST )
-&& ! empty( $_POST['singlethemeupdaterequest'] ) && $_POST['singlethemeupdaterequest'] ) {
-
-	add_action( 'init', 'fv_do_single_theme_forced_update_request' );
-}
-
-/**
- * The update button for a specific single theme has been used.
- */
-if ( isset( $_POST )
-&& ! empty( $_POST['themeforceupdate'] ) && $_POST['themeforceupdate'] ) {
-	add_action( 'init', 'fv_do_themes_forced_update' );
-}
-
-if ( isset( $_POST ) && ! empty( $_POST['themeforceupdate_instant'] ) && $_POST['themeforceupdate_instant'] ) {
-	add_action( 'init', 'fv_do_themes_instant_updates' );
-}
-
 
 function fv_get_client_ip() {
 
@@ -3195,7 +3352,7 @@ if ( fv_should_hide_dismissable_admin_notices() ) {
  * @param string $given_slug
  * @return string|false False if plugin not found, otherwise the plugins basename.
  */
-function get_plugin_basefile_by_slug( string $given_slug ): string|false {
+function get_plugin_basename_by_slug( string $given_slug ): string|false {
 
 	$all_plugins = fv_get_plugins();
 	if ( empty( $all_plugins ) ) {
@@ -3230,16 +3387,21 @@ function generatePluginActivationLinkUrl( $plugin ) {
 }
 
 if ( isset( $_GET['actionrun'] ) && isset( $_GET['activeslug'] ) ) {
-	add_action( 'init', 'action_run_pl_act' );
-
-	function action_run_pl_act() {
-		activate_plugin( get_plugin_basefile_by_slug( $_GET['activeslug'] ) );
-		$returndataurl = admin_url( 'admin.php?page=festinger-vault&installation=success&slug=' . $_GET['activeslug'] );
-		wp_redirect( $returndataurl );
-		//header( 'Location: '.$returndataurl );
-		exit;
-	}
+	add_action( 'init', 'fv_activate_single_plugin_form' );
 }
+
+/**
+ * Activates a plugin when the activate button is used after a plugin is installed.
+ *
+ * @return void
+ */
+function fv_activate_single_plugin_form() {
+	activate_plugin( get_plugin_basename_by_slug( $_GET['activeslug'] ) );
+	$redirect_url = admin_url( 'admin.php?page=festinger-vault&installation=success&slug=' . $_GET['activeslug'] );
+	wp_redirect( $redirect_url );
+	exit;
+}
+
 
 /**
  * Check for the availability of backups that can be rolled back.
@@ -3376,73 +3538,53 @@ function fv_print_plugin_rollback_button( string $basename, string $installed_ve
 	echo fv_no_backup_markup( return: true );
 }
 
+function fv_rollback_single_theme_form() {
 
+	$upload_dir       = wp_upload_dir();
+	$backup_theme_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/";
+	$get_all_themes   = scandir( $backup_theme_dir );
 
+	foreach( $get_all_themes as $single_theme ) {
 
-// NOTE: QUESTIONS:
-// why is this not on a more visible location in the code
-// and why is the function defined in the if-statement?
-if ( isset( $_POST ) && ! empty( $_POST['themerollback'] ) && $_POST['themerollback'] ) {
+		if ( strpos( $single_theme, $_POST['slug'] ) !== false ) {
 
-	add_action( 'init', 'rollback_theme' );
+			$theme_full    = explode( "-v-", $single_theme );
+			$theme_name    = $theme_full[0];
+			$theme_version = $theme_full[1];
 
-	function rollback_theme() {
+			if ( file_exists( $backup_theme_dir . $single_theme ) ) {
 
-		$upload_dir       = wp_upload_dir();
-		$backup_theme_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/";
-		$get_all_themes   = scandir( $backup_theme_dir );
+				if ( version_compare( $_POST['version'],  $theme_version, '>' ) ) {
 
-		foreach( $get_all_themes as $single_theme ) {
+					$original_theme_dir = get_theme_root() . '/' . $_POST['slug'] . '/';
 
-			if ( strpos( $single_theme, $_POST['slug'] ) !== false ) {
-
-				$theme_full    = explode( "-v-", $single_theme );
-				$theme_name    = $theme_full[0];
-				$theme_version = $theme_full[1];
-
-				if ( file_exists( $backup_theme_dir . $single_theme ) ) {
-
-					if ( version_compare( $_POST['version'],  $theme_version, '>' ) ) {
-
-						$original_theme_dir = get_theme_root() . '/' . $_POST['slug'] . '/';
-
-						if ( is_dir( $original_theme_dir ) ) {
-							fv_fs_recurse_copy( $backup_theme_dir . $single_theme . '/', $original_theme_dir ); // copy old version as backup
-						}
+					if ( is_dir( $original_theme_dir ) ) {
+						fv_fs_recurse_copy( $backup_theme_dir . $single_theme . '/', $original_theme_dir ); // copy old version as backup
 					}
 				}
 			}
 		}
-		wp_redirect( admin_url( 'admin.php?page=festinger-vault-theme-updates&rollback=success' ) );
 	}
+	wp_redirect( admin_url( 'admin.php?page=festinger-vault-theme-updates&rollback=success' ) );
 }
 
-// NOTE: QUESTIONS:
-// why is this not on a more visible location in the code
-// and why is the function defined in the if-statement?
 
-if ( isset( $_POST ) && ! empty( $_POST['pluginrollback'] ) && $_POST['pluginrollback'] ) {
-	add_action( 'init', 'rollback_plugin' );
-	function rollback_plugin() {
+function fv_rollback_single_plugin_form() {
 
-		$upload_dir             = wp_upload_dir();
-		$plugin_base_file_get   = get_plugin_basefile_by_slug( $_POST['slug'] );
-		$backup_plugin_dir      = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $plugin_base_file_get;
-		$backup_plugin_only_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $_POST['slug'] . '/';
+	$upload_dir             = wp_upload_dir();
+	$plugin_basename        = get_plugin_basename_by_slug( $_POST['slug'] );
+	$backup_plugin_dir      = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $plugin_basename;
+	$backup_plugin_only_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $_POST['slug'] . '/';
 
-		if (file_exists( $backup_plugin_dir ) ) {
-			// if ( version_compare( $_POST['version'], get_plugin_data( $backup_plugin_dir )['Version'], '>' ) ) {
-			// if ( get_plugin_data( $backup_plugin_dir )['Version'] ) {
-
-				$original_plugin_dir = WP_PLUGIN_DIR . '/' . $_POST['slug'] . '/';
-				if ( is_dir( $original_plugin_dir ) ) {
-					fv_fs_recurse_copy( $backup_plugin_only_dir, $original_plugin_dir ); // copy old version as backup
-				}
-			//}
+	if ( file_exists( $backup_plugin_dir ) ) {
+		$original_plugin_dir = WP_PLUGIN_DIR . '/' . $_POST['slug'] . '/';
+		if ( is_dir( $original_plugin_dir ) ) {
+			fv_fs_recurse_copy( $backup_plugin_only_dir, $original_plugin_dir ); // copy old version as backup
 		}
-		wp_redirect( admin_url( 'admin.php?page=festinger-vault-updates&rollback=success' ) );
 	}
+	wp_redirect( admin_url( 'admin.php?page=festinger-vault-updates&rollback=success' ) );
 }
+
 
 /**
  * Signal wordpress to autoupdate the festingervault plugin.
@@ -3538,26 +3680,43 @@ function fv_is_wporg_plugin( string $plugin_url ): bool {
  * @return array Filtered output of wp_get_themes().
  */
 function fv_get_themes() {
-	$themes        = wp_get_themes();
-	$update_themes = get_site_transient( 'update_themes' );
+
+	$themes              = wp_get_themes();
+	$theme_updates       = get_site_transient( 'update_themes' );
+	$themes_not_on_wporg = array();
 
 	foreach ( $themes as $theme_slug => $theme_data ) {
 
-		$download_link = '';
-		if ( ! empty( $update_themes->response[ $theme_slug ]['package'] ) ) {
-			$download_link = $update_themes->response[ $theme_slug ]['package'];
+		$download_url = '';
+		// themes with pending update
+		if ( ! empty( $theme_updates->response[ $theme_slug ]['package'] ) ) {
+			$download_url = $theme_updates->response[ $theme_slug ]['package'];
 		}
-		if ( ! empty( $update_themes->no_update[ $theme_slug ]['package'] ) ) {
-			$download_link = $update_themes->no_update[ $theme_slug ]['package'];
+		// themes with no update
+		if ( ! empty( $theme_updates->no_update[ $theme_slug ]['package'] ) ) {
+			$download_url = $theme_updates->no_update[ $theme_slug ]['package'];
 		}
-		if ( ! empty( $download_link )
-		&& str_starts_with( $download_link, 'https://downloads.wordpress.org/theme/' ) ) {
+		// skip wordpress.org urls
+		if ( is_wp_org_url( $download_url ) ) {
 			continue;
 		}
 		$themes_not_on_wporg[ $theme_slug ] = $theme_data;
 	}
 
 	return $themes_not_on_wporg;
+}
+
+/**
+ * Is url of domain "downloads.wordpress.org"?
+ *
+ * @param string $url A valid url.
+ * @return boolean True if url starts with 'https://downloads.wordpress.org/'.
+ */
+function is_wp_org_url( string $url ) : bool {
+	if ( empty( $url ) ) {
+		return false;
+	}
+	return str_starts_with( $url, 'https://downloads.wordpress.org/' );
 }
 
 /**
@@ -3568,7 +3727,8 @@ function fv_get_themes() {
  */
 function fv_remote_run_query( string $query ) {
 	$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => false ) );
-	if (is_wp_error( $response ) ) {
+	if ( is_wp_error( $response ) ) {
+		ddd( 'second try');
 		$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => true ) );
 		if ( is_wp_error( $response ) ) {
 				echo 'SSLVERIFY ERROR';
@@ -3623,14 +3783,14 @@ function fv_array_equal_split( array $array, int $chunkSize ): array {
 }
 
 /**
- * Is a theme name the name of the active theme?
+ * Is a theme slug the stylesheet of the active theme?
  *
- * @param string $theme_name
- * @return bool True if $theme_name is the name of the active theme.
+ * @param string $theme_slug
+ * @return bool True if $theme_slug is the stylesheet of the active theme.
  */
-function fv_is_active_theme( $theme_name ) : bool {
+function fv_is_active_theme( string $theme_slug ) : bool {
 	$activeTheme = wp_get_theme();
-	return $theme_name == $activeTheme->Name;
+	return $theme_slug == $activeTheme->get_stylesheet();
 }
 
 /**
@@ -4084,67 +4244,6 @@ function fv_get_succes_message( string $context = 'plugins' ): string {
     return '';
 }
 
-if ( ! function_exists( 'str_remove_suffix' ) ) {
-	function str_remove_suffix( $str, $suffix ) {
-		if ( ! str_ends_with( haystack: $str, needle: $suffix ) ) {
-			return $str;
-		}
-		return substr( string: $str, offset: 0, length: -strlen( $suffix ) );
-	}
-}
-
-if ( ! function_exists( __NAMESPACE__ . '\str_contains' ) ) {
-	/**
-	 * Polyfill for `str_contains()` function added in PHP 8.0.
-	 *
-	 * Performs a case-sensitive check indicating if needle is
-	 * contained in haystack.
-	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the haystack.
-	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
-	 */
-	function str_contains( string $haystack, string $needle ): bool {
-		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
-	}
-}
-
-if ( ! function_exists( __NAMESPACE__ . '\str_starts_with' ) ) {
-	/**
-	 * Polyfill for `str_starts_with()` function added in PHP 8.0.
-	 *
-	 * Performs a case-sensitive check indicating if
-	 * the haystack begins with needle.
-	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the `$haystack`.
-	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
-	 */
-	function str_starts_with( string $haystack, string $needle ): bool {
-		return ( '' === $needle || 0 === strpos( $haystack, $needle ) );
-	}
-}
-
-if ( ! function_exists( __NAMESPACE__ . '\str_ends_with' ) ) {
-	/**
-	 * Polyfill for `str_ends_with()` function added in PHP 8.0.
-	 *
-	 * Performs a case-sensitive check indicating if
-	 * the haystack ends with needle.
-	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the `$haystack`.
-	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
-	 */
-	function str_ends_with( $haystack, $needle ) {
-		$len = strlen( $needle );
-		if ( strlen( $haystack ) < $len ) {
-			return false;
-		}
-		return 0 === substr_compare( haystack: $haystack, needle: $needle, offset: -$len, length: $len );
-	}
-}
-
 /**
  * Determines the slug of a plugin for use in Festinger Vault.
  *
@@ -4452,7 +4551,7 @@ function fv_api_call_failed( string $result ) : bool {
  */
 function fv_do_white_label_settings_form() {
 
-	$options = fv_get_wl_option_keys('post');
+	$options = fv_get_white_label_option_keys('post');
 
 	foreach ( $options as $option => $query_var ) {
 		if ( isset( $_POST[ $query_var ] ) ) {

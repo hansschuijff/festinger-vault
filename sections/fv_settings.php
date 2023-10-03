@@ -132,8 +132,8 @@
                                 <!-- White label submit button -->
                                 <div class='col-md-12'>
                                     <?php
-                                    if( $all_license_data->license_1->options->white_label == 'yes'
-                                    ||  $all_license_data->license_2->options->white_label == 'yes'):
+                                    if ( $fv_api->license_1->options->white_label == 'yes'
+                                    ||   $fv_api->license_2->options->white_label == 'yes' ):
                                         ?>
                                         <input type="submit" class="btn non_active_button primary-btn"
                                             name="fv_wl_submit"
