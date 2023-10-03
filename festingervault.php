@@ -15,7 +15,7 @@
  * GitHub Plugin URI: hansschuijff/festinger-vault
  * Version:           4.1.0-h5
  * Version date:      2023-10-2
- * description:       Festinger vault - The largest plugin market
+ * Description:       Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.
  * Author:            Hans Schuijff
  * Author URI:        https://dewitteprins.nl
  * Text Domain:       festinger-vault
@@ -28,40 +28,13 @@
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-/**
- * Add some non-standard plugin data headers to be found by get_plugin_data();
- *
- * $param
- * @return array
- */
-// function fv_add_plugin_data_headers( $extra_headers ) {
-
-// 	if ( ! isset( $headers['LastUpdated'] ) ) {
-// 		$headers['LastUpdated'] = 'Version date';
-// 	}
-// 	// if ( ! isset( 'PluginURI', $headers ) ) {
-// 	// 	$headers['PluginURI'] = 'Tested with';
-// 	// }
-// 	return $extra_headers;
-// }
-// add_filter( 'extra_plugin_headers', 'fv_add_plugin_data_headers' );
-
-// function my_extra_theme_headers( $headers ) {
-
-// 	if ( ! in_array( 'Support URI', $headers ) )
-// 		$headers[] = 'Support URI';
-
-// 	if ( !in_array( 'Documentation URI', $headers ) )
-// 		$headers[] = 'Documentation URI';
-
-// 	return $headers;
-// }
-// add_filter( 'extra_theme_headers', 'my_extra_theme_headers' );
-
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
 if ( ! defined( 'FV_PLUGIN_DIR' ) ) {
 	define( 'FV_PLUGIN_DIR', dirname( __FILE__ ) );
+}
+if ( ! defined( 'FV_PLUGIN_FILE' ) ) {
+	define( 'FV_PLUGIN_FILE', __FILE__ );
 }
 if ( ! defined( 'FV_PLUGIN_ROOT_PHP' ) ) {
 	define( 'FV_PLUGIN_ROOT_PHP', dirname( __FILE__ ) . '/' . basename( __FILE__ ) );
@@ -72,22 +45,22 @@ if ( ! defined( 'FV_PLUGIN_ABSOLUTE_PATH' ) ) {
 if ( ! defined( 'FV_REST_API_URL' ) ) {
 	define( 'FV_REST_API_URL', 'https://engine.festingervault.com/api/' ); // Add to this base URL to make it specific to your plugin or theme.
 }
+if ( ! defined( 'FV_TEXTDOMAIN' ) ) {
+	define( 'FV_TEXTDOMAIN', \get_plugin_data(__FILE__)['TextDomain'] );
+}
 define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
 
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
-require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
-// probably dead code, but just in case still included.
+// This include contains probably dead code, but just in case for now.
 require_once( FV_PLUGIN_DIR . '/includes/dead.php' );
+// check for plugin updates
+// require_once( FV_PLUGIN_DIR . '/classes/plugin-update-checker.php' );
+// require_once( FV_PLUGIN_DIR . '/includes/puc.php' );
 
 /**
  * Check for updates of this plugin.
  */
-// $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-// 	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
-// 	__FILE__,
-// 	'festingervault'
-//  );
 
 /**
  * Registers the REST API Routes/Endpoints for this plugin.
@@ -285,7 +258,6 @@ function fv_custom_endpoint_create( $request ) {
  * @return void
  */
 function fv_activate() {
-
 	fv_create_upload_dirs();
 	fv_forget_white_label_switch();
 	fv_forget_auto_update_lists();
@@ -299,33 +271,25 @@ register_activation_hook( __FILE__, 'fv_activate' );
  */
 function fv_create_upload_dirs() {
 
-	$upload_dir                      = wp_upload_dir();
-
-	// Define dirs to upload zip-files to.
-	$fv_plugin_zip_upload_dir        = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins";
-	$fv_plugin_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup";
-	$fv_theme_zip_upload_dir         = $upload_dir["basedir"] . "/fv_auto_update_directory/themes";
-	$fv_theme_zip_upload_dir_backup  = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup";
-
-	// Define files to create.
-	$files = array(
+	$upload_dir = wp_upload_dir()["basedir"] . '/fv_auto_update_directory/plugins';
+	$files      = array(
 		array(
-			'base' 		=> $fv_plugin_zip_upload_dir,
+			'path' 		=> $upload_dir .  "plugins",
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'base' 		=> $fv_plugin_zip_upload_dir_backup,
+			'path' 		=> $upload_dir . "plugins/backup",
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'base' 		=> $fv_theme_zip_upload_dir,
+			'path' 		=> $upload_dir . "themes",
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'base' 		=> $fv_theme_zip_upload_dir_backup,
+			'path' 		=> $upload_dir . "themes/backup",
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 )
@@ -334,10 +298,13 @@ function fv_create_upload_dirs() {
 	// build file and directory structure.
 	foreach ( $files as $file ) {
 
-		if ( wp_mkdir_p( $file['base'] ) // Makes dir based on full path.
-		&& ! file_exists( trailingslashit( $file['base'] ) . $file['file'] ) ) {
+		// make upload-dir
+		if ( wp_mkdir_p( $file['path'] )
+		&& ! file_exists( trailingslashit( $file['path'] ) . $file['file'] ) ) {
 
-			if ( $file_handle = @fopen( trailingslashit( $file['base'] ) . $file['file'], 'w' ) ) {
+			// write file.
+			if ( $file_handle = @fopen( trailingslashit( $file['path'] ) . $file['file'], 'w' ) ) {
+
 				fwrite( $file_handle, $file['content'] );
 				fclose( $file_handle );
 			}
@@ -367,64 +334,40 @@ function fv_deactivation() {
 register_deactivation_hook( __FILE__, 'fv_deactivation' );
 
 /**
+ * White labels (based on settings) some of the data retrieved
+ * by the WordPress.org API requests.
  *
+ * This data is presented in the plugins wp-admin page (details).
  *
- * This filter is used to override the default result
- * of the response for the current WordPress.org Plugin Installation API request.
- * By returning a non-false value this function will effectively short-circuit
- * the WordPress.org API request.
- *
- * It is used in plugin_api() en when returning a non-false value,
- * it will skip most of the function and just pass it through.
- *
- * If $action is:
- *   ‘query_plugins’ or
- *   ‘plugin_information’, an object MUST be passed.
- *   ‘hot_tags’ or
- *   ‘hot_categories’, an array should be passed.
- *
- *
- * Filters plugin data requests through the wordpress plugin api
- * and white labels the data based on settings.
- * NOTE Some of this data is presented when user clicks on details in the plugins wp_admin page.
- * the hardcoded data isn't maintained properly and should be taken from the plugins header.
+ * Possible $action:
+ *   query_plugins
+ *   plugin_information
+ *   hot_tags
+ *   hot_categories
  *
  * @see https://developer.wordpress.org/reference/functions/plugins_api/
  *
- * @param false|object|array $obj    The result object or array. Default false.
+ * @param object|array       $obj    The result object or array. Default false.
  * @param string             $action The type of information being requested from the Plugin Installation API.
  * @param object             $arg    Plugin API arguments.
- * @return false|object|array
+ * @return object|array|WP_Error
  */
-function fv_perhaps_white_label_plugin_data( $obj, $action, $arg ) {
-	if ( ( $action == 'query_plugins' || $action == 'plugin_information' )
-	&& isset( $arg->slug )
-	&& $arg->slug === 'festingervault' ) {
-		$obj               = new stdClass();
-		$obj->slug         = 'festingervault';
-		$obj->name         = fv_perhaps_white_label_plugin_name();
-		$obj->author       = fv_perhaps_white_label_plugin_author();
-		$obj->requires     = '3.0';        // Minimum WP version
-		$obj->tested       = '3.3.1';	   // Max. tested WP version
-		$obj->last_updated = '2021-07-13'; // Last update date.
-		$obj->sections     = array(
-			'description' => fv_perhaps_white_label_plugin_description(),
-		 );
+function fv_perhaps_white_label_plugin_information( $res, $action, $args ) {
 
-		return $obj;
+	if ( ! is_wp_error( $res )
+	&&     in_array( $action, array( 'plugin_information', 'query_plugins' ), true )
+	&&     isset( $args->slug ) && $args->slug === fv_get_slug( plugin_basename( __FILE__) ) ) {
+
+		$res->name     = fv_perhaps_white_label_plugin_name( $res->name );
+		$res->author   = fv_perhaps_white_label_plugin_author( $res->author );
+		$res->sections = array(
+			'description' => fv_perhaps_white_label_plugin_description( $res->sections['description'] ),
+		);
 	}
 
-	return $obj;
+	return $res;
 }
-/**
- * Filters the response for the current WordPress.org Plugin Installation API request.
- * Returning a non-false value will effectively short-circuit the WordPress.org API request.
- *
- * If $action is ‘query_plugins’ or ‘plugin_information’, an object MUST be passed.
- * If $action is ‘hot_tags’ or ‘hot_categories’, an array should be passed.
- */
-// apply_filters( 'plugins_api', false|object|array $result, string $action, object $args )
-// add_filter( 'plugins_api', 'fv_perhaps_white_label_plugin_data', 20, 3 );
+add_filter( 'plugins_api_result', 'fv_perhaps_white_label_plugin_information', 20, 3 );
 
 /**
  * Perhaps whitelist this WordPress plugins in admins plugins page.
@@ -436,14 +379,14 @@ function filter_admin_plugins_page( $plugins ) {
 
 	$key = plugin_basename( FV_PLUGIN_DIR . '/festingervault.php' );
 
-	$plugins[ $key ]['Name']        = fv_perhaps_white_label_plugin_name();
-	$plugins[ $key ]['Description'] = fv_perhaps_white_label_plugin_description();
+	$plugins[ $key ]['Name']        = fv_perhaps_white_label_plugin_name( $plugins[ $key ]['Name'] );
+	$plugins[ $key ]['Description'] = fv_perhaps_white_label_plugin_description( $plugins[ $key ]['Description'] );
 
-	$plugins[ $key ]['Author']      = fv_perhaps_white_label_plugin_author();
-	$plugins[ $key ]['AuthorName']  = fv_perhaps_white_label_plugin_author();
+	$plugins[ $key ]['Author']      = fv_perhaps_white_label_plugin_author( $plugins[ $key ]['Author'] );
+	$plugins[ $key ]['AuthorName']  = fv_perhaps_white_label_plugin_author( $plugins[ $key ]['AuthorName'] );
 
-	$plugins[ $key ]['AuthorURI']   = fv_perhaps_white_label_plugin_author_uri();
-	$plugins[ $key ]['PluginURI']   = fv_perhaps_white_label_plugin_author_uri();
+	$plugins[ $key ]['AuthorURI']   = fv_perhaps_white_label_plugin_author_uri( $plugins[ $key ]['AuthorURI'] );
+	$plugins[ $key ]['PluginURI']   = fv_perhaps_white_label_plugin_author_uri( $plugins[ $key ]['PluginURI'] );
 
 	return $plugins;
 }
@@ -461,8 +404,10 @@ add_filter( 'all_plugins', 'filter_admin_plugins_page' );
  * @return void
  */
 function name_change_wl_fv( $translated_text, $text, $domain ) {
-	if ( 'Festinger Vault' == $text ) {
-		$translated_text = fv_perhaps_white_label_plugin_name();
+
+	if ( FV_TEXTDOMAIN === $domain
+	&&   'Festinger Vault' === $text ) {
+		$translated_text = fv_perhaps_white_label_plugin_name( $text );
 	}
 	return $translated_text;
 }
@@ -2987,8 +2932,14 @@ function fv_should_white_label() : bool {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_author(): string {
-	return fv_white_label_option('plugin_agency_author') ?: 'Festinger Vault';
+function fv_perhaps_white_label_plugin_author( $default = null ): string {
+	if ( null === $default ) {
+		$default = get_plugin_data( FV_PLUGIN_FILE )['Author'];
+		if ( empty($default ) ) {
+			$default = 'Festinger Vault';
+		}
+	}
+	return fv_get_white_label_option('plugin_agency_author') ?: $default;
 }
 
 /**
@@ -3038,7 +2989,7 @@ function fv_is_white_label_switch( string $option ): bool {
 	return ( 'wl_fv_plugin_wl_enable' === $option );
 }
 
-function fv_white_label_option( string $option ): string {
+function fv_get_white_label_option( string $option ): string {
 
 	$wl_options = fv_get_wl_option_keys('whitelabel');
 
@@ -3071,8 +3022,14 @@ function fv_white_label_option( string $option ): string {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_author_uri(): string {
-	return fv_white_label_option( 'plugin_author_url' ) ?: 'https://festingervault.com/';
+function fv_perhaps_white_label_plugin_author_uri( string $default = null ): string {
+	if ( null === $default ) {
+		$default = get_plugin_data( FV_PLUGIN_FILE )['AuthorURI'];
+		if ( empty($default ) ) {
+			$default = 'https://festingervault.com/';
+		}
+	}
+	return fv_get_white_label_option( 'plugin_author_url' ) ?: $default;
 }
 
 /**
@@ -3080,8 +3037,14 @@ function fv_perhaps_white_label_plugin_author_uri(): string {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_name(): string {
-	return fv_white_label_option( 'plugin_name' ) ?: 'Festinger Vault';
+function fv_perhaps_white_label_plugin_name( string $default = null ): string {
+	if ( null === $default ) {
+		$default = get_plugin_data( FV_PLUGIN_FILE )['Name'];
+		if ( empty($default ) ) {
+			$default = 'Festinger Vault';
+		}
+	}
+	return fv_get_white_label_option( 'plugin_name' ) ?: $default;
 }
 
 /**
@@ -3089,8 +3052,14 @@ function fv_perhaps_white_label_plugin_name(): string {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_description(): string {
-	return fv_white_label_option( 'plugin_description' ) ?: 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+function fv_perhaps_white_label_plugin_description( string $default = null ): string {
+	if ( null === $default ) {
+		$default = get_plugin_data( FV_PLUGIN_FILE )['Description'];
+		if ( empty($default ) ) {
+			$default = 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+		}
+	}
+	return fv_get_white_label_option( 'plugin_description' ) ?: $default;
 }
 
 /**
@@ -3098,8 +3067,14 @@ function fv_perhaps_white_label_plugin_description(): string {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_slogan(): string {
-	return fv_white_label_option( 'plugin_slogan' ) ?: 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. <br/>Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+function fv_perhaps_white_label_plugin_slogan( string $default = null ): string {
+	if ( null === $default ) {
+		$default = get_plugin_data( FV_PLUGIN_FILE )['Description'];
+		if ( empty($default ) ) {
+			$default = 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
+		}
+	}
+	return fv_get_white_label_option( 'plugin_slogan' ) ?: $default;
 }
 
 /**
@@ -3107,8 +3082,11 @@ function fv_perhaps_white_label_plugin_slogan(): string {
  *
  * @return string
  */
-function fv_perhaps_white_label_plugin_icon_url(): string {
-	return fv_white_label_option( 'plugin_icon_url' ) ?: FV_PLUGIN_ABSOLUTE_PATH.'assets/images/logo.png';
+function fv_perhaps_white_label_plugin_icon_url( string $default = null ): string {
+	if ( null === $default ) {
+		$default = FV_PLUGIN_ABSOLUTE_PATH . 'assets/images/logo.png';
+	}
+	return fv_get_white_label_option( 'plugin_icon_url' ) ?: $default;
 }
 
 /**
