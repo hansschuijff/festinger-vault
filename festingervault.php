@@ -13,7 +13,7 @@
  * Plugin Name:       Festinger Vault Fork
  * Plugin URI:        https://github.com/hansschuijff/festinger-vault
  * GitHub Plugin URI: hansschuijff/festinger-vault
- * Version:           4.1.0-h5
+ * Version:           4.1.0-h6
  * Version date:      2023-10-2
  * Description:       Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.
  * Author:            Hans Schuijff
