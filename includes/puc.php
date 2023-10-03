@@ -11,7 +11,7 @@
 
 $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
 	'https://update.festingervault.com/fv-updater/index.php?action=get_metadata&slug=festingervault',
-	FV_PLUGIN_FILE,
+	FV_PLUGIN__FILE__,
 	'festingervault'
  );
 

@@ -1,4 +1,3 @@
-
 <?php
 //ini_set( 'memory_limit', '256' );
 
@@ -33,8 +32,8 @@ defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 if ( ! defined( 'FV_PLUGIN_DIR' ) ) {
 	define( 'FV_PLUGIN_DIR', dirname( __FILE__ ) );
 }
-if ( ! defined( 'FV_PLUGIN_FILE' ) ) {
-	define( 'FV_PLUGIN_FILE', __FILE__ );
+if ( ! defined( 'FV_PLUGIN__FILE__' ) ) {
+	define( 'FV_PLUGIN__FILE__', __FILE__ );
 }
 if ( ! defined( 'FV_PLUGIN_ROOT_PHP' ) ) {
 	define( 'FV_PLUGIN_ROOT_PHP', dirname( __FILE__ ) . '/' . basename( __FILE__ ) );
@@ -258,7 +257,7 @@ function fv_custom_endpoint_create( $request ) {
  * @return void
  */
 function fv_activate() {
-	fv_create_upload_dirs();
+	fv_build_upload_dirs();
 	fv_forget_white_label_switch();
 	fv_forget_auto_update_lists();
 }
@@ -269,7 +268,7 @@ register_activation_hook( __FILE__, 'fv_activate' );
  *
  * @return void
  */
-function fv_create_upload_dirs() {
+function fv_build_upload_dirs() {
 
 	$upload_dir = wp_upload_dir()["basedir"] . '/fv_auto_update_directory/plugins';
 	$files      = array(
@@ -352,7 +351,7 @@ register_deactivation_hook( __FILE__, 'fv_deactivation' );
  * @param object             $arg    Plugin API arguments.
  * @return object|array|WP_Error
  */
-function fv_perhaps_white_label_plugin_information( $res, $action, $args ) {
+function fv_perhaps_white_label_plugin_api_result( $res, $action, $args ) {
 
 	if ( ! is_wp_error( $res )
 	&&     in_array( $action, array( 'plugin_information', 'query_plugins' ), true )
@@ -367,16 +366,17 @@ function fv_perhaps_white_label_plugin_information( $res, $action, $args ) {
 
 	return $res;
 }
-add_filter( 'plugins_api_result', 'fv_perhaps_white_label_plugin_information', 20, 3 );
+add_filter( 'plugins_api_result', 'fv_perhaps_white_label_plugin_api_result', 20, 3 );
 
 /**
  * Perhaps whitelist this WordPress plugins in admins plugins page.
  *
+ * Note: this doesn't change the result of get_plugin_data() or get_plugins();
+ *
  * @param array $plugins Array of installed plugins and their data.
  * @return array Filtered array of installed plugins data.
  */
-function filter_admin_plugins_page( $plugins ) {
-
+function fv_perhaps_white_label_all_plugins_filter( $plugins ) {
 	$key = plugin_basename( FV_PLUGIN_DIR . '/festingervault.php' );
 
 	$plugins[ $key ]['Name']        = fv_perhaps_white_label_plugin_name( $plugins[ $key ]['Name'] );
@@ -390,7 +390,7 @@ function filter_admin_plugins_page( $plugins ) {
 
 	return $plugins;
 }
-add_filter( 'all_plugins', 'filter_admin_plugins_page' );
+add_filter( 'all_plugins', 'fv_perhaps_white_label_all_plugins_filter' );
 
 /**
  * Change the plugin name to the name from the settings,
@@ -2934,7 +2934,7 @@ function fv_should_white_label() : bool {
  */
 function fv_perhaps_white_label_plugin_author( $default = null ): string {
 	if ( null === $default ) {
-		$default = get_plugin_data( FV_PLUGIN_FILE )['Author'];
+		$default = get_plugin_data( FV_PLUGIN__FILE__ )['Author'];
 		if ( empty($default ) ) {
 			$default = 'Festinger Vault';
 		}
@@ -3024,7 +3024,7 @@ function fv_get_white_label_option( string $option ): string {
  */
 function fv_perhaps_white_label_plugin_author_uri( string $default = null ): string {
 	if ( null === $default ) {
-		$default = get_plugin_data( FV_PLUGIN_FILE )['AuthorURI'];
+		$default = get_plugin_data( FV_PLUGIN__FILE__ )['AuthorURI'];
 		if ( empty($default ) ) {
 			$default = 'https://festingervault.com/';
 		}
@@ -3039,7 +3039,7 @@ function fv_perhaps_white_label_plugin_author_uri( string $default = null ): str
  */
 function fv_perhaps_white_label_plugin_name( string $default = null ): string {
 	if ( null === $default ) {
-		$default = get_plugin_data( FV_PLUGIN_FILE )['Name'];
+		$default = get_plugin_data( FV_PLUGIN__FILE__ )['Name'];
 		if ( empty($default ) ) {
 			$default = 'Festinger Vault';
 		}
@@ -3054,7 +3054,7 @@ function fv_perhaps_white_label_plugin_name( string $default = null ): string {
  */
 function fv_perhaps_white_label_plugin_description( string $default = null ): string {
 	if ( null === $default ) {
-		$default = get_plugin_data( FV_PLUGIN_FILE )['Description'];
+		$default = get_plugin_data( FV_PLUGIN__FILE__ )['Description'];
 		if ( empty($default ) ) {
 			$default = 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
 		}
@@ -3069,7 +3069,7 @@ function fv_perhaps_white_label_plugin_description( string $default = null ): st
  */
 function fv_perhaps_white_label_plugin_slogan( string $default = null ): string {
 	if ( null === $default ) {
-		$default = get_plugin_data( FV_PLUGIN_FILE )['Description'];
+		$default = get_plugin_data( FV_PLUGIN__FILE__ )['Description'];
 		if ( empty($default ) ) {
 			$default = 'Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.';
 		}
@@ -3330,17 +3330,16 @@ function fv_print_theme_rollback_button( string $stylesheet, string $installed_v
 		echo fv_no_backup_markup( return: true );
 		return;
 	}
-
 	?>
-		<form name="theme_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback this theme?' ) ) {return false;}">
-			<input type="hidden" name="slug" value="<? echo fv_get_slug( $theme_backup->stylesheet ); ?>" />
-			<input type="hidden" name="version" value="<? echo $installed_version;?>" />
-			<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="themerollback" type="submit" name="themerollback" value="plugin">
-				Rollback <?php echo $backup_version; ?>
-			</button>
-		</form>
-		<?php
-		// echo "<div class='btn non_active_button roleback-not-available'>Not Available</div>";
+	<form name="theme_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback this theme?' ) ) {return false;}">
+		<input type="hidden" name="slug" value="<? echo fv_get_slug( $theme_backup->stylesheet ); ?>" />
+		<input type="hidden" name="version" value="<? echo $installed_version;?>" />
+		<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="themerollback" type="submit" name="themerollback" value="plugin">
+			Rollback <?php echo $backup_version; ?>
+		</button>
+	</form>
+	<?php
+	// echo "<div class='btn non_active_button roleback-not-available'>Not Available</div>";
 }
 
 function fv_print_plugin_rollback_button( string $basename, string $installed_version ) : void {
@@ -4780,11 +4779,7 @@ function fv_get_license_status_text( string $license_status ): string {
         case 'invalid':
             return 'Suspended';
             break;
-
-        // default:
-        //     break;
     }
-
     return ucfirst( $license_status );
 }
 
@@ -4837,12 +4832,10 @@ function fv_print_no_license_push_message() : void {
  * @return void
  */
 function fv_print_api_call_failed_notices( stdClass $fv_api ) : void {
-
-    if ( ! isset( $fv_api->result )
+	if ( ! isset( $fv_api->result )
     ||   ! fv_api_call_failed( $fv_api->result ) ) {
         return;
     }
-
     ?>
     <button class="btn btn-sm float-end btn-custom-color btn-danger">
         <?php
