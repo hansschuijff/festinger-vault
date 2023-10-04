@@ -59,14 +59,14 @@
             // <!-- First License -->
             $license                          = $fv_api->license_1->license_data;
             $license->license_status_bg_class = ( 'Activated' === $license->license_status ) ? 'bg-tag' : 'bg-danger';
-            if ( fv_license_found( $fv_api->validation->license_1 ) ):
+            if ( fv_license_found( $license->license_status ) ):
                 print_license_table_markup( $license );
             endif;
 
             // <!-- Second license -->
             $license                          = $fv_api->license_2->license_data;
             $license->license_status_bg_class = fv_active_license( $license->license_status ) ? 'bg-tag' : 'bg-danger';
-            if ( fv_license_found( $fv_api->validation->license_1 ) ):
+            if ( fv_license_found( $license->license_status ) ):
                 print_license_table_markup( $license );
             endif;
 
