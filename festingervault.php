@@ -3754,6 +3754,8 @@ function fv_current_user_has_access(): bool {
 			return true;
 		}
 	}
+
+	return false;
 }
 
 function fv_get_licenses_user_roles_access() {
