@@ -478,7 +478,7 @@ jQuery("#ajax_search").keyup(function (e) {
     jQuery
       .ajax({
         data: {
-          action: "fv_deactivation_ajax",
+          action: "fv_do_license_deactivation_form",
           license_key: license_key,
           license_d: license_d,
         },
@@ -535,7 +535,7 @@ jQuery("#ajax_search").keyup(function (e) {
     jQuery
       .ajax({
         data: {
-          action: "fv_deactivation_ajax",
+          action: "fv_do_license_deactivation_form",
           license_key: license_key,
           license_d: license_d,
         },

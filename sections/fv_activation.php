@@ -8,7 +8,7 @@
 </div>
 <div class="container-padding">
     <div class="row my-4 justify-content-center">
-        <?php if ( $all_license_data->validation->license_1 != 'notfound' ): ?>
+        <?php if ( $fv_api->validation->license_1 != 'notfound' ): ?>
             <div class="col-md-6 mt-3 mt-3">
                 <div class="card card-bg-cus h-100" style="min-width:100%;">
                     <div class="py-4">
@@ -19,18 +19,18 @@
                                     <tr>
                                         <td class="w-50">
                                         <?php
-                                            $license_key_view = $all_license_data->license_1->license_data->license_key;
+                                            $license_key_view = $fv_api->license_1->license_data->license_key;
                                             echo substr( $license_key_view, 0, 5 ) . '**********************' . substr( $license_key_view, -5 );
                                         ?>
                                         </td>
                                         <td class="w-50">
                                             <p class="mb-0">
-                                                <?php if ( $all_license_data->license_1->license_data->license_status == 'valid' ): ?>
+                                                <?php if ( $fv_api->license_1->license_data->license_status == 'valid' ): ?>
                                                     <p style="color:#fff;" class="badge bg-tag mb-0">Active</p>
                                                 <?php else: ?>
                                                     <p style="color:#fff;" class="badge bg-danger mb-0">Suspended</p>
                                                 <?php endif; ?>
-                                                <?php if ( $all_license_data->license_1->license_data->license_type == 'onetime' ): ?>
+                                                <?php if ( $fv_api->license_1->license_data->license_type == 'onetime' ): ?>
                                                     <!-- Button trigger modal -->
                                                     <button type="button" class="px-3 py-2 primary-btn border-0" style=""
                                                         data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -43,10 +43,10 @@
                                                                 <div class="modal-header" style="background:#292055;">
                                                                     <h6 class="modal-title" id="exampleModalLabel" style="font-size: 14px;">
                                                                         <b>Plan:</b>
-                                                                        <?php echo $all_license_data->license_1->license_data->license_plan_name; ?><br />
+                                                                        <?php echo $fv_api->license_1->license_data->license_plan_name; ?><br />
                                                                         <b>License Key:</b>
                                                                         <?php
-                                                                        $license_key_view1 = $all_license_data->license_1->license_data->license_key;
+                                                                        $license_key_view1 = $fv_api->license_1->license_data->license_key;
                                                                         echo substr( $license_key_view1, 0, 5 ) . '**********************' . substr( $license_key_view1, -5 );
                                                                         ?>
                                                                     </h6>
@@ -55,7 +55,7 @@
                                                                 <form class="form" id="ajax-license-refill-form" action="#">
                                                                     <div class="modal-body">
                                                                         <div class="mb-3">
-                                                                            <input type="hidden" id="license_key" name="license_key" value="<?php echo $all_license_data->license_1->license_data->license_key; ?>" required>
+                                                                            <input type="hidden" id="license_key" name="license_key" value="<?php echo $fv_api->license_1->license_data->license_key; ?>" required>
                                                                             <label for="refill_key" class="form-label refill_button">
                                                                                 Enter your unused ONETIME Plan license Key
                                                                             </label>
@@ -110,42 +110,42 @@
                                 <tr>
                                     <td class="text-grey" style="width:50%;">Plan Name: </td>
                                     <td style="width:50%;">
-                                        <?php echo $all_license_data->license_1->license_data->license_plan_name; ?>
+                                        <?php echo $fv_api->license_1->license_data->license_plan_name; ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey" style="width:50%;">Plan Type: </td>
                                     <td style="width:50%;">
-                                        <?php echo ucfirst( $all_license_data->license_1->license_data->license_type ); ?>
+                                        <?php echo ucfirst( $fv_api->license_1->license_data->license_type ); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey" style="width:50%;">Plan Credit Limit: </td>
                                     <td style="width:50%;">
                                         <span id="plan_limit_id">
-                                            <?php echo $all_license_data->license_1->license_data->plan_credit_limit; ?>
+                                            <?php echo $fv_api->license_1->license_data->plan_credit_limit; ?>
                                         </span>
                                         /
-                                        <?php echo ucfirst( $all_license_data->license_1->license_data->license_type ); ?>
+                                        <?php echo ucfirst( $fv_api->license_1->license_data->license_type ); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey" style="width:50%;">Credit Available: </td>
                                     <td style="width:50%;">
                                         <span id="limit_available_id">
-                                            <?php echo $all_license_data->license_1->license_data->plan_credit_available; ?>
+                                            <?php echo $fv_api->license_1->license_data->plan_credit_available; ?>
                                         </span>
                                         /
-                                        <?php echo ucfirst( $all_license_data->license_1->license_data->license_type ); ?>
+                                        <?php echo ucfirst( $fv_api->license_1->license_data->license_type ); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey" style="width:50%;">Expiration Date: </td>
                                     <td style="width:50%;">
-                                        <?php echo $all_license_data->license_1->license_data->expiration_date; ?>
+                                        <?php echo $fv_api->license_1->license_data->expiration_date; ?>
                                     </td>
                                 </tr>
-                                <?php if ( $all_license_data->license_1->license_data->license_type == 'recurring' ): ?>
+                                <?php if ( $fv_api->license_1->license_data->license_type == 'recurring' ): ?>
                                     <tr>
                                         <td class="text-grey" style="width:50%;">
                                             Credit Limit Reset In
@@ -167,9 +167,9 @@
                         </div>
                         <div class="card-footer ">
                             <?php
-                            if ( $all_license_data->validation->license_1 != 'notfound' ):
+                            if ( $fv_api->validation->license_1 != 'notfound' ):
                                 $get_license_own_db = '';
-                                if ( fv_get_license_key() == $all_license_data->license_1->license_data->license_key ):
+                                if ( fv_get_license_key() == $fv_api->license_1->license_data->license_key ):
                                     $get_license_own_db = fv_get_license_key();
                                     ?>
                                     <form class="ajax-license-deactivation-form" action="#">
@@ -193,7 +193,7 @@
             </div>
         <?php
         endif;
-        if ( $all_license_data->validation->license_2 != 'notfound' ):
+        if ( $fv_api->validation->license_2 != 'notfound' ):
         ?>
             <div class="col-md-6 mt-3 mt-3">
                 <div class="card card-bg-cus h-100" style="min-width:100%;">
@@ -205,18 +205,18 @@
                                     <tr>
                                         <td class="w-50">
                                         <?php
-                                            $license_key_view = $all_license_data->license_2->license_data->license_key;
+                                            $license_key_view = $fv_api->license_2->license_data->license_key;
                                             echo substr( $license_key_view,0,5 ) . '**********************' . substr( $license_key_view,-5 );
                                         ?>
                                         </td>
                                         <td class="w-50">
                                             <span>
-                                                <?php if ( $all_license_data->license_2->license_data->license_status == 'valid' ): ?>
+                                                <?php if ( $fv_api->license_2->license_data->license_status == 'valid' ): ?>
                                                     <span style="color:#fff;" class="badge bg-tag">Active</span>
                                                 <?php else: ?>
                                                     <span style="color:#fff;" class="badge bg-danger">Suspended</span>
                                                 <?php endif; ?>
-                                                <?php if ( $all_license_data->license_2->license_data->license_type == 'onetime' ): ?>
+                                                <?php if ( $fv_api->license_2->license_data->license_type == 'onetime' ): ?>
                                                     <!-- Button trigger modal -->
                                                     <button type="button" class=" px-3 py-2 primary-btn border-0"
                                                         data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -228,10 +228,10 @@
                                                             <div class="modal-content">
                                                                 <div class="modal-header" style="background:#292055;">
                                                                     <h6 class="modal-title" id="exampleModalLabel" style="font-size: 14px;">
-                                                                        <b>Plan:</b><?php echo $all_license_data->license_2->license_data->license_plan_name; ?>
+                                                                        <b>Plan:</b><?php echo $fv_api->license_2->license_data->license_plan_name; ?>
                                                                         <br /><b>License Key:</b>
                                                                         <?php
-                                                                        $license_key_view1 = $all_license_data->license_1->license_data->license_key;
+                                                                        $license_key_view1 = $fv_api->license_1->license_data->license_key;
                                                                         echo substr( $license_key_view1,0,5 ) . '**********************' . substr( $license_key_view1,-5 );
                                                                         ?>
                                                                     </h6>
@@ -244,7 +244,7 @@
                                                                                 type="hidden"
                                                                                 id="license_key2"
                                                                                 name="license_key"
-                                                                                value="<?php echo $all_license_data->license_2->license_data->license_key; ?>"
+                                                                                value="<?php echo $fv_api->license_2->license_data->license_key; ?>"
                                                                                 required>
                                                                             <label
                                                                                 for="refill_key"
@@ -302,22 +302,22 @@
                             <table class="table borderless table-borderless mb-0">
                                 <tr>
                                     <td class="text-grey w-50">Plan Name: </td>
-                                    <td class="w-50"> <?php echo $all_license_data->license_2->license_data->license_plan_name; ?>
+                                    <td class="w-50"> <?php echo $fv_api->license_2->license_data->license_plan_name; ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey w-50">Plan Type: </td>
                                     <td class="w-50">
-                                        <?php echo ucfirst( $all_license_data->license_2->license_data->license_type ); ?> </td>
+                                        <?php echo ucfirst( $fv_api->license_2->license_data->license_type ); ?> </td>
                                 </tr>
                                 <tr>
                                     <td class="text-grey w-50">Plan Credit Limit: </td>
                                     <td class="w-50">
 
                                         <span id="plan_limit_id">
-                                            <?php echo $all_license_data->license_2->license_data->plan_credit_limit; ?> </span>
+                                            <?php echo $fv_api->license_2->license_data->plan_credit_limit; ?> </span>
                                         /
-                                        <?php echo ucfirst( $all_license_data->license_2->license_data->license_type ); ?>
+                                        <?php echo ucfirst( $fv_api->license_2->license_data->license_type ); ?>
                                     </td>
                                 </tr>
 
@@ -326,20 +326,20 @@
                                     <td class="w-50">
 
                                         <span id="limit_available_id">
-                                            <?php echo $all_license_data->license_2->license_data->plan_credit_available; ?>
+                                            <?php echo $fv_api->license_2->license_data->plan_credit_available; ?>
                                         </span>
                                         /
-                                        <?php echo ucfirst( $all_license_data->license_2->license_data->license_type ); ?>
+                                        <?php echo ucfirst( $fv_api->license_2->license_data->license_type ); ?>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="text-grey w-50">Expiration Date: </td>
                                     <td class="w-50">
-                                        <?php echo $all_license_data->license_2->license_data->expiration_date; ?>
+                                        <?php echo $fv_api->license_2->license_data->expiration_date; ?>
                                     </td>
                                 </tr>
-                                <?php if ( $all_license_data->license_2->license_data->license_type == 'recurring' ): ?>
+                                <?php if ( $fv_api->license_2->license_data->license_type == 'recurring' ): ?>
                                 <tr>
                                     <td class="text-grey w-50">Credit Limit Reset In</td>
                                     <td class="w-50">
@@ -358,9 +358,9 @@
                         </div>
                         <div class="card-footer">
                             <?php
-                            if ( $all_license_data->validation->license_2 != 'notfound' ):
+                            if ( $fv_api->validation->license_2 != 'notfound' ):
                                 $get_license_own_db = '';
-                                if ( fv_get_license_key_2() == $all_license_data->license_2->license_data->license_key ):
+                                if ( fv_get_license_key_2() == $fv_api->license_2->license_data->license_key ):
                                     $get_license_own_db_2 = fv_get_license_key_2();
                                     ?>
                                     <form class="ajax-license-deactivation-form-2" action="#">
@@ -421,8 +421,8 @@
                     <div class="card-header card-bottom-border">
                         <h5><b>License Activation</b></h5>
                         <?php
-                            if ( $all_license_data->validation->license_1 == 'notfound'
-                            ||   $all_license_data->validation->license_2 == 'notfound' ):
+                            if ( $fv_api->validation->license_1 == 'notfound'
+                            ||   $fv_api->validation->license_2 == 'notfound' ):
                             ?>
                                 <p class="card-text my-3">
                                     Please enter your activation license key to activate and enjoy our service. Don't have a license key? Buy now and get access to all of our 25K+ themes and plugins directory.
@@ -455,8 +455,8 @@
                         <div class="dark-blue border-8 py-3 px-4 mt-4">
                             <small class="">
                                 <?php
-                                if ( $all_license_data->validation->license_1 == 'valid'
-                                ||   $all_license_data->validation->license_2 == 'valid' ):
+                                if ( $fv_api->validation->license_1 == 'valid'
+                                ||   $fv_api->validation->license_2 == 'valid' ):
                                     ?>
                                         Your license is registered with <b><?php echo get_home_url(); ?></b> domain.
                                     </small>

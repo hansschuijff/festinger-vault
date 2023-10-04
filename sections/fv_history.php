@@ -24,31 +24,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if( $license_histories == NULL ): ?>
+                            <?php if ( NULL === $fv_api_downloads ): ?>
                                 <tr>
                                     <td colspan="5" style="color: #fff;">No history found. </td>
                                 </tr>
                             <?php
                             else:
-                                foreach( $license_histories as $history ):
+                                foreach( $fv_api_downloads as $fv_download ):
                                 ?>
                                 <!-- Name -->
                                 <tr class="text-white table-tr pb-3" style="box-sizing:border-box;">
                                     <td class="plugin_update_width_20" style="padding-left:20px;">
-                                        <?php echo $history->theme_plugin_name ; ?>
+                                        <?php echo $fv_download->theme_plugin_name ; ?>
                                     </td>
                                     <!-- Domain & License Key -->
                                     <td class="plugin_update_width_40 pb-3">
                                         <div style="box-sizing:border-box;">
                                             <!-- Domain -->
                                             <p class="mb-2">
-                                                <?php echo substr( $history->website, 0, 5 ) . '******' . substr( $history->website, -5 ); ?>
+                                                <?php echo substr( $fv_download->website, 0, 5 ) . '******' . substr( $fv_download->website, -5 ); ?>
                                             </p>
                                             <!-- License Key -->
                                             <span class="bg-tag p-2 border-8 mb-2" style="font-size:13px;">
                                                 <?php
-                                                $license_key_view = $history->logged_license;
-                                                echo substr( $license_key_view, 0, 5 ) . '**********************' . substr( $license_key_view, -5 );
+                                                $fv_logged_license_key = $fv_download->logged_license;
+                                                echo substr( $fv_logged_license_key, 0, 5 ) . '**********************' . substr( $fv_logged_license_key, -5 );
                                                 ?>
                                             </span>
                                         </div>
@@ -58,21 +58,21 @@
                                         <div class='row'>
                                             <div class='col-6 text-left text-grey'>Plan Type</div>
                                             <div class='col-6 text-left'>
-                                                <?php echo ucfirst( $history->logged_license_type ); ?>
+                                                <?php echo ucfirst( $fv_download->logged_license_type ); ?>
                                             </div>
                                             <div class='col-6 text-left text-grey'>Credit</div>
                                             <div class='col-6 text-left'>
-                                                <?php echo ucfirst( $history->credit_required ); ?>
+                                                <?php echo ucfirst( $fv_download->credit_required ); ?>
                                             </div>
                                         </div>
                                     </td>
                                     <!-- History type -->
                                     <td class='plugin_update_width_15'>
-                                        <?php echo ucfirst( str_replace( '_', ' ', $history->history_type ) ); ?>
+                                        <?php echo ucfirst( str_replace( '_', ' ', $fv_download->history_type ) ); ?>
                                     </td>
                                     <!-- Date -->
                                     <td class=" plugin_update_width_15">
-                                        <?php echo date( "Y-m-d", strtotime( $history->created_at ) ); ?>
+                                        <?php echo date( "Y-m-d", strtotime( $fv_download->created_at ) ); ?>
                                     </td>
                                 </tr>
                                 <?php
