@@ -32,7 +32,7 @@ function fv_themes_autoupdate_switch(){
 					);
 
 					$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL.'recurring-slug-cap' ) );
-					$response = fv_remote_run_query( $query );
+					$response = fv_run_remote_query( $query );
 					$slug_res = json_decode( wp_remote_retrieve_body( $response ) );
 
 					if( get_option('fv_themes_auto_update_list') != true ) {
@@ -124,7 +124,7 @@ function fv_plugin_autoupdate_switch(){
 					);
 
 					$query    = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'recurring-slug-cap' ) );
-				    $response = fv_remote_run_query( $query );
+				    $response = fv_run_remote_query( $query );
 					$slug_res = json_decode( wp_remote_retrieve_body( $response ) );
 
 					if($slug_res->status == 'na'){
@@ -197,7 +197,7 @@ function fv_plugin_buttons_ajax_multiple(){
 	);
 
 	$query        = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'get-pro-buttons-multiple' ) );
-    $response     = fv_remote_run_query( $query );
+    $response     = fv_run_remote_query( $query );
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
 	echo json_encode( $license_data );
@@ -845,7 +845,7 @@ function get_plugins_and_themes_matched_by_vault($plugin_theme, $get_slug){
 		);
 
 		$query             = esc_url_raw( add_query_arg( $api_params, FV_REST_API_URL . 'plugin-theme-updater' ) );
-	    $response          = fv_remote_run_query($query );
+	    $response          = fv_run_remote_query($query );
 		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if($plugin_theme == 'plugin' && !empty($slug)){
@@ -880,7 +880,7 @@ function fv_discourse_post_new_version(){
 	];
 
 	$query             = esc_url_raw( add_query_arg( $api_params_new, FV_REST_API_URL.'discourse-input' ) );
-	$response          = fv_remote_run_query( $query );
+	$response          = fv_run_remote_query( $query );
 	$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
 	echo json_encode($license_histories);
@@ -903,7 +903,7 @@ function fv_discourse_post_new_report(){
 	];
 
 	$query             = esc_url_raw( add_query_arg( $api_params_new, FV_REST_API_URL . 'discourse-report' ) );
-	$response          = fv_remote_run_query( $query );
+	$response          = fv_run_remote_query( $query );
 	$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
 
 	echo json_encode($license_histories);

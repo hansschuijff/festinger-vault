@@ -535,7 +535,7 @@ jQuery("#ajax_search").keyup(function (e) {
     jQuery
       .ajax({
         data: {
-          action: "fv_deactivation_ajax_2",
+          action: "fv_deactivation_ajax",
           license_key: license_key,
           license_d: license_d,
         },
