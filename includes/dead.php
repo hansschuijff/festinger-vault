@@ -300,3 +300,17 @@ function festinger_vault_get_multi_purpose_data() {
 
 	return $license_histories;
 }
+
+
+function generatePluginActivationLinkUrl( $plugin ) {
+
+	if (strpos( $plugin, '/' ) ) {
+		$plugin = str_replace( '/', '%2F', $plugin );
+	}
+
+	$activateUrl        = sprintf(admin_url( 'plugins.php?action=activate&plugin=%s&plugin_status=all&paged=1&s' ), $plugin );
+	$_REQUEST['plugin'] = $plugin;
+	$activateUrl        = wp_nonce_url( $activateUrl, 'activate-plugin_' . $plugin );
+
+	return $activateUrl;
+}

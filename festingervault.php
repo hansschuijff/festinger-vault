@@ -37,7 +37,7 @@ if ( ! defined( 'FV_PLUGIN__FILE__' ) ) {
 	define( 'FV_PLUGIN__FILE__', __FILE__ );
 }
 if ( ! defined( 'FV_PLUGIN_ROOT_PHP' ) ) {
-	define( 'FV_PLUGIN_ROOT_PHP', dirname( __FILE__ ) . '/' . basename( __FILE__ ) );
+	define( 'FV_PLUGIN_ROOT_PHP', trailingslashit( dirname( __FILE__ ) ) . basename( __FILE__ ) );
 }
 if ( ! defined( 'FV_PLUGIN_ABSOLUTE_PATH' ) ) {
 	define( 'FV_PLUGIN_ABSOLUTE_PATH', plugin_dir_url( __FILE__ ) );
@@ -272,25 +272,24 @@ register_activation_hook( __FILE__, 'fv_activate' );
  */
 function fv_build_upload_dirs() {
 
-	$upload_dir = wp_upload_dir()["basedir"] . '/fv_auto_update_directory/plugins';
 	$files      = array(
 		array(
-			'path' 		=> $upload_dir .  "plugins",
+			'path' 		=> fv_get_upload_dir('plugin'),
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'path' 		=> $upload_dir . "plugins/backup",
+			'path' 		=> fv_get_upload_dir('plugin-backup'),
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'path' 		=> $upload_dir . "themes",
+			'path' 		=> fv_get_upload_dir('theme'),
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 ),
 		array(
-			'path' 		=> $upload_dir . "themes/backup",
+			'path' 		=> fv_get_upload_dir('theme-backup'),
 			'file' 		=> 'index.html',
 			'content' 	=> ''
 		 )
@@ -691,9 +690,9 @@ function fv_run_remote_request_data( array $query_args ): array|WP_Error {
  *
  * @param string $key    License key.
  * @param string $domain Domain id.
- * @return stdClass Json decoded api call result.
+ * @return stdClass|WP_Error Json decoded api call result.
  */
-function fv_run_remote_activate_license( string $license_key ) : stdClass {
+function fv_run_remote_activate_license( string $license_key ) : stdClass|WP_Error {
 
 	if ( empty( $license_key ) ) {
 		$fv_api              = new stdClass;
@@ -724,9 +723,9 @@ function fv_run_remote_activate_license( string $license_key ) : stdClass {
  *
  * @param string $key     License key.
  * @param string $domain  Domain id.
- * @return stdClass Json decoded api call result.
+ * @return stdClass|WP_Error Json decoded api call result.
  */
-function fv_run_remote_deactivate_license( string $key, string $domain ) : stdClass {
+function fv_run_remote_deactivate_license( string $key, string $domain ) : stdClass|WP_Error {
 
 	if ( empty( $key ) || empty( $domain ) ) {
 		return false;
@@ -741,11 +740,11 @@ function fv_run_remote_deactivate_license( string $key, string $domain ) : stdCl
 		'license_mode' => 'deactivation',
 		'license_v'    => FV_PLUGIN_VERSION,
 	);
+	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
-	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-	$response     = fv_run_remote_query( $query );
-
-	return json_decode( wp_remote_retrieve_body( $response ) );
+	return json_decode( wp_remote_retrieve_body(
+		fv_run_remote_query( $query )
+	 ) );
 }
 
 /**
@@ -788,7 +787,7 @@ add_action( 'wp_ajax_nopriv_fv_activation_ajax', 'fv_do_license_activation_form'
  *
  * @return void
  */
-function fv_do_license_deactivation_form() {
+function fv_do_license_deactivation_form(): void {
 
 	$fv_api = fv_run_remote_deactivate_license( $_POST['license_key'], $_POST['license_d'] );
 
@@ -1073,7 +1072,7 @@ function fv_license_allows_white_label( stdClass $fv_api ) : bool {
  *
  * @return void
  */
-function fv_forget_white_label_settings() {
+function fv_forget_white_label_settings(): void  {
 
 	$options = fv_get_white_label_option_keys('all');
 
@@ -1087,19 +1086,17 @@ function fv_forget_white_label_settings() {
  *
  * @return void
  */
-function fv_render_theme_updates_page() {
-
+function fv_render_theme_updates_page(): void {
 	/**
 	 * If no licenses are activated, build page with initial data.
 	 */
 	if ( ! fv_has_any_license() ) {
 		$fv_api = fv_updates_empty_api_result();
-		return include( FV_PLUGIN_DIR . '/sections/fv_theme_updates.php' );
+		include( FV_PLUGIN_DIR . '/sections/fv_theme_updates.php' );
 	}
 
-	$req_themes = fv_get_installed_themes_for_api_request();
-	$fv_api     = fv_get_remote_themes( $req_themes );
-
+	$req_themes       = fv_get_installed_themes_for_api_request();
+	$fv_api           = fv_get_remote_themes( $req_themes );
 	$fv_themes        = array();
 	$fv_theme_updates = array();
 
@@ -1124,7 +1121,7 @@ function fv_render_theme_updates_page() {
  *
  * @return void
  */
-function fv_render_plugin_updates_page() {
+function fv_render_plugin_updates_page(): void {
 
 	$fv_plugins        = array();
 	$fv_plugin_updates = array();
@@ -1134,7 +1131,7 @@ function fv_render_plugin_updates_page() {
 	 */
 	if ( ! fv_has_any_license() ) {
 		$fv_api = fv_updates_empty_api_result();
-		return include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php' );
+		include( FV_PLUGIN_DIR . '/sections/fv_plugin_updates.php' );
 	}
 
 	$req_plugins = fv_get_installed_plugins_for_api_request();
@@ -1181,36 +1178,35 @@ function fv_render_plugin_updates_page() {
  * @return stdClass
  */
 function fv_updates_empty_api_result() : stdClass {
-
 	$fp_api                      = new stdClass();
 	$fp_api->result              = 'no-license';
 	$fp_api->msg                 = '';
 	$fp_api->manual_force_update = 'No';
 	$fp_api->plugins             = array();
 	$fp_api->themes              = array();
-
 	return $fp_api;
-
 }
 
 /**
  * Call FV api for a list of matching plugins from FV.
  *
  * @param array $plugins
- * @return stdClass|false json decoded result of api call.
+ * @param string $context 'get' for building pages and 'update' when selecting for force updates. Default: 'get'.
+ * @return stdClass|WP_Error|false json decoded result of api call.
  */
-function fv_get_remote_plugins( array $plugins ) : stdClass|false {
-	return fv_get_remote_matches( plugins: $plugins );
+function fv_get_remote_plugins( array $plugins, string $context = 'get' ) : stdClass|WP_Error|false {
+	return fv_get_remote_matches( plugins: $plugins, context: $context );
 }
 
 /**
  * Call FV api for a list of matching themes from FV.
  *
  * @param array $themes
- * @return stdClass|false json decoded result of api call.
+ * @param string $context 'get' for building pages and 'update' when selecting for force updates. Default: 'get'.
+ * @return stdClass|WP_Error|false json decoded result of api call.
  */
-function fv_get_remote_themes( array $themes ) : stdClass|false {
-	return fv_get_remote_matches( themes: $themes );
+function fv_get_remote_themes( array $themes, string $context = 'get' ) : stdClass|WP_Error|false {
+	return fv_get_remote_matches( themes: $themes, context: $context );
 }
 
 /**
@@ -1218,9 +1214,10 @@ function fv_get_remote_themes( array $themes ) : stdClass|false {
  *
  * @param array $plugins
  * @param array $themes
- * @return stdClass|false json decoded result of api call.
+ * @param string $context 'get' for building pages and 'update' when selecting for force updates. Default: 'get'.
+ * @return stdClass|WP_Error|false json decoded result of api call.
  */
-function fv_get_remote_matches( array $plugins = array(), array $themes = array() ) : stdClass|false {
+function fv_get_remote_matches( array $plugins = array(), array $themes = array(), string $context = 'get' ) : stdClass|WP_Error|false {
 
 	if ( ! is_array( $plugins ) || ! is_array( $themes ) ) {
 		return false;
@@ -1247,6 +1244,10 @@ function fv_get_remote_matches( array $plugins = array(), array $themes = array(
 		'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
 		'license_v'       => FV_PLUGIN_VERSION,
 	);
+	if ( 'update' === $context ) {
+		$query_args['license_mode']    = 'up_dl_plugs_thms';
+		$query_args['loadNotAll']      = 'yes';
+	}
 	$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
 	return	json_decode( wp_remote_retrieve_body(
@@ -1273,7 +1274,7 @@ function fv_get_remote_matches( array $plugins = array(), array $themes = array(
  * @param string $slug
  * @return string
  */
-function fv_esc_version( $slug ) {
+function fv_esc_version( string $slug ): string {
 	// just turn this functionality off for now.
 	return esc_attr( $slug );
 
@@ -1287,7 +1288,7 @@ function fv_esc_version( $slug ) {
  *
  * @return void
  */
-function fv_render_history_page() {
+function fv_render_history_page(): void {
 
 	$fv_api_downloads = fv_get_remote_history();
 
@@ -1297,7 +1298,7 @@ function fv_render_history_page() {
 /**
  * Gets the download history from the FV API.
  *
- * @return arary|WP_Error Array with (stdClass) downloads.
+ * @return arary|WP_Error|null Array with (stdClass) downloads.
  */
 function fv_get_remote_history(): array|WP_Error|null {
 
@@ -1328,7 +1329,7 @@ function fv_get_remote_history(): array|WP_Error|null {
  *
  * @return void
  */
-function fv_do_license_refill_form() {
+function fv_do_license_refill_form(): void {
 
 	$query_base_url = FV_REST_API_URL . 'refill-license';
 	$query_args     = array(
@@ -1593,10 +1594,10 @@ function fv_get_active_theme_stylesheet(): string|false {
  * Returns the content-length of a file from the files header.
  *
  * @param string $file_url
- * @param boolean $formatSize
+ * @param boolean $format_size
  * @return int
  */
-function fv_curlRemoteFilesize( $file_url, $formatSize = true ) {
+function fv_curl_get_remote_file_size( string $file_url, bool $format_size = true ): int {
 
 	$head = array_change_key_case( get_headers( $file_url, 1 ), CASE_LOWER );
 
@@ -1608,13 +1609,96 @@ function fv_curlRemoteFilesize( $file_url, $formatSize = true ) {
 		return 0;
 	}
 
-	// right now $formatSize doesn't seem to have impact on the return value.
-	if ( ! $formatSize ) {
+	// right now $format_size doesn't seem to have impact on the return value.
+	if ( ! $format_size ) {
 		// return size in bytes
 		return $clen;
 	}
 
 	return $clen;
+}
+
+/**
+ * Download and write a file to a destination, using curl.
+ *
+ * @param string $source_url URL of the file that should be downloaded.
+ * @param string $dest_dir Destination directory.
+ * @param string $dest_file Destination filename.
+ * @return integer Filesize.
+ */
+function fv_curl_download_url( string $source_url, string $dest_dir, string $dest_file ) : int {
+
+	$file_size = fv_curl_get_remote_file_size( $source_url );
+
+	// Initialize the cURL session
+	$curl_handle = curl_init( $source_url );
+
+	// Use basename() function to return
+	// the base name of file
+	// $file_name = basename( $source_url );
+
+	// Save file into file location
+	$destination = $dest_dir . $dest_file;
+
+	// Open file
+	$file_handle = fopen( $destination, 'wb' );
+
+	// It set an option for a cURL transfer
+	curl_setopt( $curl_handle, CURLOPT_FILE, $file_handle );
+	curl_setopt( $curl_handle, CURLOPT_HEADER, 0 );
+
+	// Perform a cURL session
+	curl_exec( $curl_handle );
+
+	// Closes a cURL session and frees all resources
+	curl_close( $curl_handle );
+
+	// Close file
+	fclose( $file_handle );
+
+	return $file_size;
+}
+
+/**
+ * Move an existing file to an existing destination.
+ *
+ * @param string $src Fully qualified name of existing file.
+ * @param string $dest Fully qualified name of existing directory.
+ * @return bool  Returns true on success or false on failure.
+ */
+function fv_move_file( string $src, string $dest ): bool {
+	if ( false === copy( $src, $dest )
+	||   false === fv_delete_file( $src ) ) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Move an existing file to an existing destination.
+ *
+ * @param string $file Fully qualified name of existing file.
+ * @return bool  Returns true on success or false on failure.
+ */
+function fv_delete_file( string $file ) {
+	return unlink( $file );
+}
+
+/**
+ * Download and write a file to a destination, using curl.
+ *
+ * @param string $source_url URL of the file that should be downloaded.
+ * @param string $dest_dir Destination directory.
+ * @param string $dest_file Destination filename.
+ * @return integer Filesize.
+ */
+function fv_download_zip_from_url( string $source_url, string $dest_dir, string $dest_file ) : int {
+	$tmpfile  = download_url( $source_url, $timeout = 300 );
+	if ( ! is_wp_error( $tmpfile ) ) {
+		fv_move_file( src: $tmpfile, dest: $dest_dir . $dest_file );
+	}
+	// Download via wp wasn't succesfull, now try using cURL.
+	return fv_curl_download_url( source_url: $source_url, dest_dir: $dest_dir , dest_file: $dest_file );
 }
 
 /**
@@ -1638,833 +1722,474 @@ function fv_curlRemoteFilesize( $file_url, $formatSize = true ) {
  */
 function fv_auto_update_download( $theme_plugin = null, $single_plugin_theme_slug = array() ) {
 
-	$t_dl_fl_sz           = 10;
+	if ( ! fv_has_any_license() ) {
+		return;
+	}
 
-	$all_plugins          = fv_get_plugins();
-	$requested_plugins = [];
+	$should_update_themes = false;
+	if ( null   === $theme_plugin
+	||  'theme' === $theme_plugin ) {
+		$should_update_themes = true;
+	}
 
-	if ( 'plugin' === $theme_plugin
-	&& ! empty( $single_plugin_theme_slug )
-	&&   count( $single_plugin_theme_slug ) > 0 ) {
-		/**
-		 * A single plugin update is requested, so plugin data is provided.
-		 */
-		$requested_plugins[] = [
-			'slug'    => ! empty( $single_plugin_theme_slug['slug'] )    ? $single_plugin_theme_slug['slug']    : '',
-			'version' => ! empty( $single_plugin_theme_slug['version'] ) ? $single_plugin_theme_slug['version'] : '',
-			'dl_link' => ''
-		];
+	$should_update_plugins = false;
+	if ( null     === $theme_plugin
+	||  'plugins' === $theme_plugin ) {
+		$should_update_plugins = true;
+	}
 
-	} elseif ( ! empty( $all_plugins ) ) {
-		/**
-		 * Instant update all is requested,
-		 * so first collect data of all installed plugins
-		 * that have auto-update toggle checked.
-		 */
-		foreach ( $all_plugins as $plugin_basename => $plugin_data ) {
+	$single_theme_update = false;
+	$single_plugin_update = false;
 
-			$version   = fv_esc_version( $plugin_data['Version'] );
-			$slug      = fv_get_slug( $plugin_basename );
+	if ( ! empty ( $single_plugin_theme_slug ) ) {
 
-			if ( fv_should_auto_update_plugin( $slug ) ) {
-				$requested_plugins[] = [
-					'slug'    => $slug,
-					'version' => $version,
-					'dl_link' => ''
-				];
-			}
+		if ( empty( $single_plugin_theme_slug['type'] )
+		||	 $single_plugin_theme_slug['type'] !== $theme_plugin ) {
+			return;
+		}
+		if ( empty( $single_plugin_theme_slug['slug'] )
+		||   empty( $single_plugin_theme_slug['version'] ) ) {
+			return;
+		}
+
+		switch ( $single_plugin_theme_slug['type'] ) {
+			case 'plugin':
+				$single_plugin_update = true;
+				$single_plugin        = $single_plugin_theme_slug;
+			break;
+
+			case 'theme':
+				$single_theme_update = true;
+				$single_theme        = $single_plugin_theme_slug;
+				break;
+
+			default:
+				// invalid args.
+				return;
+				break;
 		}
 	}
 
-	$allThemes         = fv_get_themes();
-	$requested_themes  = [];
+	$fv_plugins = array();
+	if ( $should_update_plugins ) {
+		if ( $single_plugin_update ) {
+			$fv_plugins[] = array(
+				'slug'    => $single_plugin['slug'] ,
+				'version' => $single_plugin['version'] ,
+				'dl_link' => ''
+			);
+		} else {
+			$fv_plugins = fv_get_auto_update_plugins_for_api_request();
+		}
+	}
 
-	if ( 'theme' === $theme_plugin
-	&& ! empty( $single_plugin_theme_slug )
-	&&   count( $single_plugin_theme_slug ) > 0 ) {
-		/**
-		 * A single theme update is requested, so plugin data is provided.
-		 */
-		$requested_themes[] = [
-			'slug'    => ! empty( $single_plugin_theme_slug['slug'] )    ? $single_plugin_theme_slug['slug']    : '',
-			'version' => ! empty( $single_plugin_theme_slug['version'] ) ? $single_plugin_theme_slug['version'] : '',
-			'dl_link' => ''
-		];
-
-	} elseif ( ! empty( $all_plugins ) ) {
-		/**
-		 * Instant update all is requested,
-		 * so first collect data of all installed themes
-		 * that have auto-update toggle checked.
-		 */
-		foreach( $allThemes as $theme ) {
-
-			$get_theme_slug = fv_get_wp_theme_slug( $theme );
-
-			if ( fv_should_auto_update_theme( $get_theme_slug ) ) {
-				$requested_themes[] = [
-					'slug'    => $get_theme_slug,
-					'version' => $theme->Version,
-					'dl_link' => ''
-				];
-			}
+	$fv_themes = array();
+	if ( $should_update_themes ) {
+		if ( $single_theme_update ) {
+			$fv_themes[] = array(
+				'slug'    => $single_theme['slug'] ,
+				'version' => $single_theme['version'] ,
+				'dl_link' => ''
+			);
+		} else {
+			$fv_themes = fv_get_auto_update_themes_for_api_request();
 		}
 	}
 
 	// Get matching plugins and themes remote using FV Api.
+	$fp_api = fv_get_remote_matches(
+		plugins: $fv_plugins,
+		themes:  $fv_themes,
+		context: 'update'
+	);
 
-	if ( fv_has_any_license() ) {
+	// now we need WP_Filesystem to actually perform the update(s).
+	require_once( ABSPATH .'/wp-admin/includes/file.php' );
+	WP_Filesystem();
 
-		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
-		$query_args     = array(
-			'license_key'     => fv_get_license_key(),
-			'license_key_2'   => fv_get_license_key_2(),
-			'license_d'       => fv_get_license_domain_id(),
-			'license_d_2'     => fv_get_license_domain_id_2(),
-			'license_pp'      => $_SERVER['REMOTE_ADDR'],
-			'license_host'    => $_SERVER['HTTP_HOST'],
-			'license_mode'    => 'up_dl_plugs_thms',
-			'loadNotAll'      => 'yes',
-			'license_v'       => FV_PLUGIN_VERSION,
-			'all_plugin_list' => $requested_plugins,
-			'all_theme_list'  => $requested_themes,
-		);
-		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response          = fv_run_remote_query( $query );
-		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
+	$total_download_size = 10;
 
-		// now we need WP_Filesystem to actually perform the update(s).
+	if ( $should_update_themes && ! empty( $fp_api->themes )) {
 
-		require_once( ABSPATH .'/wp-admin/includes/file.php' );
+		$fv_themes_with_stylesheet = array();
+		foreach( fv_get_themes() as $theme ) {
+			$get_theme_slug              = fv_get_wp_theme_slug( $theme );
+			$fv_themes_with_stylesheet[] = array(
+				'dir'     => $theme->get_stylesheet(),
+				'slug'    => $get_theme_slug,
+				'version' => $theme->Version,
+			);
+		}
 
-		WP_Filesystem();
+		foreach( $fv_themes as $theme ) {
 
-		$upload_dir        = wp_upload_dir();
+			foreach ( $fp_api->themes as $u ) {
 
-		if ( null == $theme_plugin
-		||  'theme' == $theme_plugin ) {
+				if ( $u->slug === $theme['slug']
+				&& version_compare( $u->version, $theme['version'], '>' ) ) {
 
-			if ( ! empty( $license_histories->themes ) ) {
+					if ( $single_theme_update
+					&&   $single_theme['slug'] == $u->slug ) {
 
-				$get_theme_directory=[];
+						$pathInfo                = pathinfo( $u->slug );
+						$fileName                = $pathInfo['filename'] . '.zip';
 
-				foreach( $allThemes as $theme ) {
-					$get_theme_slug        = fv_get_wp_theme_slug( $theme );
-					$get_theme_directory[] = array(
-						'dir'     => $theme->get_stylesheet(),
-						'slug'    => $get_theme_slug,
-						'version' => $theme->Version,
-					);
-				}
+						$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme') , dest_file: $fileName );
 
-				foreach ( $license_histories->themes as $u ) {
-					foreach( $get_theme_directory as $single_th ) {
+						$determine_theme_dir = get_array_value_with_slug( slug: $u->slug, array: $fv_themes_with_stylesheet )['dir'];
+						$get_all_themes      = scandir( fv_get_upload_dir('theme-backup') );
 
-						if ( $single_th['slug'] == $u->slug
-						&& version_compare( $u->version, $single_th['version'], '>' ) ) {
+						foreach( $get_all_themes as $single_theme ) {
+							if ( strpos( $single_theme, $u->slug ) !== false ) {
+								delete_old_folder( fv_get_upload_dir('theme-backup') . $single_theme );
+							}
+						}
 
-							//start of update
+						$original_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
+						$fv_theme_zip_upload_dir_backup = fv_get_upload_dir('theme-backup') . $determine_theme_dir . '-v-' . $theme->Version;
 
-							if ( ! empty( $single_plugin_theme_slug ) ) {
-								if ( count( $single_plugin_theme_slug ) > 0
-								&& $single_plugin_theme_slug['slug'] == $u->slug ) {
+						if ( is_dir( $original_theme_dir ) ) {
+							fv_copy_recursive( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
+						}
 
-									$pathInfo                = pathinfo( $u->slug );
-									$fileName                = $pathInfo['filename'] . '.zip';
-									$upload_dir              = wp_upload_dir();
-									$fv_theme_zip_upload_dir = $upload_dir["basedir"]."/fv_auto_update_directory/themes/";
-									$tmpfile                 = download_url( $u->dl_link, $timeout = 300 );
+						if ( pathinfo( $fileName, PATHINFO_EXTENSION ) == 'zip' ) {
 
-									if ( is_wp_error( $tmpfile ) ) {
+							$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
+							$un       = unzip_file( fv_get_upload_dir('theme') . $basename, get_theme_root() );
 
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
+							$query_base_url = FV_REST_API_URL . 'update-request-load';
+							$query_args     = array(
+								'license_key'          => fv_get_license_key(),
+								'license_key_2'        => fv_get_license_key_2(),
+								'license_d'            => fv_get_license_domain_id(),
+								'license_d_2'          => fv_get_license_domain_id_2(),
+								'plugin_theme_slug'    => $u->slug,
+								'plugin_theme_version' => $u->version,
+								'license_pp'           => $_SERVER['REMOTE_ADDR'],
+								'license_host'         => $_SERVER['HTTP_HOST'],
+								'license_mode'         => 'update_request_load',
+								'license_v'            => FV_PLUGIN_VERSION,
+							);
+							$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+							$response  = fv_run_remote_query( $query_dif );
+							if ( ! is_wp_error( $un ) ) {
+								fv_delete_file( file: fv_get_upload_dir('theme') . $basename );
+							}
+						}
+						//end of single theme update
+					} else {
+						// bulk theme update
 
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
+						if ( get_option( 'fv_themes_auto_update_list' ) == true
+						&& in_array( $u->slug, get_option( 'fv_themes_auto_update_list' ) ) ) {
 
-										// Use basename() function to return
-										// the base name of file
-										$file_name = basename( $u->dl_link );
+							$pathInfo                = pathinfo( $u->slug );
+							$fileName                = $pathInfo['filename'] . '.zip';
+							$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: $fv_get_upload_dir('theme'), dest_file: $fileName );
 
-										// Save file into file location
-										$save_file_loc = $fv_theme_zip_upload_dir.$fileName;
+							$determine_theme_dir = get_array_value_with_slug( $u->slug, $fv_themes_with_stylesheet )['dir'];
+							$get_all_themes      = scandir( fv_get_upload_dir('theme-backup') );
 
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_theme_zip_upload_dir.$fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_theme_dir = search_for_plugin_dir_by_slug( $u->slug, $get_theme_directory )['dir'];
-									$backup_theme_dir    = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/";
-									$get_all_themes      = scandir( $backup_theme_dir );
-
-									foreach( $get_all_themes as $single_theme ) {
-										if ( strpos( $single_theme, $u->slug ) !== false ) {
-											delete_old_folder( $backup_theme_dir . $single_theme );
-										}
-									}
-
-									$original_theme_dir             = get_theme_root() . '/' . $determine_theme_dir;
-									$fv_theme_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/" . $determine_theme_dir . '-v-' . $single_th['version'];
-
-									if ( is_dir( $original_theme_dir ) ) {
-										fv_fs_recurse_copy( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-									if ( $ext == 'zip' ) {
-
-										$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
-										$un       = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$response  = fv_run_remote_query( $query_dif );
-										if ( ! is_wp_error( $un ) ) {
-											unlink( $fv_theme_zip_upload_dir . '/' . $basename );
-										}
-									}
-									//end of update
-								}
-							} else {
-
-								if ( get_option( 'fv_themes_auto_update_list' ) == true
-								&& in_array( $u->slug, get_option( 'fv_themes_auto_update_list' ) ) ) {
-
-									$pathInfo                = pathinfo( $u->slug );
-									$fileName                = $pathInfo['filename'] . '.zip';
-									$upload_dir              = wp_upload_dir();
-									$fv_theme_zip_upload_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/";
-									$tmpfile                 = download_url( $u->dl_link, $timeout = 300 );
-
-									if ( is_wp_error( $tmpfile ) == true ) {
-
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
-
-										// Use basename() function to return
-										// the base name of file
-										$file_name = basename( $u->dl_link );
-
-										// Save file into file location
-										$save_file_loc = $fv_theme_zip_upload_dir.$fileName;
-
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_theme_zip_upload_dir . $fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_theme_dir = search_for_plugin_dir_by_slug( $u->slug, $get_theme_directory )['dir'];
-									$backup_theme_dir    = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/";
-									$get_all_themes      = scandir( $backup_theme_dir );
-
-									foreach( $get_all_themes as $single_theme ) {
-										if ( strpos( $single_theme, $u->slug ) !== false ) {
-											delete_old_folder( $backup_theme_dir.$single_theme );
-										}
-									}
-
-									$original_theme_dir             = get_theme_root().'/'.$determine_theme_dir;
-									$fv_theme_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/" . $determine_theme_dir . '-v-'. $single_th['version'];
-
-									if ( is_dir( $original_theme_dir ) ) {
-										fv_fs_recurse_copy( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-									if ( $ext == 'zip' ) {
-
-										$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
-										$un       = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$response  = fv_run_remote_query( $query_dif );
-
-										if ( ! is_wp_error( $un ) ) {
-											unlink( $fv_theme_zip_upload_dir . '/' . $basename );
-										}
-									}
-									//end of update
+							foreach( $get_all_themes as $single_theme ) {
+								if ( strpos( $single_theme, $u->slug ) !== false ) {
+									delete_old_folder( fv_get_upload_dir('theme-backup') . $single_theme );
 								}
 							}
+
+							$original_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
+							$fv_theme_zip_upload_dir_backup = fv_get_upload_dir('theme-backup') . $determine_theme_dir . '-v-'. $theme->Version;
+
+							if ( is_dir( $original_theme_dir ) ) {
+								fv_copy_recursive( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
+							}
+
+							$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+							if ( $ext == 'zip' ) {
+
+								$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
+								$un       = unzip_file( fv_get_upload_dir('theme') . $basename, get_theme_root() );
+
+								$query_base_url = FV_REST_API_URL . 'update-request-load';
+								$query_args     = array(
+									'license_key'          => fv_get_license_key(),
+									'license_key_2'        => fv_get_license_key_2(),
+									'license_d'            => fv_get_license_domain_id(),
+									'license_d_2'          => fv_get_license_domain_id_2(),
+									'plugin_theme_slug'    => $u->slug,
+									'plugin_theme_version' => $u->version,
+									'license_pp'           => $_SERVER['REMOTE_ADDR'],
+									'license_host'         => $_SERVER['HTTP_HOST'],
+									'license_mode'         => 'update_request_load',
+									'license_v'            => FV_PLUGIN_VERSION,
+								);
+								$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+								$response  = fv_run_remote_query( $query_dif );
+
+								if ( ! is_wp_error( $un ) ) {
+									fv_delete_file( fv_get_upload_dir('theme') . $basename );
+								}
+							}
+							//end of update
 						}
 					}
 				}
 			}
 		}
 
-		if ( $theme_plugin == null
-		|| $theme_plugin == 'plugin' ) {
+	}
 
-			if ( ! empty( $license_histories->plugins ) ) {
+	if ( $theme_plugin == null
+	|| $theme_plugin == 'plugin' ) {
 
-				$get_plugin_directory = [];
+		if ( ! empty( $fp_api->plugins ) ) {
 
-				if ( ! empty( $all_plugins ) ) {
-					foreach ( $all_plugins as $plugin_basename => $data ) {
+			$get_plugin_directory = [];
 
-						$version = fv_esc_version( $data['Version'] );
-						$slug    = fv_get_slug( $plugin_basename );
+			if ( ! empty( $all_plugins ) ) {
+				foreach ( $all_plugins as $plugin_basename => $data ) {
 
-						$get_plugin_directory[] = [
-							'dir' 	 => explode( '/', $plugin_basename )[0],
-							'slug'	 => $slug,
-							'version'=> $version
-						];
-					}
+					$version = fv_esc_version( $data['Version'] );
+					$slug    = fv_get_slug( $plugin_basename );
+
+					$get_plugin_directory[] = [
+						'dir' 	 => explode( '/', $plugin_basename )[0],
+						'slug'	 => $slug,
+						'version'=> $version
+					];
 				}
+			}
 
-				foreach ( $license_histories->plugins as $u ) { // new plugin version
+			foreach ( $fp_api->plugins as $u ) { // new plugin version
 
-					foreach ( $get_plugin_directory as $single_pl ) { // current plugin version
+				foreach ( $get_plugin_directory as $single_pl ) { // current plugin version
 
-						// if ( $plugin_has_update( $single_Pl, $u ) ) {
-						if ( $single_pl['slug'] == $u->slug
-						&& version_compare( $u->version, $single_pl['version'], '>' ) ) {
+					// if ( $plugin_has_update( $single_Pl, $u ) ) {
+					if ( $single_pl['slug'] == $u->slug
+					&& version_compare( $u->version, $single_pl['version'], '>' ) ) {
 
-							//y
+						//y
 
-							if ( ! empty( $single_plugin_theme_slug ) ) {
+						if ( ! empty( $single_plugin_theme_slug ) ) {
 
-								if ( count( $single_plugin_theme_slug ) > 0
-								&&   $single_plugin_theme_slug['slug'] == $u->slug ) {
-									//start
-									$pathInfo                 = pathinfo( $u->slug );
-									$fileName                 = $pathInfo['filename'] . '.zip';
-									$upload_dir               = wp_upload_dir();
-									$fv_plugin_zip_upload_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/";
-									$tmpfile                  = download_url( $u->dl_link, $timeout = 300 );
+							if ( count( $single_plugin_theme_slug ) > 0
+							&&   $single_plugin_theme_slug['slug'] == $u->slug ) {
 
-									if ( is_wp_error( $tmpfile ) == true ) {
+								$pathInfo                 = pathinfo( $u->slug );
+								$fileName                 = $pathInfo['filename'] . '.zip';
 
-										// Download via wp wasn't succesfull, now try using cURL.
+								$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('plugin'), dest_file: $fileName );
 
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
+								$determine_plugin_dir            = get_array_value_with_slug( $u->slug, $get_plugin_directory )['dir'];
+								$original_plugin_dir             = trailingslashit( WP_PLUGIN_DIR ) . $determine_plugin_dir;
+								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('plugin-backup') . $determine_plugin_dir;
 
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-										// Initialize the cURL session
-										$ch            = curl_init( $u->dl_link );
-
-										$file_name     = basename( $u->dl_link );
-										$save_file_loc = $fv_plugin_zip_upload_dir . $fileName;
-
-										// Open file so that cURL can write to it.
-										$fp = fopen( $save_file_loc, 'wb' ); // w=write b=binary
-
-										// Set options for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp ); // Sets the file that the transfer should be written to. Default: STDOUT (the browser window ).
-										curl_setopt( $ch, CURLOPT_HEADER, 0 ); // True to include the header in the output. Here: false
-
-										// Perform a cURL session
-										curl_exec( $ch ); // This executes the cURL session that is setup wit curl_init() and curl_setopt()
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										$copy_result   = copy( $tmpfile, $fv_plugin_zip_upload_dir . $fileName );
-										$unlink_result = unlink( $tmpfile );
-									}
-
-									$determine_plugin_dir            = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory )['dir'];
-									$original_plugin_dir             = WP_PLUGIN_DIR . '/' . $determine_plugin_dir;
-									$fv_plugin_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $determine_plugin_dir;
-
-									if ( is_dir( $original_plugin_dir ) ) {
-										fv_fs_recurse_copy( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-									if ( $ext=='zip' ) {
-										$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
-										if (  is_dir( $original_plugin_dir ) ) {
-										}
-										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$res       = fv_run_remote_query( $query_dif );
-
-										if ( !is_wp_error( $un ) ) {
-											$unlink_result = unlink( $fv_plugin_zip_upload_dir . '/' . $basename );
-										}
-									}
-									//end of plugin update
-									//end
+								if ( is_dir( $original_plugin_dir ) ) {
+									fv_copy_recursive( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
 								}
-							} else {
 
-								if ( get_option( 'fv_plugin_auto_update_list' ) == true
-								&& in_array( $u->slug, get_option( 'fv_plugin_auto_update_list' ) ) ) {
-									//start
-									$pathInfo                 = pathinfo( $u->slug );
-									$fileName                 = $pathInfo['filename'] . '.zip';
-									$upload_dir               = wp_upload_dir();
-									$fv_plugin_zip_upload_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/";
-									$tmpfile                  = download_url( $u->dl_link, $timeout = 300 );
-
-									if ( is_wp_error( $tmpfile ) == true ) {
-
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
-
-										$file_name = basename( $u->dl_link );
-
-										$save_file_loc = $fv_plugin_zip_upload_dir . $fileName;
-
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_plugin_zip_upload_dir . $fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_plugin_dir            = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory )['dir'];
-									$original_plugin_dir             = WP_PLUGIN_DIR . '/' . $determine_plugin_dir;
-									$fv_plugin_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $determine_plugin_dir;
-
+								$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+								if ( $ext=='zip' ) {
+									$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
 									if (  is_dir( $original_plugin_dir ) ) {
-										fv_fs_recurse_copy( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
 									}
+									$un = unzip_file( fv_get_upload_dir('plugin') . $basename, WP_PLUGIN_DIR );
 
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+									$query_base_url = FV_REST_API_URL . 'update-request-load';
+									$query_args     = array(
+										'license_key'          => fv_get_license_key(),
+										'license_key_2'        => fv_get_license_key_2(),
+										'license_d'            => fv_get_license_domain_id(),
+										'license_d_2'          => fv_get_license_domain_id_2(),
+										'plugin_theme_slug'    => $u->slug,
+										'plugin_theme_version' => $u->version,
+										'license_pp'           => $_SERVER['REMOTE_ADDR'],
+										'license_host'         => $_SERVER['HTTP_HOST'],
+										'license_mode'         => 'update_request_load',
+										'license_v'            => FV_PLUGIN_VERSION,
+									);
+									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+									$res       = fv_run_remote_query( $query_dif );
 
-									if ( $ext=='zip' ) {
-										$basename = pathinfo( $fileName, PATHINFO_BASENAME );
-										if ( is_dir( $original_plugin_dir ) ) {
-										}
-										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$res       = fv_run_remote_query( $query_dif );
-
-										if ( ! is_wp_error( $un ) ) {
-											unlink( $fv_plugin_zip_upload_dir . '/' . $basename );
-										}
+									if ( !is_wp_error( $un ) ) {
+										fv_delete_file( fv_get_upload_dir('plugin-backup') . $basename );
 									}
-									//end of plugin update
-									//end
 								}
 							}
-							//x
-						}
-					}
-				}
-			}
-		}
+						} else {
 
-		$theme_plugins = [
-			'themes'  => isset( $license_histories->themes )  ? $license_histories->themes  : [],
-			'plugins' => isset( $license_histories->plugins ) ? $license_histories->plugins : []
-		];
+							if ( get_option( 'fv_plugin_auto_update_list' ) == true
+							&& in_array( $u->slug, get_option( 'fv_plugin_auto_update_list' ) ) ) {
+								//start
+								$pathInfo                 = pathinfo( $u->slug );
+								$fileName                 = $pathInfo['filename'] . '.zip';
 
-		if ( isset( $license_histories ) ) {
-			fv_run_remote_request_data( array(
-				'ld_tm'          => $license_histories->ld_tm,
-				'ld_type'        => 'up_dl_plugs_thms',
-				'l_dat'          => fv_get_license_key(),
-				'ld_dat'         => $_SERVER['HTTP_HOST'],
-				'rm_ip'          => $_SERVER['REMOTE_ADDR'],
-				'status'         => 'executed',
-				'req_time'       => time(),
-				'res'            => '1',
-				'dsz'            => $t_dl_fl_sz,
-				'themes_plugins' => $theme_plugins
-			));
-		}
-	}
-}
+								$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme') , dest_file: $fileName );
 
-function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_theme_slug = array() ) {
+								$determine_plugin_dir            = get_array_value_with_slug( $u->slug, $get_plugin_directory )['dir'];
+								$original_plugin_dir             = trailingslashit( WP_PLUGIN_DIR ) . $determine_plugin_dir;
+								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('plugin-backup') . $determine_plugin_dir;
 
-	$t_dl_fl_sz        = 10;
-	$requested_plugins = [];
-	$requested_themes  = [];
-	$all_plugins       = fv_get_plugins();
-
-	if ( ! empty( $all_plugins ) ) {
-
-		foreach ( $all_plugins as $plugin_slug => $values ) {
-			$version = fv_esc_version( $values['Version'] );
-			$slug    = fv_get_slug( $plugin_slug );
-
-			if ( ! empty( $single_plugin_theme_slug ) ) {
-				if ( count( $single_plugin_theme_slug ) > 0 ) {
-					$requested_plugins[] = [
-						'slug'    => $single_plugin_theme_slug['slug'],
-						'version' => $single_plugin_theme_slug['version'],
-						'dl_link' => ''
-					];
-				}
-			} else {
-				// if ( get_option( 'fv_plugin_auto_update_list' ) == true
-				// && in_array( $slug, get_option( 'fv_plugin_auto_update_list' ) ) ) {
-					$requested_plugins[] = [
-						'slug'    => $slug,
-						'version' => $version,
-						'dl_link' => ''
-					];
-				//}
-			}
-		}
-	}
-
-	$allThemes = fv_get_themes();
-	foreach( $allThemes as $theme ) {
-		$get_theme_slug = fv_get_wp_theme_slug( $theme );
-		if ( empty( $get_theme_slug ) ) {
-			$get_theme_slug = $theme->get( 'TextDomain' );
-		}
-
-		if ( ! empty( $single_plugin_theme_slug ) ) {
-			if ( count( $single_plugin_theme_slug ) > 0 ) {
-				$requested_themes[] = [
-					'slug'    => $single_plugin_theme_slug['slug'],
-					'version' => $single_plugin_theme_slug['version'],
-					'dl_link' => ''
-				];
-			}
-		} else {
-
-			// if ( get_option( 'fv_themes_auto_update_list' ) == true
-			// && in_array( $get_theme_slug, get_option( 'fv_themes_auto_update_list' ) ) ) {
-				$requested_themes[]=[
-					'slug'    => $get_theme_slug,
-					'version' => $theme->Version,
-					'dl_link' => ''
-				];
-			//}
-		}
-	}
-
-	if ( fv_has_any_license() ) {
-
-		$query_base_url = FV_REST_API_URL . 'plugin-theme-updater';
-		$query_args     = array(
-			'license_key'     => fv_get_license_key(),
-			'license_key_2'   => fv_get_license_key_2(),
-			'license_d'       => fv_get_license_domain_id(),
-			'license_d_2'     => fv_get_license_domain_id_2(),
-			'license_pp'      => $_SERVER['REMOTE_ADDR'],
-			'license_host'    => $_SERVER['HTTP_HOST'],
-			'license_mode'    => 'up_dl_plugs_thms',
-			'loadNotAll'      => 'yes',
-			'license_v'       => FV_PLUGIN_VERSION,
-			'all_plugin_list' => $requested_plugins,
-			'all_theme_list'  => $requested_themes,
-		);
-		$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-		$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => false ) );
-
-		if (is_wp_error( $response ) ) {
-			$response = wp_remote_post( $query, array( 'timeout' => 200, 'sslverify' => true ) );
-			if ( is_wp_error( $response ) ) {
-					echo 'SSLVERIFY ERROR';
-			}
-		}
-
-		$license_histories = json_decode( wp_remote_retrieve_body( $response ) );
-
-		require_once(ABSPATH .'/wp-admin/includes/file.php' );
-		WP_Filesystem();
-		$upload_dir      = wp_upload_dir();
-
-		if ( $theme_plugin == null || $theme_plugin == 'theme' ) {
-
-			if ( ! empty( $license_histories->themes ) ) {
-
-				$get_theme_directory=[];
-
-				foreach( $allThemes as $theme ) {
-					$get_theme_slug = fv_get_wp_theme_slug( $theme );
-					if ( empty( $get_theme_slug ) ) {
-						$get_theme_slug = $theme->get( 'TextDomain' );
-					}
-					$get_theme_directory[]=[
-						'dir'     => $theme->get_stylesheet(),
-						'slug'    => $get_theme_slug,
-						'version' => $theme->Version
-					];
-				}
-
-				foreach ( $license_histories->themes as $u ) {
-
-					foreach( $get_theme_directory as $single_th ) {
-						if ( $single_th['slug'] == $u->slug
-						&& version_compare( $u->version, $single_th['version'], '>' ) ) {
-
-							//start of update
-
-							if ( ! empty( $single_plugin_theme_slug ) ) {
-								if ( count( $single_plugin_theme_slug ) > 0 && $single_plugin_theme_slug['slug'] == $u->slug ) {
-
-									$pathInfo=pathinfo( $u->slug );
-									$fileName=$pathInfo['filename'].'.zip';
-
-									$upload_dir      = wp_upload_dir();
-									$fv_theme_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/themes/";
-									$tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
-									if ( is_wp_error( $tmpfile ) == true ) {
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
-
-										// Use basename() function to return
-										// the base name of file
-										$file_name = basename( $u->dl_link );
-
-										// Save file into file location
-										$save_file_loc = $fv_theme_zip_upload_dir . $fileName;
-
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_theme_zip_upload_dir . $fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_theme_dir = search_for_plugin_dir_by_slug( $u->slug, $get_theme_directory )['dir'];
-
-									$backup_theme_dir =  $upload_dir["basedir"]."/fv_auto_update_directory/themes/backup/";
-									$get_all_themes = scandir( $backup_theme_dir );
-									foreach( $get_all_themes as $single_theme ) {
-										if ( strpos( $single_theme, $u->slug ) !== false ) {
-											delete_old_folder( $backup_theme_dir . $single_theme );
-										}
-									}
-
-									$original_theme_dir             = get_theme_root() . '/' . $determine_theme_dir;
-									$fv_theme_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/" . $determine_theme_dir . '-v-' . $single_th['version'];
-
-									if ( is_dir( $original_theme_dir ) ) {
-										fv_fs_recurse_copy( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-									if ( $ext=='zip' ) {
-										$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
-										$un = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename,get_theme_root() );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$response  = fv_run_remote_query( $query_dif );
-										if ( ! is_wp_error( $un ) ) {
-											unlink( $fv_theme_zip_upload_dir . '/' . $basename );
-										}
-									}
-									//end of update
-								}
-							} else {
-								// if ( get_option( 'fv_themes_auto_update_list' ) == true
-								// && in_array( $u->slug, get_option( 'fv_themes_auto_update_list' ) ) ) {
-								$pathInfo=pathinfo( $u->slug );
-								$fileName=$pathInfo['filename'].'.zip';
-
-								$upload_dir      = wp_upload_dir();
-								$fv_theme_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/themes/";
-								$tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
-								if ( is_wp_error( $tmpfile ) == true ) {
-									$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-									if ( $chk_fl_dl_sz > 0 ) {
-										$t_dl_fl_sz += $chk_fl_dl_sz;
-									}
-									// Initialize the cURL session
-									$ch = curl_init( $u->dl_link );
-
-									// Use basename() function to return
-									// the base name of file
-									$file_name = basename( $u->dl_link );
-
-									// Save file into file location
-									$save_file_loc = $fv_theme_zip_upload_dir.$fileName;
-
-									// Open file
-									$fp = fopen( $save_file_loc, 'wb' );
-
-									// It set an option for a cURL transfer
-									curl_setopt( $ch, CURLOPT_FILE, $fp );
-									curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-									// Perform a cURL session
-									curl_exec( $ch );
-
-									// Closes a cURL session and frees all resources
-									curl_close( $ch );
-
-									// Close file
-									fclose( $fp );
-
-								} else {
-									copy( $tmpfile, $fv_theme_zip_upload_dir.$fileName );
-									unlink( $tmpfile );
-								}
-
-								$determine_theme_dir = search_for_plugin_dir_by_slug( $u->slug, $get_theme_directory )['dir'];
-								$backup_theme_dir =  $upload_dir["basedir"]."/fv_auto_update_directory/themes/backup/";
-								$get_all_themes = scandir( $backup_theme_dir );
-								foreach( $get_all_themes as $single_theme ) {
-									if ( strpos( $single_theme, $u->slug ) !== false ) {
-										delete_old_folder( $backup_theme_dir . $single_theme );
-									}
-								}
-
-								$original_theme_dir             = get_theme_root() . '/' . $determine_theme_dir;
-								$fv_theme_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/" . $determine_theme_dir . '-v-' . $single_th['version'];
-
-								if ( is_dir( $original_theme_dir ) ) {
-									fv_fs_recurse_copy( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
+								if (  is_dir( $original_plugin_dir ) ) {
+									fv_copy_recursive( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
 								}
 
 								$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
 
-								if ( $ext == 'zip' ) {
+								if ( $ext=='zip' ) {
+									$basename = pathinfo( $fileName, PATHINFO_BASENAME );
+									if ( is_dir( $original_plugin_dir ) ) {
+									}
+									$un = unzip_file( fv_get_upload_dir('plugin') . $basename, WP_PLUGIN_DIR );
 
-									$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
-									$un= unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, get_theme_root() );
+									$query_base_url = FV_REST_API_URL . 'update-request-load';
+									$query_args     = array(
+										'license_key'          => fv_get_license_key(),
+										'license_key_2'        => fv_get_license_key_2(),
+										'license_d'            => fv_get_license_domain_id(),
+										'license_d_2'          => fv_get_license_domain_id_2(),
+										'plugin_theme_slug'    => $u->slug,
+										'plugin_theme_version' => $u->version,
+										'license_pp'           => $_SERVER['REMOTE_ADDR'],
+										'license_host'         => $_SERVER['HTTP_HOST'],
+										'license_mode'         => 'update_request_load',
+										'license_v'            => FV_PLUGIN_VERSION,
+									);
+									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+									$res       = fv_run_remote_query( $query_dif );
+
+									if ( ! is_wp_error( $un ) ) {
+										fv_delete_file( fv_get_upload_dir('plugin-backup') . $basename );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	$theme_plugins = [
+		'themes'  => isset( $fp_api->themes )  ? $fp_api->themes  : [],
+		'plugins' => isset( $fp_api->plugins ) ? $fp_api->plugins : []
+	];
+
+	if ( isset( $fp_api ) ) {
+		fv_run_remote_request_data( array(
+			'ld_tm'          => $fp_api->ld_tm,
+			'ld_type'        => 'up_dl_plugs_thms',
+			'l_dat'          => fv_get_license_key(),
+			'ld_dat'         => $_SERVER['HTTP_HOST'],
+			'rm_ip'          => $_SERVER['REMOTE_ADDR'],
+			'status'         => 'executed',
+			'req_time'       => time(),
+			'res'            => '1',
+			'dsz'            => $total_download_size,
+			'themes_plugins' => $theme_plugins
+		));
+	}
+
+}
+
+
+function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_theme_slug = array() ) {
+
+	if ( ! fv_has_any_license() ) {
+		return;
+	}
+
+	$total_download_size        = 10;
+
+	if ( 'plugin' === $theme_plugin
+	&& ! empty( $single_plugin_theme_slug )
+	&&   count( $single_plugin_theme_slug ) > 0 ) {
+		$fv_plugins[] = array(
+			'slug'    => ! empty( $single_plugin_theme_slug['slug'] )    ? $single_plugin_theme_slug['slug']    : '',
+			'version' => ! empty( $single_plugin_theme_slug['version'] ) ? $single_plugin_theme_slug['version'] : '',
+			'dl_link' => ''
+		);
+	} else {
+		$fv_plugins = fv_get_installed_plugins_for_api_request();
+	}
+
+	if ( 'theme' === $theme_plugin
+	&& ! empty( $single_plugin_theme_slug )
+	&&   count( $single_plugin_theme_slug ) > 0 ) {
+		$fv_themes[] = array(
+			'slug'    => ! empty( $single_plugin_theme_slug['slug'] )    ? $single_plugin_theme_slug['slug']    : '',
+			'version' => ! empty( $single_plugin_theme_slug['version'] ) ? $single_plugin_theme_slug['version'] : '',
+			'dl_link' => ''
+		);
+
+	} else {
+		$fv_themes = fv_get_auto_update_themes_for_api_request();
+	}
+
+	// Get matching plugins and themes remote using FV Api.
+	$license_histories = fv_get_remote_matches(
+		plugins: $fv_plugins,
+		themes:  $fv_themes,
+		context: 'update'
+	);
+
+	// Include wp filesystem for actual file manipulation functions.
+	require_once( ABSPATH . '/wp-admin/includes/file.php' );
+	WP_Filesystem();
+
+	if ( $theme_plugin == null
+	|| $theme_plugin == 'theme' ) {
+
+		if ( ! empty( $license_histories->themes ) ) {
+
+			$fv_themes_with_stylesheet=[];
+
+			foreach( fv_get_themes() as $theme ) {
+				$get_theme_slug = fv_get_wp_theme_slug( $theme );
+				if ( empty( $get_theme_slug ) ) {
+					$get_theme_slug = $theme->get( 'TextDomain' );
+				}
+				$fv_themes_with_stylesheet[]=[
+					'dir'     => $theme->get_stylesheet(),
+					'slug'    => $get_theme_slug,
+					'version' => $theme->Version
+				];
+			}
+
+			foreach ( $license_histories->themes as $u ) {
+
+				foreach( $fv_themes_with_stylesheet as $single_th ) {
+					if ( $single_th['slug'] == $u->slug
+					&& version_compare( $u->version, $single_th['version'], '>' ) ) {
+
+						//start of update
+
+						if ( ! empty( $single_plugin_theme_slug ) ) {
+							if ( count( $single_plugin_theme_slug ) > 0 && $single_plugin_theme_slug['slug'] == $u->slug ) {
+
+								$pathInfo=pathinfo( $u->slug );
+								$fileName=$pathInfo['filename'].'.zip';
+
+								$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme') , dest_file: $fileName );
+
+								$determine_theme_dir = fv_get_theme_dir( $u->slug, $fv_themes_with_stylesheet );
+								$get_all_themes      = scandir( fv_get_upload_dir('theme-backup') );
+								foreach( $get_all_themes as $single_theme ) {
+									if ( strpos( $single_theme, $u->slug ) !== false ) {
+										delete_old_folder( fv_get_upload_dir('theme-backup') . $single_theme );
+									}
+								}
+
+								$original_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
+								$fv_theme_zip_upload_dir_backup = fv_get_upload_dir('theme-backup') . $determine_theme_dir . '-v-' . $single_th['version'];
+
+								if ( is_dir( $original_theme_dir ) ) {
+									fv_copy_recursive( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
+								}
+
+								$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+								if ( $ext=='zip' ) {
+									$basename = pathinfo( $fileName,  PATHINFO_BASENAME );
+									$un       = unzip_file( fv_get_upload_dir('theme') . $basename, get_theme_root() );
 
 									$query_base_url = FV_REST_API_URL . 'update-request-load';
 									$query_args     = array(
@@ -2481,239 +2206,221 @@ function fv_auto_update_download_instant( $theme_plugin = null, $single_plugin_t
 									);
 									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 									$response  = fv_run_remote_query( $query_dif );
-
 									if ( ! is_wp_error( $un ) ) {
-										unlink( $fv_theme_zip_upload_dir . '/' . $basename );
+										fv_delete_file( fv_get_upload_dir('theme') . $basename );
 									}
+								}
+								//end of update
+							}
+						} else {
+							// if ( get_option( 'fv_themes_auto_update_list' ) == true
+							// && in_array( $u->slug, get_option( 'fv_themes_auto_update_list' ) ) ) {
+							$pathInfo=pathinfo( $u->slug );
+							$fileName=$pathInfo['filename'].'.zip';
+
+							$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme'), dest_file: $fileName );
+
+							$determine_theme_dir = get_array_value_with_slug( $u->slug, $fv_themes_with_stylesheet )['dir'];
+							$get_all_themes = scandir( fv_get_upload_dir('theme-backup') );
+							foreach( $get_all_themes as $single_theme ) {
+								if ( strpos( $single_theme, $u->slug ) !== false ) {
+									delete_old_folder( fv_get_upload_dir('theme-backup') . $single_theme );
+								}
+							}
+
+							$original_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
+							$fv_theme_zip_upload_dir_backup = fv_get_upload_dir('theme-backup') . $determine_theme_dir . '-v-' . $single_th['version'];
+
+							if ( is_dir( $original_theme_dir ) ) {
+								fv_copy_recursive( $original_theme_dir, $fv_theme_zip_upload_dir_backup ); // copy old version as backup
+							}
+
+							$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+
+							if ( $ext == 'zip' ) {
+
+								$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
+								$un= unzip_file( fv_get_upload_dir('theme') . $basename, get_theme_root() );
+
+								$query_base_url = FV_REST_API_URL . 'update-request-load';
+								$query_args     = array(
+									'license_key'          => fv_get_license_key(),
+									'license_key_2'        => fv_get_license_key_2(),
+									'license_d'            => fv_get_license_domain_id(),
+									'license_d_2'          => fv_get_license_domain_id_2(),
+									'plugin_theme_slug'    => $u->slug,
+									'plugin_theme_version' => $u->version,
+									'license_pp'           => $_SERVER['REMOTE_ADDR'],
+									'license_host'         => $_SERVER['HTTP_HOST'],
+									'license_mode'         => 'update_request_load',
+									'license_v'            => FV_PLUGIN_VERSION,
+								);
+								$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+								$response  = fv_run_remote_query( $query_dif );
+
+								if ( ! is_wp_error( $un ) ) {
+									fv_delete_file( fv_get_upload_dir('theme') . $basename );
 								}
 							}
 						}
 					}
 				}
 			}
-		}
-
-		if ( $theme_plugin == null || $theme_plugin == 'plugin' ) {
-
-			if ( ! empty( $license_histories->plugins ) ) {
-				$get_plugin_directory=[];
-
-				if ( ! empty( $all_plugins ) ) {
-
-					foreach ( $all_plugins as $plugin_slug => $values ) {
-						$version = fv_esc_version( $values['Version'] );
-						$slug    = fv_get_slug( $plugin_slug );
-						$get_plugin_directory[] = [
-													'dir' 	 => explode( '/',$plugin_slug )[0],
-													'slug'	 => $slug,
-													'version'=> $version
-												  ];
-					}
-				}
-
-				foreach ( $license_histories->plugins as $u ) {
-					foreach( $get_plugin_directory as $single_pl ) {
-						if ( $single_pl['slug'] == $u->slug
-						&& version_compare( $u->version, $single_pl['version'], '>' ) ) {
-
-							// y
-
-							if ( ! empty( $single_plugin_theme_slug ) ) {
-								if ( count( $single_plugin_theme_slug ) > 0 && $single_plugin_theme_slug['slug'] == $u->slug ) {
-
-								// start
-
-									$pathInfo=pathinfo( $u->slug );
-									$fileName=$pathInfo['filename'].'.zip';
-
-									$upload_dir      = wp_upload_dir();
-									$fv_plugin_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/plugins/";
-
-									$tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
-									if ( is_wp_error( $tmpfile ) == true ) {
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
-
-										$file_name = basename( $u->dl_link );
-
-										$save_file_loc = $fv_plugin_zip_upload_dir . $fileName;
-
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_plugin_zip_upload_dir . $fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_plugin_dir            = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory )['dir'];
-									$original_plugin_dir             = WP_PLUGIN_DIR . '/' . $determine_plugin_dir;
-									$fv_plugin_zip_upload_dir_backup = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $determine_plugin_dir;
-
-									if ( is_dir( $original_plugin_dir ) ) {
-										fv_fs_recurse_copy( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-									if ( $ext == 'zip' ) {
-										$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
-										if ( is_dir( $original_plugin_dir ) ) {
-										}
-										$un= unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$res       = fv_run_remote_query( $query_dif );
-										if ( !is_wp_error( $un ) ) {
-											unlink( $fv_plugin_zip_upload_dir.'/'.$basename );
-										}
-									}
-									//end of plugin update
-								//end
-								}
-							} else {
-								// if ( get_option( 'fv_plugin_auto_update_list' ) == true
-								// && in_array( $u->slug, get_option( 'fv_plugin_auto_update_list' ) ) ) {
-
-									//start
-									$pathInfo=pathinfo( $u->slug );
-									$fileName=$pathInfo['filename'].'.zip';
-
-									$upload_dir      = wp_upload_dir();
-									$fv_plugin_zip_upload_dir=$upload_dir["basedir"]."/fv_auto_update_directory/plugins/";
-
-									$tmpfile = download_url( $u->dl_link, $timeout = 300 );
-
-									if ( is_wp_error( $tmpfile ) == true ) {
-										$chk_fl_dl_sz = fv_curlRemoteFilesize( $u->dl_link );
-										if ( $chk_fl_dl_sz > 0 ) {
-											$t_dl_fl_sz += $chk_fl_dl_sz;
-										}
-										// Initialize the cURL session
-										$ch = curl_init( $u->dl_link );
-
-										$file_name = basename( $u->dl_link );
-
-										$save_file_loc = $fv_plugin_zip_upload_dir.$fileName;
-
-										// Open file
-										$fp = fopen( $save_file_loc, 'wb' );
-
-										// It set an option for a cURL transfer
-										curl_setopt( $ch, CURLOPT_FILE, $fp );
-										curl_setopt( $ch, CURLOPT_HEADER, 0 );
-
-										// Perform a cURL session
-										curl_exec( $ch );
-
-										// Closes a cURL session and frees all resources
-										curl_close( $ch );
-
-										// Close file
-										fclose( $fp );
-
-									} else {
-										copy( $tmpfile, $fv_plugin_zip_upload_dir.$fileName );
-										unlink( $tmpfile );
-									}
-
-									$determine_plugin_dir = search_for_plugin_dir_by_slug( $u->slug, $get_plugin_directory )['dir'];
-									$original_plugin_dir = WP_PLUGIN_DIR.'/'.$determine_plugin_dir;
-									$fv_plugin_zip_upload_dir_backup=$upload_dir["basedir"]."/fv_auto_update_directory/plugins/backup/".$determine_plugin_dir;
-
-									if ( is_dir( $original_plugin_dir ) ) {
-										fv_fs_recurse_copy( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
-									}
-
-									$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
-
-									if ( $ext=='zip' ) {
-
-										$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
-										if ( is_dir( $original_plugin_dir ) ) {
-										}
-										$un = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
-
-										$query_base_url = FV_REST_API_URL . 'update-request-load';
-										$query_args     = array(
-											'license_key'          => fv_get_license_key(),
-											'license_key_2'        => fv_get_license_key_2(),
-											'license_d'            => fv_get_license_domain_id(),
-											'license_d_2'          => fv_get_license_domain_id_2(),
-											'plugin_theme_slug'    => $u->slug,
-											'plugin_theme_version' => $u->version,
-											'license_pp'           => $_SERVER['REMOTE_ADDR'],
-											'license_host'         => $_SERVER['HTTP_HOST'],
-											'license_mode'         => 'update_request_load',
-											'license_v'            => FV_PLUGIN_VERSION,
-										);
-										$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-										$res       = fv_run_remote_query( $query_dif );
-										if ( !is_wp_error( $un ) ) {
-											unlink( $fv_plugin_zip_upload_dir . '/' . $basename );
-										}
-									}
-									//end of plugin update
-								//end
-								//}
-							}
-							//x
-						}
-					}
-				}
-			}
-		}
-
-		$theme_plugins = [
-			'themes' => isset( $license_histories->themes ) ? $license_histories->themes : [],
-			'plugins'=> isset( $license_histories->plugins ) ? $license_histories->plugins : []
-		];
-
-		if ( isset( $license_histories ) ) {
-			fv_run_remote_request_data( array(
-				'ld_tm'          => $license_histories->ld_tm,
-				'ld_type'        => 'up_dl_plugs_thms',
-				'l_dat'          => fv_get_license_key(),
-				'ld_dat'         => $_SERVER['HTTP_HOST'],
-				'rm_ip'          => $_SERVER['REMOTE_ADDR'],
-				'status'         => 'executed',
-				'req_time'       => time(),
-				'res'            => '1',
-				'dsz'            => $t_dl_fl_sz,
-				'themes_plugins' => $theme_plugins
-			));
 		}
 	}
+
+
+	if ( $theme_plugin == null
+	|| $theme_plugin == 'plugin' ) {
+		$all_plugins = fv_get_plugins();
+
+		if ( ! empty( $license_histories->plugins ) ) {
+			$get_plugin_directory=[];
+
+			if ( ! empty( $all_plugins ) ) {
+
+				foreach ( $all_plugins as $plugin_slug => $values ) {
+					$version = fv_esc_version( $values['Version'] );
+					$slug    = fv_get_slug( $plugin_slug );
+					$get_plugin_directory[] = [
+												'dir' 	 => explode( '/', $plugin_slug )[0],
+												'slug'	 => $slug,
+												'version'=> $version
+												];
+				}
+			}
+
+			foreach ( $license_histories->plugins as $u ) {
+				foreach( $get_plugin_directory as $single_pl ) {
+					if ( $single_pl['slug'] == $u->slug
+					&& version_compare( $u->version, $single_pl['version'], '>' ) ) {
+
+						// y
+
+						if ( ! empty( $single_plugin_theme_slug ) ) {
+							if ( count( $single_plugin_theme_slug ) > 0 && $single_plugin_theme_slug['slug'] == $u->slug ) {
+
+							// start
+
+								$pathInfo=pathinfo( $u->slug );
+								$fileName=$pathInfo['filename'].'.zip';
+
+								$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme'), dest_file: $fileName );
+
+								$determine_plugin_dir            = get_array_value_with_slug( $u->slug, $get_plugin_directory )['dir'];
+								$original_plugin_dir             = trailingslashit( WP_PLUGIN_DIR ) . $determine_plugin_dir;
+								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('plugin-backup') . $determine_plugin_dir;
+
+								if ( is_dir( $original_plugin_dir ) ) {
+									fv_copy_recursive( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
+								}
+
+								$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+								if ( $ext == 'zip' ) {
+									$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
+									if ( is_dir( $original_plugin_dir ) ) {
+									}
+									$un= unzip_file( fv_get_upload_dir('plugin') . $basename, WP_PLUGIN_DIR );
+
+									$query_base_url = FV_REST_API_URL . 'update-request-load';
+									$query_args     = array(
+										'license_key'          => fv_get_license_key(),
+										'license_key_2'        => fv_get_license_key_2(),
+										'license_d'            => fv_get_license_domain_id(),
+										'license_d_2'          => fv_get_license_domain_id_2(),
+										'plugin_theme_slug'    => $u->slug,
+										'plugin_theme_version' => $u->version,
+										'license_pp'           => $_SERVER['REMOTE_ADDR'],
+										'license_host'         => $_SERVER['HTTP_HOST'],
+										'license_mode'         => 'update_request_load',
+										'license_v'            => FV_PLUGIN_VERSION,
+									);
+									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+									$res       = fv_run_remote_query( $query_dif );
+									if ( !is_wp_error( $un ) ) {
+										fv_delete_file( fv_get_upload_dir('plugin') . $basename );
+									}
+								}
+								//end of plugin update
+							//end
+							}
+						} else {
+							// if ( get_option( 'fv_plugin_auto_update_list' ) == true
+							// && in_array( $u->slug, get_option( 'fv_plugin_auto_update_list' ) ) ) {
+
+								//start
+								$pathInfo=pathinfo( $u->slug );
+								$fileName=$pathInfo['filename'].'.zip';
+
+								$t_dl_fl_sz += fv_download_zip_from_url( source_url: $u->dl_link, dest_dir: fv_get_upload_dir('theme'), dest_file: $fileName );
+
+								$determine_plugin_dir = get_array_value_with_slug( $u->slug, $get_plugin_directory )['dir'];
+								$original_plugin_dir = trailingslashit( WP_PLUGIN_DIR ) . $determine_plugin_dir;
+								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('backup-backup') . $determine_plugin_dir;
+
+								if ( is_dir( $original_plugin_dir ) ) {
+									fv_copy_recursive( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup
+								}
+
+								$ext = pathinfo( $fileName, PATHINFO_EXTENSION );
+
+								if ( $ext=='zip' ) {
+
+									$basename=pathinfo( $fileName,  PATHINFO_BASENAME );
+									if ( is_dir( $original_plugin_dir ) ) {
+									}
+									$un = unzip_file( fv_get_upload_dir('plugin') . $basename, WP_PLUGIN_DIR );
+
+									$query_base_url = FV_REST_API_URL . 'update-request-load';
+									$query_args     = array(
+										'license_key'          => fv_get_license_key(),
+										'license_key_2'        => fv_get_license_key_2(),
+										'license_d'            => fv_get_license_domain_id(),
+										'license_d_2'          => fv_get_license_domain_id_2(),
+										'plugin_theme_slug'    => $u->slug,
+										'plugin_theme_version' => $u->version,
+										'license_pp'           => $_SERVER['REMOTE_ADDR'],
+										'license_host'         => $_SERVER['HTTP_HOST'],
+										'license_mode'         => 'update_request_load',
+										'license_v'            => FV_PLUGIN_VERSION,
+									);
+									$query_dif = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
+									$res       = fv_run_remote_query( $query_dif );
+									if ( !is_wp_error( $un ) ) {
+										fv_delete_file( fv_get_upload_dir('plugin') . $basename );
+									}
+								}
+								//end of plugin update
+							//end
+							//}
+						}
+						//x
+					}
+				}
+			}
+		}
+	}
+
+	$theme_plugins = [
+		'themes' => isset( $license_histories->themes )  ? $license_histories->themes  : array(),
+		'plugins'=> isset( $license_histories->plugins ) ? $license_histories->plugins : array()
+	];
+
+	if ( isset( $license_histories ) ) {
+		fv_run_remote_request_data( array(
+			'ld_tm'          => $license_histories->ld_tm,
+			'ld_type'        => 'up_dl_plugs_thms',
+			'l_dat'          => fv_get_license_key(),
+			'ld_dat'         => $_SERVER['HTTP_HOST'],
+			'rm_ip'          => $_SERVER['REMOTE_ADDR'],
+			'status'         => 'executed',
+			'req_time'       => time(),
+			'res'            => '1',
+			'dsz'            => $total_download_size,
+			'themes_plugins' => $theme_plugins
+		));
+	}
+
 }
 
 function download_and_istall_plugin() {
@@ -2752,7 +2459,7 @@ function delete_old_folder( $path ) {
 
 				else if (( $file->isFile() === true ) || ( $file->isLink() === true ) )
 				{
-					unlink( $file->getPathname() );
+					fv_delete_file( $file->getPathname() );
 				}
 			}
 		}
@@ -2761,7 +2468,7 @@ function delete_old_folder( $path ) {
 	}
 
 	if ( ( is_file( $path ) === true ) || (is_link( $path ) === true ) ) {
-		return unlink( $path );
+		return fv_delete_file( $path );
 	}
 	return false;
 }
@@ -2773,7 +2480,7 @@ function delete_old_folder( $path ) {
  * @param string $dst_dir The destination directory in which $src_dir wil be copied.
  * @return void
  */
-function fv_fs_recurse_copy( string $src_dir, string $dst_dir ) {
+function fv_copy_recursive( string $src_dir, string $dst_dir ) {
 
 	$dir = opendir( $src_dir );
 
@@ -2786,15 +2493,18 @@ function fv_fs_recurse_copy( string $src_dir, string $dst_dir ) {
 		return false;
 	}
 
+	$src_dir = trailingslashit( $src_dir );
+	$dst_dir = trailingslashit( $dst_dir );
+
 	while( false !== ( $file = readdir( $dir ) ) ) {
 		if ( '.' == $file || '..' == $file ) {
 			continue;
 		}
-		if ( is_dir( $src_dir . '/' . $file ) ) {
-			fv_fs_recurse_copy( $src_dir . '/' . $file, $dst_dir . '/' . $file );
+		if ( is_dir( $src_dir . $file ) ) {
+			fv_copy_recursive( $src_dir . $file, $dst_dir . $file );
 		} else {
-			copy( $src_dir . '/' . $file, $dst_dir . '/' . $file );
-			if ( ! file_exists( $dst_dir . '/' . $file ) ) {
+			copy( $src_dir . $file, $dst_dir . $file );
+			if ( ! file_exists( $dst_dir . $file ) ) {
 				return false;
 			}
 		}
@@ -2806,57 +2516,101 @@ function fv_fs_recurse_copy( string $src_dir, string $dst_dir ) {
 /**
  * Returns matching entry from array based on slug.
  *
- * NOTE: The plugin name suggests this function is only used for plugins,
- *       but it's also used for themes.
- *
- * NOTE: Based on the name I would expect a dir to be returned.
- *
  * @param string $slug
- * @param array $array An array containging associated arrays.
- * @return void
+ * @param array $array An array of associated arrays.
+ * @return array
  */
-function search_for_plugin_dir_by_slug( $slug, $array ) {
-   foreach ( $array as $key => $val ) {
-	   if ( $val['slug'] === $slug ) {
-		   return $val;
-	   }
-   }
-   return null;
+function get_array_value_with_slug( $slug, $array ): array {
+	foreach ( $array as $key => $val ) {
+		if ( ! empty( $val['slug'] ) && $val['slug'] === $slug ) {
+			return $val;
+		}
+	}
+	return array();
 }
 
-function fv_auto_update_install() {
+/**
+ * Returns the directory (=stylesheet name) of a theme with matching fv_slug.
+ *
+ * @param string $slug
+ * @param array $array An array of associated arrays containing keys ['dir'] and ['slug'].
+ * @return string Directory slug (= stylesheet name of the theme).
+ */
+function fv_get_theme_dir_by_slug( string $slug, array $themes ) : array {
+	if ( ! is_array( $themes ) || empty( $themes ) ) {
+		return '';
+	}
 
-	require_once(ABSPATH .'/wp-admin/includes/file.php' );
+	$theme = get_array_value_with_slug( $slug, $themes );
 
+	if ( empty( $theme['dir'] ) ) {
+		return '';
+	};
+	return $theme['dir'];
+}
+
+/**
+ * Unzips a file to a directory and deletes the zip-file
+ *
+ * @param string $file
+ * @param string $to
+ * @return void
+ */
+function fv_unzip_to( string $file, string $to ) {
+
+	if ( ! file_exists( $file ) || ! is_dir( $to )) {
+		return;
+	}
+
+	require_once( ABSPATH .'/wp-admin/includes/file.php' );
 	WP_Filesystem();
 
-	$upload_dir               = wp_upload_dir();
-	$fv_plugin_zip_upload_dir = $upload_dir["basedir"]."/fv_auto_update_directory/plugins";
-	$files_inside_dir         = scandir( $fv_plugin_zip_upload_dir );
-
-	foreach( $files_inside_dir as $ind_file ) {
-		$ext = pathinfo( $ind_file, PATHINFO_EXTENSION );
-		if ( $ext == 'zip' ) {
-			$basename = pathinfo( $ind_file, PATHINFO_BASENAME );
-			$un       = unzip_file( $fv_plugin_zip_upload_dir . '/' . $basename, WP_PLUGIN_DIR );
-			if ( !is_wp_error( $un ) ) {
-				unlink( $fv_plugin_zip_upload_dir.'/'.$basename );
-			}
-		}
+	if ( 'zip' !== pathinfo( $file, PATHINFO_EXTENSION ) ) {
+		return;
 	}
 
-	$fv_theme_zip_upload_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/themes";
-	$files_inside_dir        = scandir( $fv_theme_zip_upload_dir );
-	foreach( $files_inside_dir as $ind_file ) {
-		$ext = pathinfo( $ind_file, PATHINFO_EXTENSION );
-		if ( $ext=='zip' ) {
-			$basename = pathinfo( $ind_file,  PATHINFO_BASENAME );
-			$un = unzip_file( $fv_theme_zip_upload_dir . '/' . $basename, WP_CONTENT_DIR . '/themes' );
-			if ( !is_wp_error( $un ) ) {
-				unlink( $fv_theme_zip_upload_dir . '/' . $basename );
-			}
+	$success  = unzip_file( $file , $to );
+
+	if ( is_wp_error( $success ) ) {
+		return;
+	}
+	$success = fv_delete_file( $file );
+}
+
+/**
+ * Unzips all zip-files in a directory to another directory and deletes the zip-files.
+ *
+ * @param string $dir
+ * @param string $to
+ * @return void
+ */
+function fv_unzip_dir_to( string $src_dir, string $to ) {
+
+	if ( ! is_dir( $src_dir ) || ! is_dir( $to )) {
+		return;
+	}
+
+	require_once( ABSPATH .'/wp-admin/includes/file.php' );
+	WP_Filesystem();
+
+	foreach( scandir( $src_dir ) as $file ) {
+
+		$file = trailingslashit( $src_dir ) . $file;
+
+		if ( 'zip' !== pathinfo( $file, PATHINFO_EXTENSION ) ) {
+			fv_unzip_to( file: $file, to: $to );
 		}
 	}
+}
+
+/**
+ * Unzips and deletes each of the zip-files in the plugins and themes upload dirs.
+ *
+ * @return void
+ */
+function fv_unzip_uploaded_plugins_and_themes(): void {
+	fv_unzip_dir_to( src_dir: fv_get_upload_dir('plugin'), to: WP_PLUGIN_DIR );
+	fv_unzip_dir_to( src_dir: fv_get_upload_dir('theme'),  to: WP_CONTENT_DIR . '/themes' );
 }
 
 /**
@@ -3010,6 +2764,12 @@ function fv_is_white_label_switch( string $option ): bool {
 	return ( 'wl_fv_plugin_wl_enable' === $option );
 }
 
+/**
+ * Get_option wrapper, specialized in white label options.
+ *
+ * @param string $option Option name, may be shortened by excluding 'wl_fv_' prefix and '_wl_' suffix.
+ * @return string Value of the option.
+ */
 function fv_get_white_label_option( string $option ): string {
 
 	$wl_options = fv_get_white_label_option_keys('whitelabel');
@@ -3277,20 +3037,8 @@ function get_plugin_basename_by_slug( string $given_slug ): string|false {
     return false;
 }
 
-function generatePluginActivationLinkUrl( $plugin ) {
-
-	if (strpos( $plugin, '/' ) ) {
-		$plugin = str_replace( '/', '%2F', $plugin );
-	}
-
-	$activateUrl        = sprintf(admin_url( 'plugins.php?action=activate&plugin=%s&plugin_status=all&paged=1&s' ), $plugin );
-	$_REQUEST['plugin'] = $plugin;
-	$activateUrl        = wp_nonce_url( $activateUrl, 'activate-plugin_' . $plugin );
-
-	return $activateUrl;
-}
-
-if ( isset( $_GET['actionrun'] ) && isset( $_GET['activeslug'] ) ) {
+if ( isset( $_GET['actionrun'] )
+&&   isset( $_GET['activeslug'] ) ) {
 	add_action( 'init', 'fv_activate_single_plugin_form' );
 }
 
@@ -3305,7 +3053,6 @@ function fv_activate_single_plugin_form() {
 	wp_redirect( $redirect_url );
 	exit;
 }
-
 
 /**
  * Check for the availability of backups that can be rolled back.
@@ -3444,9 +3191,7 @@ function fv_print_plugin_rollback_button( string $basename, string $installed_ve
 
 function fv_do_single_theme_rollback_button_form() {
 
-	$upload_dir       = wp_upload_dir();
-	$backup_theme_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/themes/backup/";
-	$get_all_themes   = scandir( $backup_theme_dir );
+	$get_all_themes   = scandir( fv_get_upload_dir('theme-backup') );
 
 	foreach( $get_all_themes as $single_theme ) {
 
@@ -3456,14 +3201,14 @@ function fv_do_single_theme_rollback_button_form() {
 			$theme_name    = $theme_full[0];
 			$theme_version = $theme_full[1];
 
-			if ( file_exists( $backup_theme_dir . $single_theme ) ) {
+			if ( file_exists( fv_get_upload_dir('theme-backup') . $single_theme ) ) {
 
 				if ( version_compare( $_POST['version'],  $theme_version, '>' ) ) {
 
-					$original_theme_dir = get_theme_root() . '/' . $_POST['slug'] . '/';
+					$original_theme_dir = trailingslashit( trailingslashit( get_theme_root() ) . $_POST['slug'] );
 
 					if ( is_dir( $original_theme_dir ) ) {
-						fv_fs_recurse_copy( $backup_theme_dir . $single_theme . '/', $original_theme_dir ); // copy old version as backup
+						fv_copy_recursive( trailingslashit( fv_get_upload_dir('theme-backup') . $single_theme  ), $original_theme_dir ); // copy old version as backup
 					}
 				}
 			}
@@ -3475,20 +3220,18 @@ function fv_do_single_theme_rollback_button_form() {
 
 function fv_do_single_plugin_rollback_button_form() {
 
-	$upload_dir             = wp_upload_dir();
 	$plugin_basename        = get_plugin_basename_by_slug( $_POST['slug'] );
-	$backup_plugin_dir      = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $plugin_basename;
-	$backup_plugin_only_dir = $upload_dir["basedir"] . "/fv_auto_update_directory/plugins/backup/" . $_POST['slug'] . '/';
+	$backup_plugin_dir      = fv_get_upload_dir('plugin-backup') . $plugin_basename;
+	$backup_plugin_only_dir = trailingslashit( fv_get_upload_dir('plugin-backup') . $_POST['slug'] );
 
 	if ( file_exists( $backup_plugin_dir ) ) {
-		$original_plugin_dir = WP_PLUGIN_DIR . '/' . $_POST['slug'] . '/';
+		$original_plugin_dir = trailingslashit( trailingslashit( WP_PLUGIN_DIR ) . $_POST['slug'] );
 		if ( is_dir( $original_plugin_dir ) ) {
-			fv_fs_recurse_copy( $backup_plugin_only_dir, $original_plugin_dir ); // copy old version as backup
+			fv_copy_recursive( $backup_plugin_only_dir, $original_plugin_dir ); // copy old version as backup
 		}
 	}
 	wp_redirect( admin_url( 'admin.php?page=festinger-vault-updates&rollback=success' ) );
 }
-
 
 /**
  * Signal wordpress to autoupdate the festingervault plugin.
@@ -4392,18 +4135,54 @@ function fv_get_package_type( string $pkg_str ): string {
  */
 function fv_get_installed_plugins_for_api_request(): array {
 
-	$plugins = [];
+	$plugins = fv_get_plugins();
+	if ( ! $plugins ) {
+		return array();
+	}
 
-	foreach ( fv_get_plugins() as $slug => $plugin_data ) {
-		$plugins[] = [
-			'slug'    => fv_get_slug( $slug ),
-			'version' => fv_esc_version( $plugin_data['Version'] ),
+	$fv_api_plugins = array();
+
+	foreach ( $plugins as $basename => $plugin ) {
+
+		$fv_api_plugins[] = [
+			'slug'    => fv_get_slug( $basename ),
+			'version' => fv_esc_version( $plugin['Version'] ),
 			'dl_link' => ''
 		];
 	}
-
-	return $plugins;
+	return $fv_api_plugins;
 }
+
+/**
+ * Gets an array of installed plugins with auto-update enabled formatted for the FV API.
+ *
+ * @return array
+ */
+function fv_get_auto_update_plugins_for_api_request(): array{
+
+	$plugins = fv_get_plugins();
+	if ( ! $plugins ) {
+		return array();
+	}
+
+	$fv_api_plugins = array();
+
+	foreach ( $plugins as $basename => $plugin ) {
+
+		$slug = fv_get_slug( $basename );
+
+		if ( fv_should_auto_update_plugin( $slug ) ) {
+			$fv_api_plugins[] = [
+				'slug'    => $slug,
+				'version' => fv_esc_version( $plugin['Version'] ),
+				'dl_link' => ''
+			];
+		}
+	}
+
+	return $fv_api_plugins;
+}
+
 
 /**
  * Gets an array of installed themes formatted for the FV API.
@@ -4412,13 +4191,18 @@ function fv_get_installed_plugins_for_api_request(): array {
  */
 function fv_get_installed_themes_for_api_request(): array {
 
-	$themes = [];
+	$themes = fv_get_themes();
+	if ( ! $themes ) {
+		return array();
+	}
 
-	foreach ( fv_get_themes() as $theme ) {
+	$fv_api_themes = array();
+
+	foreach ( $themes as $theme ) {
 
 		$get_theme_slug = fv_get_wp_theme_slug( $theme );
 
-		$themes[] = [
+		$fv_api_themes[] = [
 			'slug'    => $get_theme_slug,
 			'version' => $theme->Version,
 			'dl_link' => ''
@@ -4426,7 +4210,36 @@ function fv_get_installed_themes_for_api_request(): array {
 
 	}
 
-	return $themes;
+	return $fv_api_themes;
+}
+
+/**
+ * Gets an array of installed themes  with auto-update enabled formatted for the FV API.
+ *
+ * @return array
+ */
+function fv_get_auto_update_themes_for_api_request() : array {
+
+	$themes = fv_get_themes();
+	if ( ! $themes ) {
+		return array();
+	}
+
+	$fv_api_themes = array();
+
+	foreach( $themes as $theme ) {
+
+		$slug = fv_get_wp_theme_slug( $theme );
+
+		if ( fv_should_auto_update_theme( $slug ) ) {
+			$fv_api_themes[] = [
+				'slug'    => $slug,
+				'version' => $theme->Version,
+				'dl_link' => ''
+			];
+		}
+	}
+	return $fv_api_themes;
 }
 
 function fv_active_license( string $status ) : bool {
@@ -4586,7 +4399,7 @@ function fv_do_single_plugin_forced_update( $plugin_data ) {
  */
 function fv_do_single_theme_force_update_button_form() {
 
-	fv_do_single_plugin_forced_update( array(
+	fv_do_single_theme_forced_update( array(
 		'type'    => 'theme',
 		'name'    => isset( $_POST['theme_name'] ) ? $_POST['theme_name'] : NULL,
 		'slug'    => isset( $_POST['slug'] )       ? $_POST['slug']       : NULL,
