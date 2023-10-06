@@ -94,12 +94,12 @@ function fv_plugin_autoupdate_switch(){
 	$plugin_slug_capture = $_POST['plugin_slug_capture'];
 	$is_plugin_switch_yes = $_POST['plugin_switch_is_checked'];
 	if(!empty($plugin_slug_capture) && ($is_plugin_switch_yes == true || $is_plugin_switch_yes == false)){
-		if( get_option('fv_plugin_auto_update_list') == true || empty(get_option('fv_plugin_auto_update_list'))){
+		if( get_option('fv_plugins_auto_update_list') == true || empty(get_option('fv_plugins_auto_update_list'))){
 
-			$auto_update_plugin_list = get_option('fv_plugin_auto_update_list');
+			$auto_update_plugin_list = get_option('fv_plugins_auto_update_list');
 
-				if(get_option('fv_plugin_auto_update_list') != true) {
-					add_option('fv_plugin_auto_update_list', []);
+				if(get_option('fv_plugins_auto_update_list') != true) {
+					add_option('fv_plugins_auto_update_list', []);
 				}
 
 				if($is_plugin_switch_yes == true || $is_plugin_switch_yes == 'true'){
@@ -132,12 +132,12 @@ function fv_plugin_autoupdate_switch(){
 						if (($key = array_search($plugin_slug_capture, $auto_update_plugin_list)) !== false) {
 						    if($is_plugin_switch_yes == false || $is_plugin_switch_yes == 'false'){
 						    	unset($auto_update_plugin_list[$key]);
-						    	fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+						    	fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 						    }
 						}else{
 						    if($is_plugin_switch_yes == true || $is_plugin_switch_yes == 'true'){
 								array_push($auto_update_plugin_list, $plugin_slug_capture);
-								fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+								fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 							}
 						}
 
@@ -146,12 +146,12 @@ function fv_plugin_autoupdate_switch(){
 						if (($key = array_search($plugin_slug_capture, $auto_update_plugin_list)) !== false) {
 						    if($is_plugin_switch_yes == false || $is_plugin_switch_yes == 'false'){
 						    	unset($auto_update_plugin_list[$key]);
-						    	fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+						    	fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 						    }
 						}else{
 						    if($is_plugin_switch_yes == true || $is_plugin_switch_yes == 'true'){
 								array_push($auto_update_plugin_list, $plugin_slug_capture);
-								fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+								fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 							}
 						}
 
@@ -160,12 +160,12 @@ function fv_plugin_autoupdate_switch(){
 						if (($key = array_search($plugin_slug_capture, $auto_update_plugin_list)) !== false) {
 						    if($is_plugin_switch_yes == false || $is_plugin_switch_yes == 'false'){
 						    	unset($auto_update_plugin_list[$key]);
-						    	fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+						    	fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 						    }
 						}else{
 						    if($is_plugin_switch_yes == true || $is_plugin_switch_yes == 'true'){
 								array_push($auto_update_plugin_list, $plugin_slug_capture);
-								fv_set_option('fv_plugin_auto_update_list', $auto_update_plugin_list);
+								fv_set_option('fv_plugins_auto_update_list', $auto_update_plugin_list);
 							}
 						}
 

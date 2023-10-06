@@ -70,3 +70,11 @@ if ( ! function_exists( 'str_remove_suffix' ) ) {
 	}
 }
 
+if ( ! function_exists( 'str_remove_prefix' ) ) {
+	function str_remove_prefix( string $str, string $prefix ): string {
+		if ( str_starts_with( $str, $prefix ) ) {
+			$str = substr( $str, strlen( $prefix ) );
+		}
+		return $str;
+	}
+}
