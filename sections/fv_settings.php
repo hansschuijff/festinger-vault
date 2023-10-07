@@ -222,8 +222,8 @@
     <!-- Select plugins to ignore settings -->
     <div class="row">
         <div class="col-md-12">
-            <h5 class="text-white mt-4 fw-bold">
-                Ignore plugins for plugin updates page.
+            <h5 class="text-white mt-4 mb-3 fw-bold">
+                Ignore and hide plugins on plugin updates page.
             </h5>
             <!-- Ignore plugins feature  -->
             <div class="card mb-3 card-bg-cus" style="padding: 20px 0 !important;min-width: 100%;">
@@ -311,7 +311,7 @@
                                                 value="1"
                                                 <?php echo fv_set_checked_attr( fv_should_ignore_plugin( $basename ) ); ?>
                                             />
-                                            <label class="form-check-label" for="<?php echo $basename ?>" style="margin-top: -19px;">
+                                            <label class="form-check-label" for="<?php echo sanitize_title( $basename ) ?>" style="margin-top: -19px;">
                                             <?php echo wp_strip_all_tags( $plugin['Name'] . ' - by ' . $plugin['Author'] ); ?>
                                             </label>
                                         </div>
@@ -320,11 +320,11 @@
                             <?php
                             endforeach;
                             ?>
+                            <!-- Form submit button -->
                             <div class="row">
                                 <div class='col-md-12'>
                                     <hr style="margin: 25px auto; height:0.5px; background-color: #4d378e !important;" />
                                 </div>
-                                <!-- hide admin notices submit button -->
                                 <div class="col-md-2">
                                     <input class="mt-3 btn btn-block non_active_button primary-btn"
                                         type="submit"
@@ -343,7 +343,7 @@
     <div class="row">
         <div class="col-md-12">
             <h5 class="text-white mt-4 fw-bold">
-                Ignore themes for theme updates page.
+                Ignore and hide themes on theme updates page.
             </h5>
             <!-- Ignore themes feature  -->
             <div class="card mb-3 card-bg-cus" style="padding: 20px 0 !important;min-width: 100%;">
@@ -371,9 +371,9 @@
                                 </div>
                             </div>
                             <!-- Ignore themes section -->
-                            <div class="col-md-12">
-                                <p class="fw-bold text-secondary mb-0 secondary-heading-light" style='font-size: 1.3rem !important; margin-top: 1rem !important; margin-bottom: 1.5rem !important;'>
-                                    Ignore themes
+                            <div class="col-md-12 mt-4 mb-1">
+                                <p class="fw-bold text-secondary mb-0 secondary-heading-light" style='font-size: 1.3rem !important;'>
+                                    Ignore and hide themes
                                 </p>
                             </div>
                             <!-- Ignore themes in list toggle -->
@@ -387,7 +387,7 @@
                                             <?php echo fv_set_checked_attr( fv_should_ignore_themes_in_list() ); ?>
                                         />
                                         <label class="form-check-label" for="fv_ignore_themes_in_list" style="margin-top: -19px;">
-                                            Ignore themes as listed below.
+                                            Ignore and hide themes that are checked in the list below.
                                         </label>
                                     </div>
                                 </div>
@@ -402,20 +402,20 @@
                                             value="1"
                                         />
                                         <label class="form-check-label" for="fv_reset_themes_in_ignore_list" style="margin-top: -19px;">
-                                            Reset ignored themes list (below).
+                                            Reset the ignore/hide themes list below (removes all checks).
                                         </label>
                                     </div>
                                 </div>
                             </div>
                             <!-- Ignore themes list  -->
                             <div class="col-md-12">
-                                <p class="fw-bold text-secondary mb-0 secondary-heading-light" style='font-size: 1.3rem !important; margin-top: 1rem !important; margin-bottom: 1.5rem !important;'>
-                                    Select themes to ignore
+                                <p class="fw-bold text-secondary mb-1 mt-4 secondary-heading-light" style='font-size: 1.3rem !important;'>
+                                    Select themes to ignore and hide in the update page.
                                 </p>
                             </div>
-                            <div class="row mt-3">
+                            <div class="row mt-2">
                                 <p class="text-secondary" style='font-size: 1.1rem !important; color: #fff !important;'>
-                                Please check the themes you want to ignore in theme updates.
+                                Please check the themes you want to ignore and hide in the theme updates page.
                                 </p>
                             </div>
                             <?php
@@ -424,13 +424,13 @@
                                 <div class="row mt-3">
                                     <div class="col-md-12">
                                         <div class="form-check">
-                                            <input id="<?php echo sanitize_title( $stylesheet ) ?>" class="form-check-input custom-checkbox-color"
+                                            <input id="<?php echo sanitize_title( $stylesheet ); ?>" class="form-check-input custom-checkbox-color"
                                                 type="checkbox"
                                                 name="fv_ignore_themes_list[<?php echo $stylesheet ?>]"
                                                 value="1"
                                                 <?php echo fv_set_checked_attr( fv_should_ignore_theme( $stylesheet ) ); ?>
                                             />
-                                            <label class="form-check-label" for="<?php echo $stylesheet ?>" style="margin-top: -19px;">
+                                            <label class="form-check-label" for="<?php echo sanitize_title( $stylesheet ); ?>" style="margin-top: -19px;">
                                             <?php echo wp_strip_all_tags( $theme->Name . ' - by ' . $theme->Author ); ?>
                                             </label>
                                         </div>
