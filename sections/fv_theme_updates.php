@@ -37,13 +37,13 @@
                     ?>
                         <!-- Force update now button -->
                         <form class="float-end" name="force_theme_update" method="POST">
-                            <button class="btn btn-sm float-end primary-btn" id="themeforceupdate" type="submit" name="themeforceupdate" value="theme">
+                            <button class="btn btn-sm float-end primary-btn" id="fv_force_update_themes_button" type="submit" name="fv_force_update_themes_button" value="theme">
                                 FORCE UPDATE NOW
                             </button>
                         </form>
                         <!-- Instant update all button -->
                         <form class="float-end" name="force_theme_update" method="POST">
-                            <button class="btn btn-sm float-end primary-btn" id="themeforceupdate_instant" type="submit" name="themeforceupdate_instant" style="margin-right: 10px;" value="theme">
+                            <button class="btn btn-sm float-end primary-btn" id="fv_instant_update_all_themes_button" type="submit" name="fv_instant_update_all_themes_button" style="margin-right: 10px;" value="theme">
                                 Instant Update All
                             </button>
                         </form>
@@ -97,7 +97,7 @@
                     <th class="text-grey" style="min-width: 130px;">Version</th>
                     <th class="text-grey text-center theme_update_width_10">Auto update</th>
                     <th class="text-grey text-center theme_update_width_10">Instant update</th>
-                    <th class="text-grey theme_update_width_15 text-center" style="min-width: 125px;   ">Rollback</th>
+                    <th class="text-grey theme_update_width_15 text-center" style="min-width: 125px;">Rollback</th>
                 </tr>
                 <?php
                 // No theme data to show
@@ -186,11 +186,11 @@
                             if ( $fv_theme_has_update ):
                             ?>
                                 <span style="position: absolute; top: 50%; left: 50%; transform: translate( -50%, -50% );">
-                                    <form name="singlethemeupdaterequest" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
+                                    <form name="fv_single_theme_update_button" method="POST" onSubmit="if ( !confirm('Are you sure want to update now?' ) ) {return false;}">
                                         <input type="hidden" name="theme_name" value="<?= $fv_theme['name']; ?>" />
                                         <input type="hidden" name="slug" value="<?= $fv_theme['slug']; ?>" />
                                         <input type="hidden" name="version" value="<?= $fv_theme['version']; ?>" />
-                                        <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="themeforceupdate_instant" type="submit" name="singlethemeupdaterequest" value="single_item_update">
+                                        <button class="btn btn_update btn-sm float-end btn-custom-color" id="fv_single_theme_update_button" type="submit" name="fv_single_theme_update_button" value="single_item_update">
                                             Update <?= $fv_theme['version']; ?>
                                         </button>
                                     </form>

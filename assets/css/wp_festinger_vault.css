@@ -1180,10 +1180,12 @@ body {
     no-repeat right 10px top 55% !important;
 }
 
-#pluginrollback,
-#themerollback,
-#pluginforceupdateinstant,
-#themeforceupdate_instant {
+#fv_single_plugin_rollback_button,
+#fv_single_theme_rollback_button,
+#fv_single_plugin_update_button,
+#fv_single_theme_update_button,
+#fv_instant_update_all_plugins_button,
+#fv_instant_update_all_themes_button {
   background: #884bf6 !important;
   border-radius: 8px !important;
   color: white !important;

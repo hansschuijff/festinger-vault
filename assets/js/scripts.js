@@ -97,22 +97,22 @@ jQuery(document).ready(function (jQuery) {
     });
   });
 
-  jQuery("#pluginforceupdate").click(function (event) {
+  jQuery("#fv_force_update_plugins_button").click(function (event) {
     if (!confirm("Please confirm and auto update will run instantly!"))
       event.preventDefault();
   });
 
-  jQuery("#pluginforceupdateinstant").click(function (event) {
+  jQuery("#fv_instant_update_all_plugins_button").click(function (event) {
     if (!confirm("Please confirm to run update instantly!"))
       event.preventDefault();
   });
 
-  jQuery("#themeforceupdate").click(function (event) {
+  jQuery("#fv_force_update_themes_button").click(function (event) {
     if (!confirm("Please confirm and auto update will run instantly!"))
       event.preventDefault();
   });
 
-  jQuery("#themeforceupdate_instant").click(function (event) {
+  jQuery("#fv_instant_update_all_themes_button").click(function (event) {
     if (!confirm("Please confirm and instant update will run!"))
       event.preventDefault();
   });
@@ -478,7 +478,7 @@ jQuery("#ajax_search").keyup(function (e) {
     jQuery
       .ajax({
         data: {
-          action: "fv_do_license_deactivation_form",
+          action: "fv_deactivation_ajax",
           license_key: license_key,
           license_d: license_d,
         },
@@ -535,7 +535,7 @@ jQuery("#ajax_search").keyup(function (e) {
     jQuery
       .ajax({
         data: {
-          action: "fv_do_license_deactivation_form",
+          action: "fv_deactivation_ajax",
           license_key: license_key,
           license_d: license_d,
         },

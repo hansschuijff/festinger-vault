@@ -880,7 +880,7 @@ function fv_do_search_vault_for_plugins_and_themes_form() {
 	$response     = fv_run_remote_query( $query );
 	$license_data = wp_remote_retrieve_body( $response );
 
-	echo( $license_data );
+	echo $license_data;
 
 
 	// $decoded_license_data = json_decode($license_data);
@@ -903,7 +903,7 @@ function fv_do_search_vault_for_plugins_and_themes_form() {
 	// 	}
 	// }
 	// if ( 'mylist' === $searchedValueContent_type ) {
-	// 	echo( $license_data );
+	// 	echo $license_data;
 	// } else {
 	// 	if ( 1 === $fv_cache_status_server ) {
 	// 		$fv_check_cache   = json_decode( $fv_check_cache );
@@ -2525,7 +2525,7 @@ function fv_get_white_label_option_keys( string $context = 'whitelabel' ) : arra
  * @param string $option The name of an option.
  * @return boolean true is option is "wl_fv_plugin_wl_enable"
  */
-function fv_is_white_label_switch( string $option ): bool {
+function fv_get_white_label_enable_option_key( string $option ): bool {
 	return ( 'wl_fv_plugin_wl_enable' === $option );
 }
 
@@ -2643,11 +2643,12 @@ function fv_do_form_submissions() {
 	}
 
 	foreach ( $_POST as $key => $value ) {
+
 		switch ($key) {
 			/**
 			 * White label settings form.
 			 */
-			case 'fv_wl_submit':
+			case 'fv_white_label_form_submit_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_white_label_settings_form' );
 				};
@@ -2656,7 +2657,7 @@ function fv_do_form_submissions() {
 			/**
 			 *  The "Hide/Block admin notices" settings form.
 			 */
-			case 'fv_admin_notice':
+			case 'fv_admin_notice_form_submit_button':
 				if ( ! empty( $value ) ) {
 					fv_do_admin_notices_settings_form();
 				};
@@ -2665,7 +2666,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The "FORCE UPDATE NOW" button on the Plugins updates page.
 			 */
-			case 'pluginforceupdate':
+			case 'fv_force_update_plugins_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_plugins_force_update_now_button_form' );
 				};
@@ -2674,7 +2675,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The "Instant update all" button on the plugin updates page.
 			 */
-			case 'pluginforceupdateinstant':
+			case 'fv_instant_update_all_plugins_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_plugins_instant_update_all_button_form' );
 				};
@@ -2683,7 +2684,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The update button for a specific plugin on the PLUGIN updates page.
 			 */
-			case 'singlepuginupdaterequest':
+			case 'fv_single_plugin_update_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_single_plugin_force_update_button_form' );
 				};
@@ -2692,7 +2693,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The Rollback button is used on a single plugin on the plugins updates page.
 			 */
-			case 'pluginrollback':
+			case 'fv_single_plugin_rollback_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_single_plugin_rollback_button_form' );
 				};
@@ -2701,7 +2702,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The  FORCE UPDATE NOW button has been submitted on the themes update page.
 			 */
-			case 'themeforceupdate':
+			case 'fv_force_update_themes_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_themes_force_update_now_button_form' );
 				};
@@ -2710,7 +2711,7 @@ function fv_do_form_submissions() {
 			/**
 			 * The Instant update all has been submitted on the themes update page.
 			 */
-			case 'themeforceupdate_instant':
+			case 'fv_instant_update_all_themes_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_themes_instant_update_all_button_form' );
 				};
@@ -2719,18 +2720,33 @@ function fv_do_form_submissions() {
 			/**
 			 * The update button for a specific theme  on the THEME updates page..
 			 */
-			case 'singlethemeupdaterequest':
+			case 'fv_single_theme_update_button':
 				if ( ! empty( $value ) ) {
-					add_action( 'init', 'fv_do_single_theme_force_update_button_form' );
+					add_action( 'init', 'fv_do_single_theme_update_button_form' );
 				};
 				break;
 
 			/**
 			 * The Rollback button is used on a single plugin on the plugins updates page.
 			 */
-			case 'themerollback':
+			case 'fv_single_theme_rollback_button':
 				if ( ! empty( $value ) ) {
 					add_action( 'init', 'fv_do_single_theme_rollback_button_form' );
+				};
+				break;
+
+
+			case 'fv_plugins_ignore_form':
+				if ( ! empty( $value ) ) {
+					if ( ! empty( $value ) ) {
+						add_action( 'init', 'fv_do_plugins_ignore_form' );
+					};
+				};
+				break;
+
+			case 'fv_themes_ignore_form':
+				if ( ! empty( $value ) ) {
+					add_action( 'init', 'fv_do_themes_ignore_form' );
 				};
 				break;
 
@@ -2738,6 +2754,157 @@ function fv_do_form_submissions() {
 				break;
 		}
 	}
+}
+
+function fv_do_plugins_ignore_form() : void {
+	fv_set_ignore_disabled_plugins_option();
+	fv_set_ignore_plugins_in_list_option();
+	fv_set_ignore_plugins_list_option();
+	fv_reset_plugins_in_ignore_list();
+}
+
+function fv_set_ignore_disabled_plugins_option() : void {
+
+	if ( ! empty( $_POST['fv_ignore_disabled_plugins'] ) ) {
+		fv_set_option(
+			'fv_ignore_disabled_plugins',
+			$_POST['fv_ignore_disabled_plugins']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_disabled_plugins' );
+}
+
+function fv_set_ignore_plugins_in_list_option() : void {
+
+	if ( isset( $_POST['fv_ignore_plugins_in_list'] ) ) {
+		fv_set_option(
+			'fv_ignore_plugins_in_list',
+			$_POST['fv_ignore_plugins_in_list']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_plugins_in_list' );
+}
+
+function fv_reset_plugins_in_ignore_list () : void {
+	if ( isset( $_POST['fv_reset_plugins_in_ignore_list'] ) ) {
+		fv_delete_option( 'fv_ignore_plugins_list' );
+	}
+}
+
+function fv_set_ignore_plugins_list_option() : void {
+
+	if ( ! empty( $_POST['fv_ignore_plugins_list'] )
+	&&  is_array( $_POST['fv_ignore_plugins_list'] ) ) {
+		fv_set_option(
+			'fv_ignore_plugins_list',
+			$_POST['fv_ignore_plugins_list']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_plugins_list' );
+}
+
+function fv_should_ignore_disabled_plugins() {
+    return get_option( 'fv_ignore_disabled_plugins' );
+}
+
+function fv_should_ignore_plugin( string $basename ) {
+	if ( empty ( $basename ) ) {
+		return false;
+	}
+	return isset( fv_ignore_plugins_list()[ $basename ] );
+}
+
+function fv_should_ignore_plugins_in_list() {
+	return get_option( 'fv_ignore_plugins_in_list', false );
+}
+
+function fv_ignore_plugins_list() : array {
+	return get_option( 'fv_ignore_plugins_list', array() );
+}
+
+function fv_do_themes_ignore_form() : void {
+	fv_set_fv_ignore_disabled_themes_option();
+	fv_set_ignore_themes_in_list_option();
+	fv_set_ignore_themes_list_option();
+	fv_reset_themes_in_ignore_list();
+}
+
+function fv_set_fv_ignore_disabled_themes_option() : void {
+
+	if ( isset( $_POST['fv_ignore_disabled_themes'] ) ) {
+		fv_set_option(
+			'fv_ignore_disabled_themes',
+			$_POST['fv_ignore_disabled_themes']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_disabled_themes' );
+}
+
+function fv_set_ignore_themes_in_list_option() : void {
+
+	if ( isset( $_POST['fv_ignore_themes_in_list'] ) ) {
+		fv_set_option(
+			'fv_ignore_themes_in_list',
+			$_POST['fv_ignore_themes_in_list']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_themes_in_list' );
+}
+
+function fv_reset_themes_in_ignore_list () : void {
+	if ( isset( $_POST['fv_reset_themes_in_ignore_list'] ) ) {
+		fv_delete_option( 'fv_ignore_themes_list' );
+	}
+}
+
+function fv_set_ignore_themes_list_option() : void {
+
+	if ( isset( $_POST['fv_ignore_themes_list'] )
+	&&  is_array( $_POST['fv_ignore_themes_list'] ) ) {
+		fv_set_option(
+			'fv_ignore_themes_list',
+			$_POST['fv_ignore_themes_list']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_ignore_themes_list' );
+}
+
+function fv_should_ignore_disabled_themes() {
+    return get_option( 'fv_ignore_disabled_themes', false );
+}
+
+function fv_should_ignore_themes_in_list() {
+	return get_option( 'fv_ignore_themes_in_list', false );
+}
+
+function fv_should_ignore_theme( string $stylesheet ) {
+	if ( empty ( $stylesheet ) ) {
+		return false;
+	}
+	if ( isset( fv_get_ignore_themes_list()[ $stylesheet ] ) ) {
+		return true;
+	}
+	return false;
+}
+
+function fv_get_ignore_themes_list() : array {
+	return get_option( 'fv_ignore_themes_list', array() );
+}
+
+function fv_set_checked_attr( bool $true ) : string {
+    return $true ? 'checked="checked"' : '';
 }
 
 function fv_get_client_ip() {
@@ -2910,9 +3077,9 @@ function fv_print_theme_rollback_button( string $stylesheet, string $installed_v
 	}
 	?>
 	<form name="theme_rollback" method="POST" onSubmit="if ( !confirm( 'Are you sure want to rollback this theme?' ) ) {return false;}">
-		<input type="hidden" name="slug" value="<?php echo fv_get_slug( $theme_backup->stylesheet ); ?>" />
+		<input type="hidden" name="slug" value="<?php echo fv_get_theme_slug( $theme_backup ); ?>" />
 		<input type="hidden" name="version" value="<?php echo $installed_version; ?>" />
-		<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="themerollback" type="submit" name="themerollback" value="plugin">
+		<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="fv_single_theme_rollback_button" type="submit" name="fv_single_theme_rollback_button" value="theme">
 			Rollback <?php echo $theme_backup_version; ?>
 		</button>
 	</form>
@@ -2938,7 +3105,7 @@ function fv_print_plugin_rollback_button( string $basename, string $installed_ve
 			<form name="plugin_rollback" method="POST" onSubmit="if ( ! confirm( 'Are you sure want to rollback?' ) ) { return false; }">
 				<input type="hidden" name="slug" value="<?= fv_get_slug( $basename );?>" />
 				<input type="hidden" name="version" value="<?= $installed_version;?>" />
-				<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="pluginrollback" value="plugin">
+				<button class="btn btn_rollback btn-sm float-end btn-custom-color" id="fv_single_plugin_rollback_button" type="submit" name="fv_single_plugin_rollback_button" value="plugin">
 					Rollback <?php echo $backup_version; ?>
 				</button>
 			</form>
@@ -3040,19 +3207,7 @@ function auto_update_specific_plugins( $update, $item ) {
 add_filter( 'auto_update_plugin', 'auto_update_specific_plugins', 10, 2 );
 
 /**
- * Gets installed plugins that are not in the wordpress.org repository.
- *
- * @return array Filtered output of get_plugins().
- */
-function fv_get_plugins(): array {
-	return fv_remove_wp_org_plugins( get_plugins() );
-}
-
-/**
- * Remove plugins that are from the wordpress.org repository from a plugins array,
- * return the rest.
- *
- * Expects array key to be the plugin basename.
+ * Gets installed plugins that are not in the wordpress.org repository and that are not in the ignore plugin list.
  *
  * For efficiency this function uses the update_plugins transient from wordpress plugin updates,
  * instead of the wordpress.org api. This may miss plugins that are installing in
@@ -3061,34 +3216,40 @@ function fv_get_plugins(): array {
  * ->response   is an array of plugins that have updates.
  * ->no_updates is an array of plugins that are up to date.
  *
- * @param array $plugins
+ * $params bool $$use_ignore_plugins_list If true it will filter plugins using the ignore plugins setting are filtered out.
  * @return array Filtered output of get_plugins().
  */
-function fv_remove_wp_org_plugins( array $plugins ): array {
+function fv_get_plugins( bool $use_ignore_plugins_list = true ): array {
 
-	$update_plugins       = get_site_transient( 'update_plugins' );
-	$plugins_not_on_wporg = array();
+	$plugin_updates = get_site_transient( 'update_plugins' );
+	$fv_plugins     = array();
 
-	foreach ( $plugins as $plugin_basename => $plugin_data ) {
+	foreach ( get_plugins() as $basename => $plugin ) {
 
 		// Check download url of plugins without updates.
-		if ( isset( $update_plugins->response[ $plugin_basename ]->package ) ) {
-			if ( fv_is_wporg_plugin( $update_plugins->response[ $plugin_basename ]->package ) ) {
+		if ( isset( $plugin_updates->response[ $basename ]->package ) ) {
+			if ( fv_is_wporg_plugin( $plugin_updates->response[ $basename ]->package ) ) {
 				continue;
 			}
 		}
 
 		// Check download url of plugins that have available updates.
-		if ( isset( $update_plugins->no_update[ $plugin_basename ]->package ) ) {
-			if ( fv_is_wporg_plugin( $update_plugins->no_update[ $plugin_basename ]->package ) ) {
+		if ( isset( $plugin_updates->no_update[ $basename ]->package ) ) {
+			if ( fv_is_wporg_plugin( $plugin_updates->no_update[ $basename ]->package ) ) {
 				continue;
 			}
 		}
 
-		$plugins_not_on_wporg[ $plugin_basename ] = $plugin_data;
+		if ( $use_ignore_plugins_list
+		&&   fv_should_ignore_plugins_in_list()
+		&&   fv_should_ignore_plugin( $basename ) ){
+			continue;
+		}
+
+		$fv_plugins[ $basename ] = $plugin;
 	}
 
-	return $plugins_not_on_wporg;
+	return $fv_plugins;
 }
 
 /**
@@ -3112,30 +3273,39 @@ function fv_is_wporg_plugin( string $plugin_url ): bool {
  * instead of the wordpress.org api. This may miss themes that are installing in
  * the last 12 hours.
  *
+ * $param bool $use_ignore_themes_list If true it will filter themes using the ignore themes setting are filtered out.
  * @return array Filtered output of wp_get_themes().
  */
-function fv_get_themes() {
+function fv_get_themes( $use_ignore_themes_list = true ) {
 
-	$themes              = wp_get_themes();
 	$theme_updates       = get_site_transient( 'update_themes' );
 	$themes_not_on_wporg = array();
 
-	foreach ( $themes as $theme_slug => $theme_data ) {
+	foreach ( wp_get_themes() as $stylesheet => $theme_data ) {
 
 		$download_url = '';
 		// themes with pending update
-		if ( ! empty( $theme_updates->response[ $theme_slug ]['package'] ) ) {
-			$download_url = $theme_updates->response[ $theme_slug ]['package'];
+		if ( ! empty( $theme_updates->response[ $stylesheet ]['package'] ) ) {
+			$download_url = $theme_updates->response[ $stylesheet ]['package'];
 		}
+
 		// themes with no update
-		if ( ! empty( $theme_updates->no_update[ $theme_slug ]['package'] ) ) {
-			$download_url = $theme_updates->no_update[ $theme_slug ]['package'];
+		if ( ! empty( $theme_updates->no_update[ $stylesheet ]['package'] ) ) {
+			$download_url = $theme_updates->no_update[ $stylesheet ]['package'];
 		}
+
 		// skip wordpress.org urls
 		if ( is_wp_org_url( $download_url ) ) {
 			continue;
 		}
-		$themes_not_on_wporg[ $theme_slug ] = $theme_data;
+
+		if ( $use_ignore_themes_list
+		&&   fv_should_ignore_themes_in_list()
+		&&   fv_should_ignore_theme( $stylesheet ) ){
+			continue;
+		}
+
+		$themes_not_on_wporg[ $stylesheet ] = $theme_data;
 	}
 
 	return $themes_not_on_wporg;
@@ -4093,13 +4263,15 @@ function fv_do_white_label_settings_form() {
 	$options = fv_get_white_label_option_keys('post');
 
 	foreach ( $options as $option => $query_var ) {
+
 		if ( isset( $_POST[ $query_var ] ) ) {
 			fv_set_option( $option, htmlspecialchars( $_POST[ $query_var ] ) );
-		} elseif ( ! fv_is_white_label_switch( $option ) ) {
+			continue;
+		}
+		if ( $option !== fv_get_white_label_enable_option_key() ) {
 			fv_delete_option( $option );
 		}
 	}
-
 	if ( fv_should_white_label() ) {
 		// if white labeling is active redirect to plugins Vault
 		wp_redirect( admin_url( 'admin.php?page=festinger-vault' ) );
@@ -4118,16 +4290,16 @@ function fv_do_admin_notices_settings_form() {
 
 	$options = array(
 		// Setting: Block only dismissable admin notices
-		'an_fv_dis_adm_not_hid' => 'an_fv_dis_adm_not_hid',
+		'fv_hide_dismissable_admin_notices' => 'fv_hide_dismissable_admin_notices',
 		// Setting: Block All admin notices
-		'an_fv_all_adm_not_hid' => 'an_fv_all_adm_not_hid',
+		'fv_hide_all_admin_notices' => 'fv_hide_all_admin_notices',
 	);
 
 	foreach ( $options as $option => $query_var ) {
 		if ( empty( $_POST[ $query_var ] ) ) {
 			fv_delete_option( $option );
 		} else {
-			fv_set_option( $option, 1 );
+			fv_set_option( $option, $_POST[ $query_var ] );
 		}
 	}
 }
@@ -4213,7 +4385,7 @@ function fv_do_single_plugin_forced_update( $plugin_data ) {
  *
  * @return void
  */
-function fv_do_single_theme_force_update_button_form() {
+function fv_do_single_theme_update_button_form() {
 
 	fv_do_single_theme_forced_update( array(
 		'type'    => 'theme',
@@ -4239,19 +4411,19 @@ function fv_do_single_theme_forced_update( $theme_data ) {
 /**
  * Should all admin notices be hidden?
  *
- * @return boolean True if 'an_fv_all_adm_not_hid' option is set.
+ * @return boolean True if 'fv_hide_all_admin_notices' option is set.
  */
 function fv_should_hide_all_admin_notices() : bool {
-	return (bool) get_option( 'an_fv_all_adm_not_hid' );
+	return (bool) get_option( 'fv_hide_all_admin_notices' );
 }
 
 /**
  * Should dismissable admin notices be hidden?
  *
- * @return boolean True if 'an_fv_dis_adm_not_hid' option is set.
+ * @return boolean True if 'fv_hide_dismissable_admin_notices' option is set.
  */
 function fv_should_hide_dismissable_admin_notices() : bool {
-	return (bool) get_option( 'an_fv_dis_adm_not_hid' );
+	return (bool) get_option( 'fv_hide_dismissable_admin_notices' );
 }
 
 /**

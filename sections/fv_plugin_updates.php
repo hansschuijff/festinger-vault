@@ -35,13 +35,13 @@
                     ?>
                         <!-- Force update now button -->
                         <form class="float-end" name="force_theme_update" method="POST">
-                            <button class="btn btn-sm float-end primary-btn" id="pluginforceupdate" type="submit" name="pluginforceupdate" value="plugin">
+                            <button class="btn btn-sm float-end primary-btn" id="fv_force_update_plugins_button" type="submit" name="fv_force_update_plugins_button" value="plugin">
                                 FORCE UPDATE NOW
                             </button>
                         </form>
                         <!-- Instant update all button -->
                         <form class="float-end" name="force_plugin_update" method="POST">
-                            <button class="btn btn-sm float-end primary-btn" id="pluginforceupdateinstant" type="submit" name="pluginforceupdateinstant" style="margin-right: 10px;" value="plugin">
+                            <button class="btn btn-sm float-end primary-btn" id="fv_instant_update_all_plugins_button" type="submit" name="fv_instant_update_all_plugins_button" style="margin-right: 10px;" value="plugin">
                                 Instant Update All
                             </button>
                         </form>
@@ -175,11 +175,11 @@
                         <td class='text-center'>
                             <?php if ( $fv_plugin_has_update ): ?>
                                 <span style="position: absolute; top: 50%; left:50%;  transform: translate( -50%,-50% );">
-                                    <form name="singlepuginupdaterequest" method="POST" onSubmit="if ( !confirm( 'Are you sure want to update now?' ) ) {return false;}">
+                                    <form name="fv_single_plugin_update_button" method="POST" onSubmit="if ( !confirm( 'Are you sure want to update now?' ) ) {return false;}">
                                         <input type="hidden" name="plugin_name" value="<?= $fv_plugin_data['name']; ?>" />
                                         <input type="hidden" name="slug" value="<?= $fv_plugin_data['slug']; ?>" />
                                         <input type="hidden" name="version" value="<?= $fv_plugin_data['version']; ?>" />
-                                        <button class="btn btn_rollback btn-sm float-end btn-custom-color" id="pluginrollback" type="submit" name="singlepuginupdaterequest" value="single_item_update">
+                                        <button class="btn btn_update btn-sm float-end btn-custom-color" id="fv_single_plugin_update_button" type="submit" name="fv_single_plugin_update_button" value="single_item_update">
                                             Update <?= $fv_plugin_data['version']; ?>
                                         </button>
                                     </form>
