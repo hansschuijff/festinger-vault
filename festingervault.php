@@ -1739,9 +1739,8 @@ function fv_download( string $url, string $to_file ) : int {
 function fv_delete_theme_backup( string $stylesheet ) : void {
 
 	foreach( scandir( fv_get_upload_dir('theme-backups') ) as $dir ) {
-		// strpos() is legacy since the version was part of the theme_backup dirname.
 		if ( $theme_backup == $stylesheet
-		||   false !== strpos( haystack: $dir, needle: $stylesheet ) ) {
+		||   $dir === $stylesheet ) {
 			fv_delete_directory( fv_get_upload_dir('theme-backups') . $dir );
 		}
 	}
@@ -2973,7 +2972,7 @@ function fv_do_single_theme_rollback_button_form() {
 		}
 
 		if ( ! is_dir( $backups_dir . $theme_dir )
-		||   false === strpos( $theme_dir, $theme_slug ) ) {
+		||   $theme_dir === $theme_slug ) {
 			continue;
 		}
 
