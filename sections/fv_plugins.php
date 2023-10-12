@@ -14,7 +14,7 @@
     </div>
 </div>
 <!-- succes-message -->
-<div class="toast position-fixed bottom-0 end-0 active_button" role="alert" aria-live="assertive" aria-atomic="true">
+<div class="toast position-fixed bottom-0 end-0 active_button" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 999999 !important;">
     <div class="toast-body text-white">
         Item has been added successfully.
     </div>
@@ -143,7 +143,7 @@
                             </div>
                             <!-- Allowance filter (bronze, silver, gold)-->
                             <div class="col-md-2">
-                                <select class="form-select home_con_select btn-block margin-bottom-xs" id="filter_item"
+                                <select class="form-select home_con_select btn-block margin-bottom-xs" id="filter_allowence"
                                     aria-label="Default select example">
                                     <option selected value="all">Filter allowence</option>
                                     <option value="bronze">Bronze</option>
@@ -288,10 +288,11 @@ function print_license_table_markup( stdClass $license ) : void {
                     </td>
 					<!-- credit limit -->
                     <td id="<?php echo $license->license_key; ?>">
-                        <span id="limit_available_id" style="<?php echo $gap ?>"> </span>
-                        <span id="current_limit_id">
+                        <span id="limit_available_id" style="<?php echo $gap ?>">
                             <?php echo $license->plan_credit_available; ?>
-                            /
+                        </span>
+                        /
+                        <span id="current_limit_id">
                             <?php echo $license->plan_credit_limit; ?>
                         </span>
                         <?php echo ucfirst( $license->license_type ); ?><br />

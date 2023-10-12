@@ -395,15 +395,15 @@ function fv_auto_update_download_instant_bak( $should_update = 'all', $single_up
 								$total_download_size += fv_download( url: $fv_update->dl_link, to_file: fv_get_upload_dir('themes') . $fileName );
 
 								$determine_theme_dir = fv_get_theme_dir( $fv_update->slug, $fv_themes_with_stylesheet );
-								$get_all_themes      = scandir( fv_get_upload_dir('theme-backups') );
+								$get_all_themes      = scandir( fv_get_upload_dir('themes-backups') );
 								foreach( $get_all_themes as $single_theme ) {
 									if ( strpos( $single_theme, $fv_update->slug ) !== false ) {
-										fv_delete_directory( fv_get_upload_dir('theme-backups') . $single_theme );
+										fv_delete_directory( fv_get_upload_dir('themes-backups') . $single_theme );
 									}
 								}
 
 								$fv_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
-								$fv_theme_backup_dir = fv_get_upload_dir('theme-backups') . $determine_theme_dir;
+								$fv_theme_backup_dir = fv_get_upload_dir('themes-backups') . $determine_theme_dir;
 
 								if ( is_dir( $fv_theme_dir ) ) {
 									fv_copy_recursive( $fv_theme_dir, $fv_theme_backup_dir ); // copy old version as backup
@@ -427,15 +427,15 @@ function fv_auto_update_download_instant_bak( $should_update = 'all', $single_up
 							$total_download_size += fv_download( url: $fv_update->dl_link, to_file: fv_get_upload_dir('themes') . $fileName );
 
 							$determine_theme_dir = get_array_value_with_slug( $fv_update->slug, $fv_themes_with_stylesheet )['stylesheet'];
-							$get_all_themes = scandir( fv_get_upload_dir('theme-backups') );
+							$get_all_themes = scandir( fv_get_upload_dir('themes-backups') );
 							foreach( $get_all_themes as $single_theme ) {
 								if ( strpos( $single_theme, $fv_update->slug ) !== false ) {
-									fv_delete_directory( fv_get_upload_dir('theme-backups') . $single_theme );
+									fv_delete_directory( fv_get_upload_dir('themes-backups') . $single_theme );
 								}
 							}
 
 							$fv_theme_dir             = trailingslashit( get_theme_root() ) . $determine_theme_dir;
-							$fv_theme_backup_dir = fv_get_upload_dir('theme-backups') . $determine_theme_dir;
+							$fv_theme_backup_dir = fv_get_upload_dir('themes-backups') . $determine_theme_dir;
 
 							if ( is_dir( $fv_theme_dir ) ) {
 								fv_copy_recursive( $fv_theme_dir, $fv_theme_backup_dir ); // copy old version as backup
@@ -497,7 +497,7 @@ function fv_auto_update_download_instant_bak( $should_update = 'all', $single_up
 
 								$determine_plugin_dir            = get_array_value_with_slug( $fv_update->slug, $get_plugin_directory )['stylesheet'];
 								$original_plugin_dir             = trailingslashit( WP_PLUGIN_DIR ) . $determine_plugin_dir;
-								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('plugin-backups') . $determine_plugin_dir;
+								$fv_plugin_zip_upload_dir_backup = fv_get_upload_dir('plugins-backups') . $determine_plugin_dir;
 
 								if ( is_dir( $original_plugin_dir ) ) {
 									fv_copy_recursive( $original_plugin_dir, $fv_plugin_zip_upload_dir_backup ); // copy old version as backup

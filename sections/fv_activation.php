@@ -9,6 +9,7 @@
 <div class="container-padding">
     <div class="row my-4 justify-content-center">
         <?php if ( $fv_api->validation->license_1 != 'notfound' ): ?>
+            <!-- Activated License 1 Card with license info & Remove form. -->
             <div class="col-md-6 mt-3 mt-3">
                 <div class="card card-bg-cus h-100" style="min-width:100%;">
                     <div class="py-4">
@@ -193,8 +194,10 @@
             </div>
         <?php
         endif;
+
         if ( $fv_api->validation->license_2 != 'notfound' ):
         ?>
+            <!-- Activated License 2 Card with license info & Remove form. -->
             <div class="col-md-6 mt-3 mt-3">
                 <div class="card card-bg-cus h-100" style="min-width:100%;">
                     <div class="py-4">
@@ -313,14 +316,13 @@
                                 <tr>
                                     <td class="text-grey w-50">Plan Credit Limit: </td>
                                     <td class="w-50">
-
                                         <span id="plan_limit_id">
-                                            <?php echo $fv_api->license_2->license_data->plan_credit_limit; ?> </span>
+                                            <?php echo $fv_api->license_2->license_data->plan_credit_limit; ?>
+                                        </span>
                                         /
                                         <?php echo ucfirst( $fv_api->license_2->license_data->license_type ); ?>
                                     </td>
                                 </tr>
-
                                 <tr>
                                     <td class="text-grey w-50">Credit Available: </td>
                                     <td class="w-50">
@@ -332,7 +334,6 @@
                                         <?php echo ucfirst( $fv_api->license_2->license_data->license_type ); ?>
                                     </td>
                                 </tr>
-
                                 <tr>
                                     <td class="text-grey w-50">Expiration Date: </td>
                                     <td class="w-50">
@@ -394,27 +395,7 @@
                 </div>
             </div>
         <?php endif; //end license 2action  ?>
-        <ul class="dropdown-menu dropdown-menu-end cart-dropdown get-cart-dropdownsub" aria-labelledby="cart-dropdown" style="width:400px;padding:10px; display: none;">
-            <div id="cart-items" class="cart-items"></div>
-            <div id="cart-items-notfound" class="cart-items-notfound">
-                No item found
-            </div>
-            <li>
-                <button id="download-button" class="btn btn-success btn-md btn-block">
-                    Download All
-                </button>
-            </li>
-            <li>
-                <button id="install-button" class="btn btn-primary btn-md btn-block">
-                    Install All
-                </button>
-            </li>
-            <li>
-                <button id="clearall-button" class="btn btn-warning btn-md btn-block">
-                    Clear All
-                </button>
-            </li>
-        </ul>
+        <!-- License activation form. -->
         <div class="col-md-6 mt-3">
             <div class="card card-bg-cus h-100 px-2" style="min-width:100%;">
                 <div class="py-4">
@@ -451,6 +432,7 @@
                                 <div id='activation_result'></div>
                             </div>
                     </div>
+                    <!-- Notice of license registration. -->
                     <div class="card-footer ">
                         <div class="dark-blue border-8 py-3 px-4 mt-4">
                             <small class="">

@@ -93,6 +93,18 @@
                                         />
                                     </div>
                                 </div>
+                                <!-- Default product image URL (used as featured image on products that have no image) -->
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="fv_default_product_image_url" class="form-label">
+                                            Default Product Image URL (used when plugin of theme has no image)
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="fv_default_product_image_url"
+                                            value="<?= get_option('wl_fv_default_product_image_url_wl_'); ?>"
+                                        />
+                                    </div>
+                                </div>
                                 <!-- Plugin description -->
                                 <div class="col-12">
                                     <div class="mb-3">
