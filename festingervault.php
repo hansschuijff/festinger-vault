@@ -3291,18 +3291,21 @@ function fv_get_plugins( bool $use_ignore_plugins_list = true ): array {
 
 	foreach ( get_plugins() as $basename => $plugin ) {
 
-		// Check download url of plugins without updates.
+		$download_url = '';
+
+		// Plugins with pending updates.
 		if ( isset( $plugin_updates->response[ $basename ]->package ) ) {
-			if ( fv_is_wporg_plugin( $plugin_updates->response[ $basename ]->package ) ) {
-				continue;
-			}
+			$download_url = $plugin_updates->response[ $basename ]->package;
 		}
 
-		// Check download url of plugins that have available updates.
+		// Plugins with no update.
 		if ( isset( $plugin_updates->no_update[ $basename ]->package ) ) {
-			if ( fv_is_wporg_plugin( $plugin_updates->no_update[ $basename ]->package ) ) {
-				continue;
-			}
+			$download_url = $plugin_updates->no_update[ $basename ]->package;
+		}
+
+		// Skip wordpress.org urls
+		if ( fv_is_wporg_url( $download_url ) ) {
+			continue;
 		}
 
 		if ( $use_ignore_plugins_list
@@ -3315,19 +3318,6 @@ function fv_get_plugins( bool $use_ignore_plugins_list = true ): array {
 	}
 
 	return $fv_plugins;
-}
-
-/**
- * Is plugin in the wordpress.org repo?
- *
- * @param string $plugin_url Plugin's download URL
- * @return boolean True when plugin is downloaded from the WordPress plugins repo.
- */
-function fv_is_wporg_plugin( string $plugin_url ): bool {
-	if ( empty( $plugin_url ) ) {
-		return false;
-	}
-	return str_starts_with( $plugin_url, 'https://downloads.wordpress.org/plugin/' );
 }
 
 /**
@@ -3349,18 +3339,19 @@ function fv_get_themes( $use_ignore_themes_list = true ) {
 	foreach ( wp_get_themes() as $stylesheet => $theme_data ) {
 
 		$download_url = '';
-		// themes with pending update
-		if ( ! empty( $theme_updates->response[ $stylesheet ]['package'] ) ) {
+
+		// Themes with pending update.
+		if ( isset( $theme_updates->response[ $stylesheet ]['package'] ) ) {
 			$download_url = $theme_updates->response[ $stylesheet ]['package'];
 		}
 
-		// themes with no update
-		if ( ! empty( $theme_updates->no_update[ $stylesheet ]['package'] ) ) {
+		// Themes with no update.
+		if ( isset( $theme_updates->no_update[ $stylesheet ]['package'] ) ) {
 			$download_url = $theme_updates->no_update[ $stylesheet ]['package'];
 		}
 
-		// skip wordpress.org urls
-		if ( is_wp_org_url( $download_url ) ) {
+		// Skip wordpress.org urls.
+		if ( fv_is_wporg_url( $download_url ) ) {
 			continue;
 		}
 
@@ -3382,7 +3373,7 @@ function fv_get_themes( $use_ignore_themes_list = true ) {
  * @param string $url A valid url.
  * @return boolean True if url starts with 'https://downloads.wordpress.org/'.
  */
-function is_wp_org_url( string $url ) : bool {
+function fv_is_wporg_url( string $url ) : bool {
 	if ( empty( $url ) ) {
 		return false;
 	}
