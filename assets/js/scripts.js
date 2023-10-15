@@ -7,14 +7,13 @@ var timeoutId;
 // on document ready...
 jQuery( fv_do_pages );
 
-paginationDataController( linksData );
+var linksData = {};
 
-var linksData = {
-	// Place the "links" array from the JSON data here
-};
-
+/**
+ * Determines the current page and starts page script.
+ */
 function fv_do_pages() {
-	console.log( 'running fv_do_pages()' );
+	// console.log( 'running fv_do_pages()' );
 
 	switch ( plugin_ajax_object.fv_current_screen ) {
 
@@ -43,7 +42,7 @@ function fv_do_pages() {
 			break;
 
 		default:
-			console.log('page not recognized: ', plugin_ajax_object.fv_current_screen );
+			// console.log('page not recognized: ', plugin_ajax_object.fv_current_screen );
 			// Nothing to do.
 			break;
 	}
@@ -56,9 +55,12 @@ function fv_do_pages() {
 
 }
 
+/**
+ * Script for the vaults page
+ */
 function fv_do_vault_page() {
 
-	console.log( 'running fv_do_vault_page()' );
+	// console.log( 'running fv_do_vault_page()' );
 
 	jQuery( '#history_table' ).DataTable( {
 		"pageLength": 50,
@@ -73,7 +75,7 @@ function fv_do_vault_page() {
 		// Show spinner.
 		fv_show_loading_animation();
 		// Load plugins and themes listing.
-		fv_load_vault_page_plugins_and_themes();
+		fv_vault_load_products();
 	});
 
 	jQuery('#filter_type'     ).on( 'change', fv_vault_show_filter_type_changed_value );
@@ -90,11 +92,14 @@ function fv_do_vault_page() {
 	fv_vault_toggle_bulk_action_cart();
 
 	// was run at windows.load() but document ready is same.
-	refreshCartDisplay();
+	fv_vault_refreshCartDisplay();
 }
 
+/**
+ * Script for the Activation page
+ */
 function fv_do_activation_page() {
-	console.log( 'running fv_do_activation_page()' );
+	// console.log( 'running fv_do_activation_page()' );
 
 	jQuery( '#ajax-license-activation-form'     ).on( 'submit', fv_activation_form_submit );
 	jQuery( '#ajax-license-refill-form'         ).on( 'submit', fv_activation_license_refill_form_submit );
@@ -103,8 +108,11 @@ function fv_do_activation_page() {
 	jQuery( '.ajax-license-deactivation-form-2' ).on( 'submit', fv_activation_deactivation_form_2_submit );
 }
 
+/**
+ * Script for the plugin updates page
+ */
 function fv_do_plugin_updates_page() {
-	console.log( 'running fv_do_plugin_updates_page()' );
+	// console.log( 'running fv_do_plugin_updates_page()' );
 
 	// plugin-updates page -> plugin -> auto update checkbox
 	jQuery('.auto_plugin_update_switch')
@@ -139,8 +147,11 @@ function fv_do_plugin_updates_page() {
 		.on( 'click', fv_updates_show_alert_no_updates_available );
 }
 
+/**
+ * Script for the theme updates page
+ */
 function fv_do_theme_updates_page() {
-	console.log( 'running fv_do_theme_updates_page()' );
+	// console.log( 'running fv_do_theme_updates_page()' );
 
 	// theme-updates page -> theme -> auto update checkbox
 	jQuery('.auto_theme_update_switch')
@@ -175,20 +186,31 @@ function fv_do_theme_updates_page() {
 		.on( 'click', fv_updates_show_alert_no_updates_available );
 }
 
+/**
+ * Script for the histsory page
+ */
 function fv_do_history_page() {
-	console.log( 'running fv_do_history_page()' );
+	// console.log( 'running fv_do_history_page()' );
 }
 
+/**
+ * Script for the setting page
+ */
 function fv_do_settings_page() {
-	console.log( 'running fv_do_settings_page()' );
+	// console.log( 'running fv_do_settings_page()' );
 
 	// settings page - white label form - submit button.
 	jQuery('#white_label')
 		.on( 'click', fv_settings_show_alert_white_label_not_available );
 }
 
+/**
+ * Alert: Plan doesn't support white label functionality.
+ *
+ * @param {*} event
+ */
 function fv_settings_show_alert_white_label_not_available( event ) {
-	console.log( 'running fv_settings_show_alert_white_label_not_available()' );
+	// console.log( 'running fv_settings_show_alert_white_label_not_available()' );
 
 	event.preventDefault();
 	jQuery.alert( {
@@ -198,40 +220,71 @@ function fv_settings_show_alert_white_label_not_available( event ) {
 	} );
 }
 
+/**
+ * Show confirmation message before running Force Update NOW on the plugin updates page.
+ *
+ * @param {*} event
+ */
 function fv_plugin_updates_show_confirmation_force_update_now( event ) {
-	console.log( 'running fv_plugin_updates_show_confirmation_force_update_now()' );
+	// console.log( 'running fv_plugin_updates_show_confirmation_force_update_now()' );
 
 	if ( ! confirm('Please confirm and auto update will run instantly!') ) {
 		event.preventDefault();
 	}
 }
 
+/**
+ * Show confirmation message before running Instant update all on the plugin updates page.
+ *
+ * @param {*} event
+ */
 function fv_plugin_updates_show_confirmation_instant_update_all( event ) {
-	console.log( 'running fv_plugin_updates_show_confirmation_instant_update_all()' );
+	// console.log( 'running fv_plugin_updates_show_confirmation_instant_update_all()' );
 
 	if ( ! confirm('Please confirm to run update instantly!') ) {
 		event.preventDefault();
 	}
 }
 
+/**
+ * Show confirmation message before running Force Update NOW.
+ *
+ * Page: Theme updates.
+ *
+ * @param {*} event
+ */
 function fv_theme_updates_show_confirmation_force_update_now( event ) {
-	console.log( 'running fv_theme_updates_show_confirmation_force_update_now()' );
+	// console.log( 'running fv_theme_updates_show_confirmation_force_update_now()' );
 
 	if ( ! confirm('Please confirm and auto update will run instantly!') ) {
 		event.preventDefault();
 	}
 }
 
+/**
+ * Show confirmation message before running Instant update all.
+ *
+ * Page: Theme updates.
+ *
+ * @param {*} event
+ */
 function fv_theme_updates_show_confirmation_instant_update_all( event ) {
-	console.log( 'running fv_theme_updates_show_confirmation_instant_update_all()' );
+	// console.log( 'running fv_theme_updates_show_confirmation_instant_update_all()' );
 
 	if ( ! confirm('Please confirm and instant update will run!') ) {
 		event.preventDefault();
 	}
 }
 
+/**
+ * Show alert message Force UPDATE NOW not in plan.
+ *
+ * Page: Theme updates and Plugin updates.
+ *
+ * @param {*} event
+ */
 function fv_updates_show_alert_force_update_now_not_in_plan( event ) {
-	console.log( 'running fv_updates_show_alert_force_update_now_not_in_plan()' );
+	// console.log( 'running fv_updates_show_alert_force_update_now_not_in_plan()' );
 
 	event.preventDefault();
 	jQuery.alert( {
@@ -241,8 +294,15 @@ function fv_updates_show_alert_force_update_now_not_in_plan( event ) {
 	} );
 }
 
+/**
+ * Show alert message Instant update all not in plan.
+ *
+ * Page: Theme updates and Plugin updates.
+ *
+ * @param {*} event
+ */
 function fv_updates_show_alert_instant_updates_all_not_in_plan( event ) {
-	console.log( 'running fv_updates_show_alert_instant_updates_all_not_in_plan()' );
+	// console.log( 'running fv_updates_show_alert_instant_updates_all_not_in_plan()' );
 
 	event.preventDefault();
 	jQuery.alert( {
@@ -252,8 +312,15 @@ function fv_updates_show_alert_instant_updates_all_not_in_plan( event ) {
 	} );
 }
 
+/**
+ * Show alert message No updates available on the plugin and theme updates pages.
+ *
+ * Page: Theme updates and Plugin updates.
+ *
+ * @param {*} event
+ */
 function fv_updates_show_alert_no_updates_available( event ) {
-	console.log( 'running fv_updates_show_alert_no_updates_available()' );
+	// console.log( 'running fv_updates_show_alert_no_updates_available()' );
 
 	event.preventDefault();
 	jQuery.alert( {
@@ -261,8 +328,13 @@ function fv_updates_show_alert_no_updates_available( event ) {
 	} );
 }
 
+/**
+ * Click handler for auto-update switch.
+ *
+ * Page: Theme updates.
+ */
 function fv_theme_updates_toggle_theme_auto_update() {
-	console.log( 'running fv_theme_updates_toggle_theme_auto_update()' );
+	// console.log( 'running fv_theme_updates_toggle_theme_auto_update()' );
 
 	var fv_theme_slug           = jQuery( this ).data('id');
 	var fv_theme_auto_update_is_checked = true;
@@ -273,9 +345,6 @@ function fv_theme_updates_toggle_theme_auto_update() {
 		fv_theme_auto_update_is_checked = false;
 	}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
-
 	jQuery.ajax( {
 		data: {
 			action: 'fv_toggle_theme_auto_update',
@@ -283,7 +352,7 @@ function fv_theme_updates_toggle_theme_auto_update() {
 			fv_theme_auto_update_is_checked: fv_theme_auto_update_is_checked,
 		},
 		type: 'POST',
-		url:  ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 			var data_s = data.slice( 0, -1 );
 			var json = JSON.parse( data_s );
@@ -302,8 +371,13 @@ function fv_theme_updates_toggle_theme_auto_update() {
 	} );
 }
 
+/**
+ * Click handler for auto-update switch.
+ *
+ * Page: Plugin updates.
+ */
 function fv_plugin_updates_toggle_plugin_auto_update() {
-	console.log( 'running fv_plugin_updates_toggle_plugin_auto_update()' );
+	// console.log( 'running fv_plugin_updates_toggle_plugin_auto_update()' );
 
 	var fv_plugin_slug                   = jQuery( this ).data("id");
 	var fv_plugin_auto_update_is_checked = false;
@@ -314,9 +388,6 @@ function fv_plugin_updates_toggle_plugin_auto_update() {
 		fv_plugin_auto_update_is_checked = false;
 	}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
-
 	jQuery.ajax( {
 		data: {
 			action: "fv_toggle_plugin_auto_update",
@@ -324,7 +395,7 @@ function fv_plugin_updates_toggle_plugin_auto_update() {
 			fv_plugin_auto_update_is_checked: fv_plugin_auto_update_is_checked,
 		},
 		type: "POST",
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 			var data_s = data.slice( 0, -1 );
 			var json   = JSON.parse( data_s );
@@ -352,8 +423,13 @@ function fv_plugin_updates_toggle_plugin_auto_update() {
 	} );
 }
 
+/**
+ * Show new selected value in filter type select.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_filter_type_changed_value() {
-	console.log( 'running fv_vault_show_filter_type_changed_value()' );
+	// console.log( 'running fv_vault_show_filter_type_changed_value()' );
 
 	var filterValue = jQuery( this ).val();
 	var row         = jQuery('.filter_type_cate_val');
@@ -370,10 +446,14 @@ function fv_vault_show_filter_type_changed_value() {
 	}
 }
 
+/**
+ * Resets filters, tabs and search field.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_on_click_reset_filters_button() {
-	console.log( 'running fv_vault_on_click_reset_filters_button()' );
+	// console.log( 'running fv_vault_on_click_reset_filters_button()' );
 
-	var filterValue = jQuery( this ).val();
 	var row         = jQuery(".filter_type_cate_val");
 
 	row.show();
@@ -388,11 +468,16 @@ function fv_vault_on_click_reset_filters_button() {
 	// jQuery( fv_vault_reset_filters_value );
 
 	// load the unfiltered plugins and themes list.
-	fv_load_vault_page_plugins_and_themes();
+	fv_vault_load_products();
 }
 
+/**
+ * Rebuilds the product grid after the mylist button is clicked.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_tab_mylist_results() {
-	console.log( 'running fv_vault_show_tab_mylist_results()' );
+	// console.log( 'running fv_vault_show_tab_mylist_results()' );
 
 	var mylist = jQuery("#mylist").val();
 
@@ -407,11 +492,16 @@ function fv_vault_show_tab_mylist_results() {
 		}
 	);
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid after the featured button is clicked.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_tab_featured_results() {
-	console.log( 'running fv_vault_show_tab_featured_results()' );
+	// console.log( 'running fv_vault_show_tab_featured_results()' );
 
 	var featured = jQuery("#featured").val();
 
@@ -427,11 +517,16 @@ function fv_vault_show_tab_featured_results() {
 		}
 	);
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid after the popular button is clicked.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_tab_popular_results() {
-	console.log( 'running fv_vault_show_tab_popular_results()' );
+	// console.log( 'running fv_vault_show_tab_popular_results()' );
 
 	var popular = jQuery("#popular").val();
 
@@ -446,11 +541,16 @@ function fv_vault_show_tab_popular_results() {
 		 }
 	 );
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid after the recent button is clicked.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_tab_recent_results() {
-	console.log( 'running fv_vault_show_tab_recent_results()' );
+	// console.log( 'running fv_vault_show_tab_recent_results()' );
 
 	var recent = jQuery("#recent").val();
 
@@ -465,11 +565,16 @@ function fv_vault_show_tab_recent_results() {
 		}
 	);
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid for a new selection in filter type.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_filter_type_results() {
-	console.log( 'running fv_vault_show_filter_type_results()' );
+	// console.log( 'running fv_vault_show_filter_type_results()' );
 
 	var filter_type = jQuery("#filter_type").val();
 
@@ -488,11 +593,16 @@ function fv_vault_show_filter_type_results() {
 
 	fv_show_loading_animation();
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid for a new selection in filter allowance.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_filter_allowence_results() {
-	console.log( 'running fv_vault_show_filter_allowence_results()' );
+	// console.log( 'running fv_vault_show_filter_allowence_results()' );
 
 	var filter_allowence = jQuery("#filter_allowence").val();
 
@@ -511,11 +621,16 @@ function fv_vault_show_filter_allowence_results() {
 
 	fv_show_loading_animation();
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
-function fv_vault_show_filter_allowence_results() {
-	console.log( 'running fv_vault_show_filter_allowence_results()' );
+/**
+ * Rebuilds the product grid for a new selection in filter category.
+ *
+ * Page: Vault page.
+ */
+function fv_vault_show_filter_category_results() {
+	// console.log( 'running fv_vault_show_filter_category_results()' );
 
 	var filter_category = jQuery("#filter_category").val();
 
@@ -534,20 +649,25 @@ function fv_vault_show_filter_allowence_results() {
 
 	fv_show_loading_animation();
 
-	fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+	fv_vault_load_products( ajax_filter_data );
 }
 
+/**
+ * Rebuilds the product grid for new search field entry.
+ *
+ * Page: Vault page.
+ */
 function fv_vault_show_search_results( e ) {
-	console.log( 'running fv_vault_show_search_results()' );
+	// console.log( 'running fv_vault_show_search_results()' );
 
-	var ajax_search = jQuery("#ajax_search").val();
+	var ajax_search = jQuery('#ajax_search').val();
 
 	if ( ajax_search.length >= 1 ) {
-		jQuery("#ajax_search").addClass("active_button");
-		jQuery("#ajax_search").removeClass("non_active_button");
+		jQuery('#ajax_search').addClass('active_button');
+		jQuery('#ajax_search').removeClass('non_active_button');
 	} else {
-		jQuery("#ajax_search").addClass("non_active_button");
-		jQuery("#ajax_search").removeClass("active_button");
+		jQuery('#ajax_search').addClass('non_active_button');
+		jQuery('#ajax_search').removeClass('active_button');
 	}
 
 	// Clear the previous timeout
@@ -569,31 +689,34 @@ function fv_vault_show_search_results( e ) {
 
 			fv_show_loading_animation();
 
-			fv_load_vault_page_plugins_and_themes( ajax_filter_data );
+			fv_vault_load_products( ajax_filter_data );
 		}
 	}, 500 ); // half second
 }
 
+/**
+ * Activation of a license.
+ *
+ * Page: Activation page.
+ */
 function fv_activation_form_submit( e ) {
-	console.log( 'running fv_activation_form_submit()' );
+	// console.log( 'running fv_activation_form_submit()' );
 
 	e.preventDefault();
 
-	jQuery("#overlaybef").show();
+	jQuery('#overlaybef').show();
 
 	fv_show_loading_animation();
 
-	var licenseKeyInput = jQuery("#licenseKeyInput").val();
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url        = plugin_ajax_object.ajax_url;
+	var licenseKeyInput = jQuery('#licenseKeyInput').val();
 
 	jQuery.ajax( {
 		data: {
-			action: "fv_activate_license_form_submit",
+			action: 'fv_activate_license_form_submit',
 			licenseKeyInput: licenseKeyInput,
 		},
-		type: "POST",
-		url: ajax_url,
+		type: 'POST',
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 			var data_s = data.slice( 0, -1 );
 			var json = JSON.parse( data_s );
@@ -601,31 +724,31 @@ function fv_activation_form_submit( e ) {
 			switch ( json.result ) {
 				case 'valid':
 					// license succesfully activated
-					jQuery("#ajax-license-activation-form").hide();
+					jQuery('#ajax-license-activation-form').hide();
 
-					jQuery("#activation_result").addClass(
-						"card text-center text-success"
+					jQuery('#activation_result').addClass(
+						'card text-center text-success'
 					);
-					jQuery("#activation_result").removeClass(
-						"text-warning text-danger"
+					jQuery('#activation_result').removeClass(
+						'text-warning text-danger'
 					);
 					break;
 
 				case 'invalid':
-					jQuery("#activation_result").addClass(
-						"card text-center text-warning"
+					jQuery('#activation_result').addClass(
+						'card text-center text-warning'
 					);
-					jQuery("#activation_result").removeClass(
-						"text-success text-danger"
+					jQuery('#activation_result').removeClass(
+						'text-success text-danger'
 					);
 					break;
 
 				case 'invalid':
-					jQuery("#activation_result").addClass(
-						"card text-center text-danger"
+					jQuery('#activation_result').addClass(
+						'card text-center text-danger'
 					);
-					jQuery("#activation_result").removeClass(
-						"text-success text-warning"
+					jQuery('#activation_result').removeClass(
+						'text-success text-warning'
 					);
 					break;
 
@@ -633,7 +756,7 @@ function fv_activation_form_submit( e ) {
 					break;
 			}
 
-			jQuery("#activation_result").html( json.msg );
+			jQuery('#activation_result').html( json.msg );
 
 			setTimeout( function() {
 				location.reload();
@@ -647,18 +770,40 @@ function fv_activation_form_submit( e ) {
 	} );
 }
 
+/**
+ * Handle license 1 refill form submission.
+ *
+ * Page: Activation page.
+ *
+ * @param {*} e
+ */
 function fv_activation_license_refill_form_submit( e ) {
-	console.log( 'running fv_activation_license_refill_form_submit()' );
+	// console.log( 'running fv_activation_license_refill_form_submit()' );
 	fv_do_license_refill_form_submit( '#license_key', '#refill_key' );
 }
 
+/**
+ * Handle license 2 refill form submission.
+ *
+ * Page: Activation page.
+ *
+ * @param {*} e
+ */
 function fv_activation_license_refill_form_2_submit( e ) {
-	console.log( 'running fv_activation_license_refill_form_2_submit()' );
+	// console.log( 'running fv_activation_license_refill_form_2_submit()' );
 	fv_do_license_refill_form_submit( '#license_key', '#refill_key' );
 }
 
+/**
+ * Processing a license refill form submission (License 1+2)
+ *
+ * Page: Activation page.
+ *
+ * @param {string} license_key_field_id
+ * @param {string} refill_key_field_id
+ */
 function fv_do_license_refill_form_submit( license_key_field_id, refill_key_field_id ) {
-	console.log( 'running fv_do_license_refill_form_submit()' );
+	// console.log( 'running fv_do_license_refill_form_submit()' );
 
 	e.preventDefault();
 	jQuery('#overlaybef').show();
@@ -666,8 +811,6 @@ function fv_do_license_refill_form_submit( license_key_field_id, refill_key_fiel
 
 	var license_key = jQuery( license_key_field_id ).val();
 	var refill_key  = jQuery( refill_key_field_id  ).val();
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url    = plugin_ajax_object.ajax_url;
 
 	jQuery.ajax( {
 		data: {
@@ -676,7 +819,7 @@ function fv_do_license_refill_form_submit( license_key_field_id, refill_key_fiel
 			refill_key:  refill_key,
 		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
 			var data_s = data.slice( 0, -1 );
@@ -702,8 +845,15 @@ function fv_do_license_refill_form_submit( license_key_field_id, refill_key_fiel
 	} );
 }
 
+/**
+ * Handle deactivation of license 1 (form submission).
+ *
+ * Page: Activation page.
+ *
+ * @param {*} e
+ */
 function fv_activation_deactivation_form_submit( e ) {
-	console.log( 'running fv_activation_deactivation_form_submit()' );
+	// console.log( 'running fv_activation_deactivation_form_submit()' );
 	fv_do_deactivation_form_submit(
 		'#license_key',
 		'#license_d',
@@ -711,8 +861,15 @@ function fv_activation_deactivation_form_submit( e ) {
 	);
 }
 
+/**
+ * Handle deactivation of license 2 (form submission).
+ *
+ * Page: Activation page.
+ *
+ * @param {*} e
+ */
 function fv_activation_deactivation_form_2_submit( e ) {
-	console.log( 'running fv_activation_deactivation_form_2_submit()' );
+	// console.log( 'running fv_activation_deactivation_form_2_submit()' );
 	fv_do_deactivation_form_submit(
 		'#license_key_2',
 		'#license_d_2',
@@ -720,12 +877,21 @@ function fv_activation_deactivation_form_2_submit( e ) {
 	);
 }
 
+/**
+ * Processing a license deactivation form submission (License 1+2)
+ *
+ * Page: Activation page.
+ *
+ * @param {string} license_key_field_id CSS id-selector of the license key input field.
+ * @param {string} license_domain_field_id CSS id-selector of the license domain id input field.
+ * @param {string} deactivation_result_field_class CSS class-selector of the deactivation result.
+ */
 function fv_do_deactivation_form_submit(
 	license_key_field_id,
 	license_domain_field_id,
 	deactivation_result_field_class
 	) {
-	console.log( 'running fv_do_deactivation_form_submit()' );
+	// console.log( 'running fv_do_deactivation_form_submit()' );
 
 	e.preventDefault();
 
@@ -736,9 +902,6 @@ function fv_do_deactivation_form_submit(
 	var license_key = jQuery( license_key_field_id    ).val();
 	var license_d   = jQuery( license_domain_field_id ).val();
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url    = plugin_ajax_object.ajax_url;
-
 	jQuery.ajax( {
 		data: {
 			action: 'fv_deactivate_license_form_submit',
@@ -746,7 +909,7 @@ function fv_do_deactivation_form_submit(
 			license_d:   license_d,
 		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 			var data_s = data.slice( 0, -1 );
 			var json = JSON.parse( data_s );
@@ -787,8 +950,15 @@ function fv_do_deactivation_form_submit(
 	} );
 }
 
+/**
+ * Marks tab buttons to make one active and the rest inactive (Vault page).
+ *
+ * Page: Vault page.
+ *
+ * @param {string} id CSS id-selector of the active tab button.
+ */
 function fv_vault_make_filter_tab_active( id ) {
-	console.log( 'running fv_vault_make_filter_tab_active()' );
+	// console.log( 'running fv_vault_make_filter_tab_active()' );
 
 	let tabs    = [ '#popular', '#recent', '#featured', '#mylist' ];
 
@@ -803,8 +973,13 @@ function fv_vault_make_filter_tab_active( id ) {
 	});
 }
 
+/**
+ * Marks all tab buttons as inactive (Vault page).
+ *
+ * Page: Vault page.
+ */
 function fv_vault_reset_filters_active_state() {
-	console.log( 'running fv_vault_reset_filters_active_state()' );
+	// console.log( 'running fv_vault_reset_filters_active_state()' );
 
 	let filters = [ "#filter_type", "#filter_allowence", "#filter_category", "#ajax_search" ];
 
@@ -814,8 +989,288 @@ function fv_vault_reset_filters_active_state() {
 	});
 }
 
-function grab_product_hash( d ) {
-	console.log( 'running grab_product_hash()' );
+/**
+ * Shows a modal popup for installing an item in Vault.
+ *
+ * @param {object} button Button that called the function.
+ */
+function fv_vault_on_click_install_product_button( button ) {
+	// console.log( 'running fv_vault_on_click_install_product_button()' );
+
+	jQuery('.progress').hide();
+	fv_show_loading_animation();
+
+	var product_hash   = button.getAttribute('data-id');
+
+	jQuery.ajax( {
+		data: {
+			action: 'fv_get_remote_product_download_data',
+			product_hash: product_hash,
+		},
+		type: 'POST',
+		url: plugin_ajax_object.ajax_url,
+		success: function( data ) {
+
+			let data_s = data.slice( 0, -1 );
+			let json   = JSON.parse( data_s );
+
+			/**
+			 * This api action results the result in array,
+			 * with (expected) only one entry.
+			 * Each entry is json decoded, so we should parse,
+			 * since otherwise we cannot check for result.
+			 */
+			if ( Array.isArray( json ) && json.length >= 1 ) {
+				json   = JSON.parse( json[0] );
+			}
+			// console.log( 'json = ', json );
+
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+
+			switch ( true ) {
+				case ( 0 == json.length ):
+					jQuery.alert( {
+						content: 'To enjoy this feature please activate your license.',
+					} );
+					break;
+
+				case ( 'failed' === json.result ):
+					jQuery.alert( {
+						content: json.msg,
+					} );
+					break;
+
+				default:
+					fv_vault_show_modal_product_install_form( json );
+					break;
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+}
+
+/**
+ * Render and show a popup after a user clicked the install button on a plugin or theme in the vault page.
+ *
+ * @param {*} json
+ */
+function fv_vault_show_modal_product_install_form( product ) {
+	// console.log( 'running fv_vault_show_modal_product_install_form()' );
+	let html = '<div class="row">';
+
+	let count_versions         = product.other_available_versions.length;
+	let fv_install_button_text = '';
+
+	// if only one version, the select can't be changed, so onClick.
+	let fv_on_event = 'onChange';
+	if ( count_versions == 1 ) {
+		fv_on_event = 'onClick';
+	}
+
+	fv_install_button_text = fv_vault_get_install_product_button_text( product.product_slug, product.product_type );
+
+	// Render html for the confirmation popup.
+	html +=
+		'<div class="col">' +
+			// license information
+			'<div class="card bg-light" style="min-width:100%;">' +
+				'<div class="card-header">' +
+					product.plan_name +
+				'</div>' +
+				'<ul class="list-group list-group-flush">' +
+					'<li class="list-group-item">' +
+						'Plan Type<b>: ' + product.plan_type.toUpperCase() +
+					"</b></li>" +
+					'<li class="list-group-item">' +
+						'Plan Limit: ' + product.plan_limit +
+					"</li>" +
+					'<li class="list-group-item">' +
+						'Available Limit: ' + product.download_available +
+					'</li>' +
+					fv_perhaps_add_version_installed( product ) +
+				'</ul>' +
+			'</div>' +
+			// installation button
+			'<button id="option1" class="btn btn-sm btn-block card-btn" ' +
+				'data-license="' + product.license_key  + '" ' +
+				'data-type="'    + product.product_type + '" ' +
+				'data-id="'      + product.product_hash + '" ' +
+				'href="#" ' +
+				'onclick="fv_vault_on_submit_product_install_form( this ); this.disabled=true;"' +
+				'>' +
+				'<i class="fa fa-arrow-down"></i>' +
+				fv_install_button_text +
+			'</button>' +
+			// version selection
+			'<div class="row" style="margin-top:40px;">' +
+				'<div class="col">' +
+					'<table class="table table-bordered" style="color:#fff;">' +
+						'<tr>' +
+							'<td>' +
+								'<div class="input-group text-white">' +
+									'<label class="input-group-text" for="inputGroupSelect01">' +
+										'Please choose your preferred version. Once selected, it will be installed and activated automatically' +
+									'</label>' +
+									// other available versions.
+									'<select ' +
+										fv_on_event + '="fv_vault_on_submit_product_install_form( this ); this.disabled=true;" ' +
+										'class="form-select text-white ' + product.license_key + product.product_hash + '" ' +
+										'name="downloadOtherVerions"' +
+									'>' +
+										fv_vault_get_other_versions_options_html( product ) +
+									'</select>' +
+								'</div>' +
+							'</td>' +
+						'</tr>' +
+					'</table>' +
+				'</div>' +
+			'</div>' +
+		'</div>';
+
+	html += "</div>";
+
+	// fill and show install confirmation modal
+	jQuery('.modal-body').html( html );
+	jQuery('#empModal' ).modal('show');
+
+}
+
+function fv_is_product_slug_found( needle, haystack ) {
+	// console.log( 'running fv_is_product_slug_found()' );
+	return ( -1 !== jQuery.inArray( needle, JSON.parse( haystack ) ) );
+}
+
+/**
+ * Handles submissions of the product install form (install confirmation modal).
+ *
+ * @param {object} submit_el Submit button or Select element.
+ * @returns
+ */
+function fv_vault_on_submit_product_install_form( submit_el ) {
+	// console.log( 'running fv_vault_on_submit_product_install_form()' );
+
+	fv_show_loading_animation();
+
+	// Submit element can be a submit button or a select element.
+	switch ( submit_el.type ) {
+
+		// User clicked the submit button
+		case 'submit':
+			var fv_product_hash = submit_el.getAttribute('data-id');
+			var fv_license_key  = submit_el.getAttribute('data-license');
+			var fv_mfile        = submit_el.getAttribute('data-key');
+			break;
+
+		// User changed the select element
+		case 'select-one':
+			let selected_option = $( submit_el ).find( 'option:selected' );
+			var fv_product_hash = selected_option.data('id');
+			var fv_license_key  = selected_option.data('license');
+			var fv_mfile        = selected_option.data('key');
+			break;
+
+		default:
+			fv_hide_loading_animation();
+			return;
+	}
+
+	/**
+	 * Show "are you sure?" confirmation.
+	 */
+	if ( ! fv_are_you_sure() ) {
+		fv_hide_loading_animation();
+		jQuery('#empModal').modal('hide');
+		return;
+	}
+
+	jQuery('#empModal').modal('hide');
+
+	jQuery.ajax( {
+		data: {
+			// downloads and installs the selected plugin or theme.
+			action: 'fv_vault_product_install',
+			fv_product_hash: fv_product_hash,
+			fv_license_key:  fv_license_key,
+			fv_mfile:        fv_mfile,
+		},
+		type: 'POST',
+		url:  plugin_ajax_object.ajax_url,
+		success: function( data ) {
+
+			var data_s = data.slice( 0, -1 );
+			var json   = JSON.parse( data_s );
+
+			if ( json.result == 'success') {
+				jQuery('#' + fv_license_key + ' #plan_limit_id'      ).html( json.plan_limit );
+				jQuery('#' + fv_license_key + ' #current_limit_id'   ).html( json.download_current_limit );
+				jQuery('#' + fv_license_key + ' #limit_available_id' ).html( json.download_available );
+
+				jQuery('#empModal').modal('hide');
+
+				if ( json.link == 'theme') {
+					jQuery.alert( {
+						content:
+							'Theme successfully installed. Click here to ' +
+							'<a target="_blank" href="' + json.theme_preview + '">' +
+								'Preview theme' +
+							'</a>!',
+					} );
+				} else {
+					location.href = json.activation;
+				}
+			} else {
+				jQuery('#empModal').modal('hide');
+				if ( json.result == 'failed' && json.msg == 'Daily limit crossed') {
+					jQuery.alert( {
+						title: 'Sorry! Limit issue!',
+						content:
+							'Your daily Download Limit is crossed, you can download tomorrow again! Happy downloading.',
+					} );
+				} else {
+					if ( json.msg ) {
+						jQuery.alert( {
+							title: 'Alert!',
+							content: json.msg,
+						} );
+					} else {
+						jQuery.alert( {
+							title: 'Alert!',
+							content: 'Hello!Something went wrong, Please try again later!',
+						} );
+					}
+				}
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+}
+
+/**
+ * Ask extra confirmation of intent.
+ *
+ * @returns {bool} true if confirmed.
+ */
+function fv_are_you_sure() {
+	return confirm('Are you sure you want to continue?');
+}
+
+/**
+ * Shows a modal popup for downloading an item in Vault.
+ *
+ * @param {object} button Button that called the function.
+ */
+function fv_vault_on_click_download_product_button( button ) {
+	// console.log( 'running fv_vault_on_click_download_product_button()' );
 
 	// progress bar
 	jQuery(".progress").hide();
@@ -823,317 +1278,48 @@ function grab_product_hash( d ) {
 	// spinner/loading indicator...
 	fv_show_loading_animation();
 
-	var product_hash = d.getAttribute("data-id");
-
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url     = plugin_ajax_object.ajax_url;
-
-	jQuery
-		.ajax( {
-			data: { action: "fv_plugin_buttons_ajax", product_hash: product_hash },
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-				var data_s = data.slice( 0, -1 );
-				var json = JSON.parse( data_s );
-
-				if ( json.result == "failed") {
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-
-					jQuery.alert( {
-						content: json.msg,
-					} );
-				}
-				if ( json.length == 0 ) {
-					jQuery.alert( {
-						content: "To enjoy this feature please activate your license.",
-					} );
-				} else {
-					// show plugin download_confirmation
-					collectort( json );
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-}
-
-/**
- * Renders and shows a modal popup for an update request in Vault.
- *
- * @param {*} d
- */
-function grab_product_support_link( d ) {
-	console.log( 'running grab_product_support_link()' );
-
-	jQuery(".progress").hide();
-	fv_show_loading_animation();
-
-	var data_support_link   = d.getAttribute("data-support-link");
-	var data_product_hash   = d.getAttribute("data-product-hash");
-	var data_generated_slug = d.getAttribute("data-generated-slug");
-	var data_generated_name = d.getAttribute("data-generated-name");
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url            = plugin_ajax_object.ajax_url;
-
-	jQuery
-		.ajax( {
-			data: {
-				action: "fv_plugin_support_link",
-				data_support_link:   data_support_link,
-				data_product_hash:   data_product_hash,
-				data_generated_slug: data_generated_slug,
-				data_generated_name: data_generated_name
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-
-				var data_s = data.slice( 0, -1 );
-				var json   = JSON.parse( data_s );
-
-				if ( json.result == "success") {
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-
-					button_data  = '<div class="row">';
-					button_data +=     '<form class="submitupdaterequest" data-product-hash="'+json.data_product_hash+'" data-generated-slug="'+json.data_generated_slug+'" data-license="'+json.license_key+'">';
-					button_data +=         '<div class="mb-3">';
-					button_data +=             '<input type="text" class="form-control text-white" name="versionnumberrequest" placeholder="Enter the version number ( e.g. 2.3.2 )" onkeydown="if ( event.keyCode==13 ) {event.preventDefault();}">';
-					button_data +=             '<input type="hidden" class="form-control text-white" name="versionnumberrequest_link" value="'+data_support_link+'">';
-					button_data +=             '<input type="hidden" class="form-control text-white" name="data_generated_name" value="'+data_generated_name+'">';
-					button_data +=             '<input type="hidden" class="form-control text-white" name="licenseKeyGet" value="'+json.license_key+'"> ';
-					button_data +=         '</div><br/>';
-					button_data +=         '<div class="d-grid gap-2 col-12 mx-auto"> ';
-					button_data +=             '<button class="btn btn-secondary" onclick="handleFormSubmit( this )" type="button">Submit</button>  ';
-					button_data +=         '</div>';
-					button_data +=     '</form>';
-					button_data += '</div>';
-
-					jQuery(".modal-body").html( button_data );
-					jQuery("#empModal").modal("show");
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-}
-
-/**
- * Renders and shows a modal popup to Report Item in Vault.
- *
- * @param {*} d
- */
-function grab_product_report_link( d ) {
-	console.log( 'running grab_product_report_link()' );
-
-	jQuery(".progress").hide();
-	fv_show_loading_animation();
-
-	var data_support_link   = d.getAttribute("data-support-link");
-	var data_product_hash   = d.getAttribute("data-product-hash");
-	var data_generated_slug = d.getAttribute("data-generated-slug");
-	var data_generated_name = d.getAttribute("data-generated-name");
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url            = plugin_ajax_object.ajax_url;
-
-	jQuery
-		.ajax( {
-			data: {
-				action: "fv_plugin_report_link",
-				data_support_link:   data_support_link,
-				data_product_hash:   data_product_hash,
-				data_generated_slug: data_generated_slug,
-				data_generated_name: data_generated_name
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-				var data_s = data.slice( 0, -1 );
-				var json = JSON.parse( data_s );
-
-				if ( json.result == "success") {
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-
-					button_data  =  '<div class="row">';
-					button_data +=      '<form class="reportitemform" data-product-hash="' + json.data_product_hash + '" data-generated-slug="' + json.data_generated_slug + '" data-license="' + json.license_key + '">';
-					button_data +=          '<div class="mb-3">' +
-												'<textarea ' +
-													'name="versionnumberrequest" ' +
-													'placeholder="Fill in your report and it will be automatically posted on the community forums. You will receive your reported link afterwards." class="form-control text-white">' +
-												'</textarea>' +
-												'<input type="hidden" ' +
-													'name="versionnumberrequest_link" ' +
-													'value="' + data_support_link + '" class="form-control text-white" >' +
-												'<input type="hidden" ' +
-													'name="data_generated_name" ' +
-													'value="' + data_generated_name + '" class="form-control text-white" >' +
-												'<input type="hidden" ' +
-													'name="licenseKeyGet" ' +
-													'value="' + json.license_key + '" class="form-control text-white" >' +
-											'</div><br/>' +
-											'<div class="d-grid gap-2 col-12 mx-auto"> ' +
-												'<button class="btn btn-secondary" onclick="handleFormSubmitReport( this )" type="button">' +
-													'Submit' +
-												'</button>  ' +
-											'</div>';
-					button_data +=      '</form>';
-					button_data +=  '</div>';
-
-					jQuery(".modal-body").html( button_data );
-					jQuery("#empModal").modal("show");
-
-				}
-
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-}
-
-function handleFormSubmit( button ) {
-	console.log( 'running handleFormSubmit()' );
-
-	// get the parent form of the clicked button
-	var form                = jQuery( button ).closest("form");
-	var formData            = form.serialize();
-	var versionNumber       = form.find("input[name='versionnumberrequest']").val();
-	var licenseKeyGet       = form.find("input[name='licenseKeyGet']").val();
-	var data_generated_name = form.find("input[name='data_generated_name']").val();
-
-	if ( versionNumber.trim() === "") {
-		alert("Version number is required.");
-		return;
-	}
-
-	jQuery("#empModal").modal("hide");
-
-	fv_show_loading_animation();
-
-	var getlinkData      = form.find("input[name='versionnumberrequest_link']").val();
-	var parts            = getlinkData.split("/");
-	var lastPart         = parts.pop();
-	var lastNumericValue = parseInt( lastPart );
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url         = plugin_ajax_object.ajax_url;
-
-	jQuery.ajax( {
-		data: { action: "fv_discourse_post_new_version", versionNumber: versionNumber, lastNumericValue: lastNumericValue, licenseKeyGet: licenseKeyGet, data_generated_name: data_generated_name },
-		type: "POST",
-		url: ajax_url,
-		success: function( data ) {
-			var data_s = data.slice( 0, -1 );
-			var json = JSON.parse( data_s );
-
-			if ( json.result == "success") {
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
-
-						jQuery("#empModal").modal("hide");
-
-				jQuery.alert( {
-					content: 'You request has been successfully posted. Visit <a target="_blank" href="'+getlinkData+'">this link</a> to see.',
-				} );
-			}
-
-			if ( json.result == "failed") {
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
-
-						jQuery("#empModal").modal("hide");
-
-				jQuery.alert( {
-					content: json.msg,
-				} );
-			}
-		},
-	} )
-	.done( function() {
-		setTimeout( function() {
-			fv_hide_loading_animation();
-		}, 500 );
-	} );
-}
-
-function handleFormSubmitReport( button ) {
-	console.log( 'running handleFormSubmitReport()' );
-
-	// get the parent form of the clicked button
-	var form                = jQuery( button ).closest("form");
-	var formData            = form.serialize();
-	var versionNumber       = form.find("textarea[name='versionnumberrequest']").val();
-	var licenseKeyGet       = form.find("input[name='licenseKeyGet']").val();
-	var data_generated_name = form.find("input[name='data_generated_name']").val();
-
-	if ( versionNumber.trim() === "") {
-		alert( "Version number is required." );
-		return;
-	}
-
-	jQuery("#empModal").modal("hide");
-	fv_show_loading_animation();
-
-	var getlinkData      = form.find("input[name='versionnumberrequest_link']").val();
-	var parts            = getlinkData.split("/");
-	var lastPart         = parts.pop();
-	var lastNumericValue = parseInt( lastPart );
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url         = plugin_ajax_object.ajax_url;
+	let product_hash = button.getAttribute("data-id");
 
 	jQuery.ajax( {
 		data: {
-			action: "fv_discourse_post_new_report",
-			versionNumber:       versionNumber,
-			lastNumericValue:    lastNumericValue,
-			licenseKeyGet:       licenseKeyGet,
-			data_generated_name: data_generated_name
+			action: "fv_get_remote_product_download_data",
+			product_hash: product_hash
 		},
 		type: "POST",
-		url:  ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
-			var data_s = data.slice( 0, -1 );
-			var json   = JSON.parse( data_s );
+			let data_s = data.slice( 0, -1 );
+			let json = JSON.parse( data_s );
 
-			if ( json.result == "success") {
-
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
-
-				jQuery("#empModal").modal("hide");
-
-				jQuery.alert( {
-					content: 'You request has been successfully posted. Visit <a target="_blank" href="'+getlinkData+'">this link</a> to see.',
-				} );
+			/**
+			 * If API returned result in array, then it should have only one entry.
+			 * Each entry is json decoded, so we should parse,
+			 * since otherwise we cannot check for result.
+			 */
+			if ( Array.isArray( json ) && json.length >= 1 ) {
+				json   = JSON.parse( json[0] );
 			}
 
-			if ( json.result == "failed") {
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+			switch ( true ) {
+				case ( 0 == json.length ):
+					jQuery.alert( {
+						content: 'To enjoy this feature please activate your license.',
+					} );
+					break;
 
-				jQuery("#empModal").modal("hide");
+				case ( 'failed' === json.result ):
+					jQuery.alert( {
+						content: json.msg,
+					} );
+					break;
 
-				jQuery.alert( {
-					content: json.msg,
-				} );
+				default:
+					fv_vault_show_modal_product_download_form( json );
+					break;
 			}
 		},
 	} )
@@ -1145,55 +1331,190 @@ function handleFormSubmitReport( button ) {
 }
 
 /**
- * callback of the Download LATEST VERSION button of the download popup in Vault.
-
- * @param {*} d
+ * Renders modal popup triggered by a download button in the Vault.
+ *
+ * @param {*} json
  */
-function grab_product_dowload_link( d ) {
-	console.log( 'running grab_product_dowload_link()' );
+function fv_vault_show_modal_product_download_form( json ) {
+	// console.log( 'running fv_vault_show_modal_product_download_form()' );
+
+	var form_html = '<div class="row">';
+
+	form_html += fv_vault_get_single_product_download_form_html( json );
+
+	form_html += '</div>';
+
+	jQuery('.modal-body').html( form_html );
+	jQuery('#empModal'  ).modal('show');
+	setTimeout( function() {
+		fv_hide_loading_animation();
+	}, 500 );
+}
+
+function fv_vault_get_single_product_download_form_html( product ) {
+
+	let count_versions = product.other_available_versions.length;
+	/**
+	 * React to click event if only one version in dropdown list,
+	 * Otherwise react to value change.
+	 */
+	let fv_on_event = 'onChange';
+	if ( count_versions == 1 ) {
+		fv_on_event = 'onClick';
+	}
+
+	return '' +
+		'<div class="col">' +
+			// Lincense information
+			'<div class="card bg-light" style="min-width:100%;"> ' +
+				'<div class="card-header">' +
+				product.plan_name +
+				'</div>' +
+				'<ul class="list-group list-group-flush">' +
+					'<li class="list-group-item">' +
+						'Plan Type<b>: '    + product.plan_type.toUpperCase() + '</b>' +
+					'</li>' +
+					'<li class="list-group-item">' +
+						'Plan Limit: '      + product.plan_limit +
+					'</li>' +
+					'<li class="list-group-item">' +
+						'Available Limit: ' + product.download_available +
+					'</li>' +
+					fv_perhaps_add_version_installed( product ) +
+				'</ul>' +
+			'</div>' +
+			// Download button
+			'<button id="option1" ' +
+				'data-license="' + product.license_key + '" ' +
+				'data-id="'      + product.product_hash + '" ' +
+				'onclick="fv_vault_on_submit_product_download_form( this ); this.disabled=true;" ' +
+				'class="btn btn-sm btn-block card-btn"><i class="fa fa-download"></i>' +
+				'Download LATEST VERSION' +
+			'</button>' +
+			// Available versions.
+			'<div class="row" style="margin-top:40px;">' +
+				'<div class="col">' +
+					'<table class="table table-bordered" style="color:#fff;">' +
+						'<tr>' +
+							'<td>' +
+								'<div class="input-group text-white">' +
+									'<label class="input-group-text" for="inputGroupSelect01">Please choose your preferred version. Once selected, it will be installed and activated automatically</label>' +
+									'<select ' +
+										fv_on_event + '="fv_vault_on_submit_product_download_form( this ); this.disabled=true;" ' +
+										'class="form-select text-white ' + product.license_key + product.product_hash + '" ' +
+										'name="downloadOtherVerions"' +
+									'>' +
+										fv_vault_get_other_versions_options_html( product ) +
+									'</select>' +
+								'</div>' +
+							'</td>' +
+						'</tr>' +
+					'</table>' +
+				'</div>' +
+			'</div>' +
+		'</div>';
+}
+
+function fv_perhaps_add_version_installed( product ) {
+	if ( product.version_installed ) {
+		return '' +
+		'<li class="list-group-item">' +
+			'Installed Version: ' + product.version_installed +
+		'</li>';
+	}
+	return '';
+}
+
+function fv_vault_get_other_versions_options_html( product ) {
+	// console.log( 'running fv_vault_get_other_versions_options_html()' );
+	// console.log( 'product = ', product );
+	var product_versions_html = '';
+
+	if ( ! Array.isArray( product.other_available_versions ) ) {
+		// console.log( 'not an array: product.other_available_versions ')
+		return '';
+	}
+
+	jQuery.each( product.other_available_versions.reverse(), function( index, other_version ) {
+		product_versions_html +=
+			'<option ' +
+				'value="'        + other_version.generated_version + '" ' +
+				'data-type="'    + product.product_type            + '" ' +
+				'data-key="'     + other_version.filename          + '" ' +
+				'data-license="' + product.license_key             + '" ' +
+				'data-id="'      + product.product_hash            + '" ' +
+			'>' +
+				'Version '       + other_version.generated_version +
+			'</option>';
+	});
+
+	return product_versions_html
+}
+
+/**
+ * Handles submissions of the product download form (download confirmation modal).
+ *
+ * @param {object} submit_el Submit button or Select element.
+ * @returns
+ */
+function fv_vault_on_submit_product_download_form( submit_el ) {
+	// console.log( 'running fv_vault_on_submit_product_download_form()' );
 
 	fv_show_loading_animation();
 
-	let dd = $( d ).find( 'option:selected' );
 
-	var plugin_download_hash = dd.data("id");
-	var license_key          = dd.data("license");
-	var data_key             = dd.data("key");
+	// Submit element can be a submit button or a select element.
+	switch ( submit_el.type ) {
 
-	if ( typeof license_key === 'undefined' || license_key === undefined ) {
-		var plugin_download_hash = d.getAttribute("data-id");
-		var license_key          = d.getAttribute("data-license");
-		var data_key             = d.getAttribute("data-key");
+		// User clicked the submit button
+		case 'submit':
+			var fv_product_hash  = submit_el.getAttribute('data-id');
+			var fv_license_key   = submit_el.getAttribute('data-license');
+			// not an attribute of button, so fv_mfile will be null.
+			var fv_mfile         = submit_el.getAttribute('data-key');
+			break;
+
+		// User changed the select element
+		case 'select-one':
+			let selected_option  = $( submit_el ).find( 'option:selected' );
+			var fv_product_hash  = selected_option.data('id');
+			var fv_license_key   = selected_option.data('license');
+			var fv_mfile         = selected_option.data('key');
+			break;
+
+		default:
+			fv_hide_loading_animation();
+			return;
 	}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
+	jQuery('#empModal').modal('hide');
 
 	jQuery.ajax( {
 		data: {
 			action: "fv_plugin_download_ajax",
-			plugin_download_hash: plugin_download_hash,
-			license_key:          license_key,
-			mfile:                data_key,
+			fv_product_hash: fv_product_hash,
+			fv_license_key:  fv_license_key,
+			fv_mfile:        fv_mfile,
 		},
 		type: "POST",
-		url:  ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
 			var data_s = data.slice( 0, -1 );
 			var json   = JSON.parse( data_s );
+			// console.log( 'json = ', json );
+
+			// hide modal.
+			jQuery("#empModal").modal("hide");
 
 			if ( json.result == "success") {
-
-				jQuery("#" + license_key + " #plan_limit_id").html( json.plan_limit );
-				jQuery("#" + license_key + " #current_limit_id").html( json.download_current_limit );
-				jQuery("#" + license_key + " #limit_available_id").html( json.download_available );
+				// set license budgets.
+				jQuery("#" + fv_license_key + " #plan_limit_id"     ).html( json.plan_limit );
+				jQuery("#" + fv_license_key + " #current_limit_id"  ).html( json.download_current_limit );
+				jQuery("#" + fv_license_key + " #limit_available_id").html( json.download_available );
+				// redirect to the download link.
 				location.href = json.link;
-				jQuery("#empModal").modal("hide");
-
 			} else {
-
-				jQuery("#empModal").modal("hide");
 
 				if ( json.result == "failed" && json.msg == "Daily limit crossed") {
 
@@ -1236,16 +1557,392 @@ function grab_product_dowload_link( d ) {
 }
 
 /**
+ * Shows a modal popup for an reporting an item in Vault.
+ *
+ * @param {object} button Button that called the function.
+ */
+function fv_vault_on_click_report_item_button( button ) {
+	// console.log( 'running fv_vault_on_click_report_item_button()' );
+
+	jQuery('.progress').hide();
+	fv_show_loading_animation();
+
+	// get relevant data from buttons attributes.
+	let fv_item_support_link   = button.getAttribute('data-support-link');
+	let fv_item_slug           = button.getAttribute('data-product-hash');
+	let fv_item_hash           = button.getAttribute('data-generated-slug');
+	let fv_item_name           = button.getAttribute('data-generated-name');
+
+	jQuery
+		.ajax( {
+			data: {
+				action: 'fv_vault_item_report_has_license',
+				fv_item_support_link: fv_item_support_link,
+				fv_item_slug:         fv_item_slug,
+				fv_item_hash:         fv_item_hash,
+				fv_item_name:         fv_item_name
+			},
+			type: 'POST',
+			url:  plugin_ajax_object.ajax_url,
+			success: fv_vault_show_modal_report_item_form,
+		} )
+		.done( function() {
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+		} );
+}
+
+/**
+ * Renders and inserts a (modal) form for reporting an item in Vault.
+ *
+ * Page: Vault page
+ *
+ * @param {object} data Data object that was returned by ajax action 'fv_vault_item_report_has_license'.
+ */
+function fv_vault_show_modal_report_item_form( data ) {
+	// console.log( 'running fv_vault_show_modal_report_item_form()' );
+	// console.log( data );
+
+	let report_item_form_html = '';
+	let data_s                = data.slice( 0, -1 );
+	let json                  = JSON.parse( data_s );
+
+	if ( json.result !== 'success') {
+		return;
+	}
+
+	setTimeout( function() {
+		fv_hide_loading_animation();
+	}, 500 );
+
+	report_item_form_html  =
+		// Report item form
+		'<div class="row">' +
+			'<form class="reportitemform" ' +
+				'data-product-hash="'   + json.fv_item_hash   + '" ' +
+				'data-generated-slug="' + json.fv_item_slug   + '" ' +
+				'data-license="'        + json.fv_license_key + '"'  +
+			'>' +
+				'<div class="mb-3">' +
+					// Report item text
+					'<textarea ' +
+						'name="fv_report_item_text" ' +
+						'placeholder="Fill in your report and it will be automatically posted on the community forums. You will receive your reported link afterwards." ' +
+						'class="form-control text-white">' +
+					'</textarea>' +
+					// Link to product (community) support page
+					'<input type="hidden" ' +
+						'name="fv_item_support_page_url" ' +
+						'value="' + json.fv_item_support_link + '" ' +
+						'class="form-control text-white" ' +
+					'>' +
+					// Product name
+					'<input type="hidden" ' +
+						'name="fv_item_name" ' +
+						'value="' + json.fv_item_name + '" ' +
+						'class="form-control text-white" ' +
+					'>' +
+					// License key
+					'<input type="hidden" ' +
+						'name="fv_license_key" ' +
+						'value="' + json.fv_license_key + '" ' +
+						'class="form-control text-white" ' +
+					'>' +
+				'</div><br/>' +
+				// form submit button
+				'<div class="d-grid gap-2 col-12 mx-auto"> ' +
+					'<button ' +
+						'class="btn btn-secondary"' +
+						'onclick="fv_vault_on_submit_report_item_form( this )" ' +
+						'type="button"' +
+					'>' +
+						'Submit' +
+					'</button>  ' +
+				'</div>' +
+			'</form>' +
+		'</div>';
+
+	jQuery('.modal-body').html( report_item_form_html );
+	jQuery('#empModal').modal('show');
+}
+
+/**
+ * Handles submissions of the report item form.
+ *
+ * @param {object} button Submit button or report item form.
+ * @returns
+ */
+function fv_vault_on_submit_report_item_form( button ) {
+	// console.log( 'running fv_vault_on_submit_report_item_form()' );
+
+	// get the parent form of the clicked button
+	let form                     = jQuery( button ).closest("form");
+	let fv_license_key           = form.find('input[name="fv_license_key"]'          ).val();
+	var fv_item_support_page_url = form.find('input[name="fv_item_support_page_url"]').val();
+	let fv_item_name             = form.find('input[name="fv_item_name"]'            ).val();
+	let fv_report_item_text      = form.find('textarea[name="fv_report_item_text"]'  ).val();
+	let fv_item_postid           = fv_get_postid_from_item_support_page_url( fv_item_support_page_url );
+
+	// form validations...
+
+	if ( fv_report_item_text.trim() === '') {
+		alert( 'Please enter your report before submitting.' );
+		return;
+	}
+
+	// hide form and show spinner.
+
+	jQuery('#empModal').modal('hide');
+
+	fv_show_loading_animation();
+
+	// Remote post the item report to the fv_api.
+
+	jQuery.ajax( {
+		data: {
+			action: 'fv_vault_remote_report_item',
+			fv_report_item_text: fv_report_item_text,
+			fv_item_postid:      fv_item_postid,
+			fv_license_key:      fv_license_key,
+			fv_item_name:        fv_item_name
+		},
+		type: "POST",
+		url:  plugin_ajax_object.ajax_url,
+		success: function( data ) {
+
+			var data_s = data.slice( 0, -1 );
+			var json   = JSON.parse( data_s );
+
+			// console.log( 'fv_vault_on_submit_report_item_form', 'json = ', json );
+			// hide loading animation and form.
+
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+
+			// show success alert
+			if ( json.result == "success") {
+				jQuery.alert( {
+					content: 'Your request has been successfully posted. ' +
+						'Visit <a target="_blank" href="' + fv_item_support_page_url + '">this link</a> to see.',
+				} );
+			}
+
+			// show failure alert.
+			if ( json.result == "failed") {
+				jQuery.alert( {
+					content: json.msg,
+				} );
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+}
+
+/**
+ * Shows a modal popup for an update request in Vault.
+ *
+ * @param {*} button
+ */
+function fv_vault_on_click_update_request_button( button ) {
+	// console.log( 'running fv_vault_on_click_update_request_button()' );
+
+	jQuery('.progress').hide();
+
+	fv_show_loading_animation();
+
+	let fv_item_support_link = button.getAttribute('data-support-link');
+	let fv_item_hash         = button.getAttribute('data-product-hash');
+	let fv_item_slug         = button.getAttribute('data-generated-slug');
+	let fv_item_name         = button.getAttribute('data-generated-name');
+
+	jQuery
+		.ajax( {
+			data: {
+				action: 'fv_vault_update_request_has_license',
+				fv_item_support_link:   fv_item_support_link,
+				fv_item_hash:           fv_item_hash,
+				fv_item_slug:           fv_item_slug,
+				fv_item_name:           fv_item_name
+			},
+			type: 'POST',
+			url:  plugin_ajax_object.ajax_url,
+			success: fv_vault_show_modal_update_request_form,
+		} )
+		.done( function() {
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+		} );
+}
+
+/**
+ * Renders and inserts a (modal) form for reporting an item in Vault.
+ *
+ * Page: Vault page
+ *
+ * @param {object} data Data object that was passed to ajax call.
+ */
+function fv_vault_show_modal_update_request_form( data ) {
+	// console.log( 'running fv_vault_show_modal_update_request_form()' );
+
+	let html = '';
+	let data_s                   = data.slice( 0, -1 ); // trim last char.
+	let json                     = JSON.parse( data_s );
+
+	// console.log( 'fv_vault_show_modal_update_request_form', 'json = ', json );
+
+	if ( 'success' !== json.result ) {
+		return;
+	}
+
+	setTimeout( function() {
+		fv_hide_loading_animation();
+	}, 500 );
+
+	html =
+		'<div class="row">' +
+			'<form ' +
+				'class="submitupdaterequest" ' +
+				'data-product-hash="'   + json.data_product_hash   + '" ' +
+				'data-generated-slug="' + json.data_generated_slug + '" ' +
+				'data-license="'        + json.license_key         + '"' +
+			'>' +
+				'<div class="mb-3">' +
+					// version number request link
+					'<input ' +
+						'class="form-control text-white" ' +
+						'type="hidden" ' +
+						'name="fv_item_support_page_url" ' +
+						'value="' + json.data_support_link   + '"' +
+					'>' +
+					// product generated nam
+					'<input ' +
+						'class="form-control text-white" ' +
+						'type="hidden" ' +
+						'name="fv_item_name" ' +
+						'value="' + json.fv_item_name + '"' +
+					'>' +
+					// license key
+					'<input ' +
+						'class="form-control text-white" ' +
+						'type="hidden" ' +
+						'name="fv_license_key" ' +
+						'value="' + json.license_key    + '"' +
+					'>' +
+					// version number entry field
+					'<input ' +
+						'class="form-control text-white" ' +
+						'type="text" ' +
+						'name="fv_requested_version_number" ' +
+						'placeholder="Enter the version number ( e.g. 2.3.2 )" ' +
+						'onkeydown="if ( event.keyCode==13 ) {event.preventDefault();}"' +
+					'>' +
+				'</div><br/>' +
+				'<div class="d-grid gap-2 col-12 mx-auto"> ' +
+					// submit button
+					'<button ' +
+						'class="btn btn-secondary" ' +
+						'type="button"' +
+						'onclick="fv_vault_on_submit_update_request_form( this )" ' +
+					'>' +
+						'Submit' +
+					'</button>  ' +
+				'</div>' +
+			'</form>' +
+		'</div>';
+
+	jQuery('.modal-body').html( html );
+	jQuery('#empModal'  ).modal('show');
+}
+
+// Handle update request form submit
+function fv_vault_on_submit_update_request_form( button ) {
+	// console.log( 'running fv_vault_on_submit_update_request_form()' );
+
+	// get the parent form of the clicked button
+	let form                        = jQuery( button ).closest('form');
+	let fv_requested_version_number = form.find('input[name="fv_requested_version_number"]').val();
+	let fv_license_key              = form.find('input[name="fv_license_key"]'             ).val();
+	let fv_item_name                = form.find('input[name="fv_item_name"]'               ).val();
+	var fv_item_support_page_url    = form.find('input[name="fv_item_support_page_url"]'   ).val();
+	let fv_item_postid              = fv_get_postid_from_item_support_page_url( fv_item_support_page_url );
+
+	// form validations...
+
+	if ( versionNumber.trim() === '') {
+		alert('Version number is required.');
+		return;
+	}
+
+	// hide form and show spinner.
+
+	jQuery('#empModal').modal('hide');
+
+	fv_show_loading_animation();
+
+	// post the update request to the api (via ajax) an process result.
+
+	jQuery.ajax( {
+		data: {
+			action: 'fv_vault_remote_request_update',
+			fv_version_number: fv_requested_version_number,
+			fv_item_postid:    fv_item_postid,
+			fv_license_key:    fv_license_key,
+			fv_item_name:      fv_item_name
+		},
+		type: 'POST',
+		url:  plugin_ajax_object.ajax_url,
+		success: function( data ) {
+
+			var data_s = data.slice( 0, -1 );
+			var json = JSON.parse( data_s );
+
+			// hide spinner
+
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
+
+			// success alert
+			if ( json.result == 'success') {
+				jQuery.alert( {
+					content: 'You request has been successfully posted. ' +
+						'Visit <a target="_blank" href="' + fv_item_support_page_url + '">this link</a> to see.',
+				} );
+			}
+
+			// failure alert
+			if ( json.result == "failed") {
+				jQuery.alert( {
+					content: json.msg,
+				} );
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+}
+
+/**
  * Callback for the install button of the bulk install/download popup in the Vault page.
  *
  * @param {*} d
  */
-function grab_product_install_bundle_link( d ) {
-	console.log( 'running grab_product_install_bundle_link()' );
+function fv_vault_on_submit_bulk_install_confirmation( d ) {
+	// console.log( 'running fv_vault_on_submit_bulk_install_confirmation()' );
 
 	jQuery(".progress").show();
 	fv_show_loading_animation();
-	updateProgressBarAuto( 50 );
+	fv_vault_updateProgressBarAuto( 50 );
 
 	// Check if there is only one option in the select
 
@@ -1259,9 +1956,6 @@ function grab_product_install_bundle_link( d ) {
 		var data_key             = d.getAttribute("data-key");
 	}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
-
 	jQuery.ajax( {
 		data: {
 			action: "fv_plugin_install_bulk_ajax",
@@ -1270,10 +1964,10 @@ function grab_product_install_bundle_link( d ) {
 			mfile:                data_key,
 		},
 		type: "POST",
-		url:  ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
-				// updateProgressBarAuto( 100 );
+				// fv_vault_updateProgressBarAuto( 100 );
 
 			var data_s = data.slice( 0, -1 );
 			var json = JSON.parse( data_s );
@@ -1331,9 +2025,9 @@ function grab_product_install_bundle_link( d ) {
 						//   title: "Alert!",
 						//   content: "Items has been installed successfully.",
 						// } );
-						updateProgressBar( json.getfilesize );
+						fv_vault_updateProgressBar( json.getfilesize );
 						$.removeCookie( 'cartData' );
-						refreshCartDisplay();
+						fv_vault_refreshCartDisplay();
 					}
 				}
 			}
@@ -1351,12 +2045,12 @@ function grab_product_install_bundle_link( d ) {
  *
  * @param {*} d
  */
-function grab_product_dowload_bundle_link( d ) {
-	console.log( 'running grab_product_dowload_bundle_link()' );
+function fv_vault_on_submit_bulk_download_confirmation( d ) {
+	// console.log( 'running fv_vault_on_submit_bulk_download_confirmation()' );
 
 	jQuery(".progress").show();
 	fv_show_loading_animation();
-	updateProgressBarAutoDLBefore( 50 );
+	fv_vault_updateProgressBarAutoDLBefore( 50 );
 		// Check if there is only one option in the select
 
 	var plugin_download_hash = productHashJson;
@@ -1369,9 +2063,6 @@ function grab_product_dowload_bundle_link( d ) {
 		var data_key             = d.getAttribute("data-key");
 	}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
-
 	jQuery.ajax( {
 		data: {
 			action: "fv_plugin_download_ajax_bundle",
@@ -1380,10 +2071,10 @@ function grab_product_dowload_bundle_link( d ) {
 			mfile:                data_key,
 		},
 		type: "POST",
-		url:  ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
-			//updateProgressBar( 50 );
+			//fv_vault_updateProgressBar( 50 );
 
 			var data_s = data.slice( 0, -1 );
 			var json   = JSON.parse( data_s );
@@ -1415,10 +2106,10 @@ function grab_product_dowload_bundle_link( d ) {
 
 				location.href = json.links;
 
-				updateProgressBarAutoDL( 100 );
+				fv_vault_updateProgressBarAutoDL( 100 );
 
 				$.removeCookie( 'cartData' );
-				refreshCartDisplay();
+				fv_vault_refreshCartDisplay();
 
 			//
 			// jQuery("#empModal").modal("hide");
@@ -1464,8 +2155,8 @@ function grab_product_dowload_bundle_link( d ) {
 
 // progressbar start
 
-function updateProgressBarAuto( progress ) {
-	console.log( 'running updateProgressBarAuto()' );
+function fv_vault_updateProgressBarAuto( progress ) {
+	// console.log( 'running fv_vault_updateProgressBarAuto()' );
 
 	var progressElement = $( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
@@ -1474,7 +2165,7 @@ function updateProgressBarAuto( progress ) {
 	var increment = ( targetProgress - currentProgress ) / 100;
 
 	function incrementProgress() {
-		console.log( 'running incrementProgress()' );
+		// console.log( 'running incrementProgress()' );
 		currentProgress += increment;
 		progressElement.attr( 'aria-valuenow', currentProgress );
 		progressElement.find( '.progress-bar' ).css( 'width', currentProgress + '%' );
@@ -1489,15 +2180,15 @@ function updateProgressBarAuto( progress ) {
 	incrementProgress();
 }
 
-function updateProgressBarAutoDLBefore( progress ) {
-	console.log( 'running updateProgressBarAutoDLBefore()' );
+function fv_vault_updateProgressBarAutoDLBefore( progress ) {
+	// console.log( 'running fv_vault_updateProgressBarAutoDLBefore()' );
 	var progressElement = $( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
 	var targetProgress  = parseInt( progress );
 	var increment       = ( targetProgress - currentProgress ) / 100;
 
 	function incrementProgress() {
-		console.log( 'running incrementProgress()' );
+		// console.log( 'running incrementProgress()' );
 		currentProgress += increment;
 		progressElement.attr( 'aria-valuenow', currentProgress );
 		progressElement.find( '.progress-bar' ).css( 'width', currentProgress + '%' );
@@ -1512,8 +2203,8 @@ function updateProgressBarAutoDLBefore( progress ) {
 	incrementProgress();
 }
 
-function updateProgressBarAutoDL( progress ) {
-	console.log( 'running updateProgressBarAutoDL()' );
+function fv_vault_updateProgressBarAutoDL( progress ) {
+	// console.log( 'running fv_vault_updateProgressBarAutoDL()' );
 
 	var progressElement = $( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
@@ -1521,7 +2212,7 @@ function updateProgressBarAutoDL( progress ) {
 	var increment       = ( targetProgress - currentProgress ) / 100;
 
 	function incrementProgress() {
-		console.log( 'running incrementProgress()' );
+		// console.log( 'running incrementProgress()' );
 
 		currentProgress += increment;
 		progressElement.attr( 'aria-valuenow', currentProgress );
@@ -1545,8 +2236,8 @@ function updateProgressBarAutoDL( progress ) {
 	incrementProgress();
 }
 
-function updateProgressBar( fileSize ) {
-	console.log( 'running updateProgressBar()' );
+function fv_vault_updateProgressBar( fileSize ) {
+	// console.log( 'running fv_vault_updateProgressBar()' );
 
 	var progressBar     = $( '.progress' );
 	var currentProgress = parseInt( progressBar.attr( 'aria-valuenow' ) );
@@ -1594,46 +2285,46 @@ function updateProgressBar( fileSize ) {
  * @param {*} json json parsed body of a fp_api call.
  * @param {*} type 'download' or 'install'
  */
-function fv_show_bulk_action_confirmation_popup( json, type ) {
-	console.log( 'running fv_show_bulk_action_confirmation_popup()' );
+function fv_vault_show_bulk_action_confirmation_popup( json, type ) {
+	// console.log( 'running fv_vault_show_bulk_action_confirmation_popup()' );
 
 	switch ( type ) {
 		case 'download':
 			var typeBtnText   = 'Download Bundle';
 			var typeBtnIcon   = 'fa fa-download';
-			var typeBtnMethod = 'grab_product_dowload_bundle_link';
+			var typeBtnMethod = 'fv_vault_on_submit_bulk_download_confirmation';
 			break;
 
 		case 'install':
 			var typeBtnText   = 'Install Bundle';
 			var typeBtnIcon   = 'fas fa-cloud-download-alt';
-			var typeBtnMethod = 'grab_product_install_bundle_link';
+			var typeBtnMethod = 'fv_vault_on_submit_bulk_install_confirmation';
 			break;
 		}
 
 	var button_data =
 		'<div class="row">';
 
-	jQuery.each( json, function( index, item ) {
+	jQuery.each( json, function( index, json_item ) {
 
-		var ind_item    = JSON.parse( item );
-		productHashJson = ind_item.product_hash;
+		var item        = JSON.parse( json_item );
+		productHashJson = item.product_hash;
 
 		button_data +=
 			'<div class="col">' +
 				'<div class="card bg-light" style="min-width:100%;"> ' +
 					'<div class="card-header">' +
-						ind_item.plan_name +
+						item.plan_name +
 					'</div>' +
 					'<ul class="list-group list-group-flush">' +
 						'<li class="list-group-item">' +
-							'Plan Type<b>: ' + ind_item.plan_type.toUpperCase() +
+							'Plan Type<b>: ' + item.plan_type.toUpperCase() +
 						'</b></li>' +
 						'<li class="list-group-item">' +
-							'Plan Limit: ' + ind_item.plan_limit +
+							'Plan Limit: ' + item.plan_limit +
 						'</li>' +
 						'<li class="list-group-item">' +
-							'Available Limit: ' + ind_item.download_available +
+							'Available Limit: ' + item.download_available +
 						'</li>' +
 					'</ul>' +
 				'</div>' +
@@ -1643,7 +2334,7 @@ function fv_show_bulk_action_confirmation_popup( json, type ) {
 					'</div>' +
 					'<ul class="text-white">';
 
-					jQuery.each( ind_item.product_hash, function( index2, item2 ) {
+					jQuery.each( item.product_hash, function( index2, item2 ) {
 						button_data += '<li>' + item2.product_name + '</li>';
 					} );
 
@@ -1651,7 +2342,7 @@ function fv_show_bulk_action_confirmation_popup( json, type ) {
 					'</ul>' +
 				'</div>' +
 				'<button id="option1" ' +
-					'data-license="' + ind_item.license_key + '" ' +
+					'data-license="' + item.license_key + '" ' +
 					'data-id="' + productHashJson + '" ' +
 					'onclick="' + typeBtnMethod + '( this ); this.disabled=true;" ' +
 					'class="btn btn-sm btn-block card-btn">' +
@@ -1663,401 +2354,11 @@ function fv_show_bulk_action_confirmation_popup( json, type ) {
 	button_data +=
 		'</div>';
 
-	jQuery(".modal-body").html( button_data );
-	jQuery("#empModal").modal("show");
+	jQuery('.modal-body').html( button_data );
+	jQuery('#empModal').modal('show');
 	setTimeout( function() {
 		fv_hide_loading_animation();
 	}, 500 );
-}
-
-/**
- * Renders modal popup triggered by a download button in the Vault.
- *
- * @param {*} json
- */
-function collectort( json ) {
-	console.log( 'running collectort()' );
-
-	var button_data = '<div class="row">';
-
-	jQuery.each( json, function( index, item ) {
-
-		var ind_item = JSON.parse( item );
-		let count_versions = ( ind_item.other_available_versions.length );
-		let whichevent = 'onChange';
-		if ( count_versions == 1 ) {
-			whichevent = 'onClick';
-		}
-
-		button_data +=
-			'<div class="col">' +
-				// Lincense information
-				'<div class="card bg-light" style="min-width:100%;"> ' +
-					'<div class="card-header">' +
-						ind_item.plan_name +
-					'</div>' +
-					'<ul class="list-group list-group-flush">' +
-						'<li class="list-group-item">' +
-							'Plan Type<b>: '    + ind_item.plan_type.toUpperCase() + '</b>' +
-						'</li>' +
-						'<li class="list-group-item">' +
-							'Plan Limit: '      + ind_item.plan_limit +
-						'</li>' +
-						'<li class="list-group-item">' +
-							'Available Limit: ' + ind_item.download_available +
-						'</li>' +
-					'</ul>' +
-				'</div>' +
-				// Download button
-				'<button id="option1" ' +
-					'data-license="' + ind_item.license_key + '" ' +
-					'data-id="'      + ind_item.product_hash + '" ' +
-					'onclick="grab_product_dowload_link( this ); this.disabled=true;" ' +
-					'class="btn btn-sm btn-block card-btn"><i class="fa fa-download"></i>' +
-					'Download LATEST VERSION' +
-				'</button>' +
-				// Available versions.
-				'<div class="row" style="margin-top:40px;">' +
-					'<div class="col">' +
-						'<table class="table table-bordered" style="color:#fff;">' +
-							'<tr>' +
-								'<td>' +
-									'<div class="input-group text-white">' +
-										'<label class="input-group-text" for="inputGroupSelect01">Please choose your preferred version. Once selected, it will be installed and activated automatically</label>' +
-										'<select ' + whichevent + '="grab_product_dowload_link( this ); this.disabled=true;" class="form-select text-white ' + ind_item.license_key + ind_item.product_hash + '" name="downloadOtherVerions">';
-
-		if ( Array.isArray( ind_item.other_available_versions ) ) {
-			jQuery.each( ind_item.other_available_versions.reverse(), function( index2, item2 ) {
-				button_data +=              '<option ' +
-												'value="' + item2.generated_version + '" ' +
-												'data-key="' + item2.filename + '" ' +
-												'data-license="' + ind_item.license_key + '" ' +
-												'data-id="' + ind_item.product_hash + '" >' +
-												'Version ' + item2.generated_version +
-											'</option>';
-			});
-		}
-		button_data +=                  '</select>' +
-									'</div>' +
-								'</td>' +
-							'</tr>' +
-						'</table>' +
-					'</div>' +
-				'</div>' +
-			'</div>';
-		} );
-
-	button_data += '</div>';
-
-	jQuery(".modal-body").html( button_data );
-	jQuery("#empModal").modal("show");
-	setTimeout( function() {
-		fv_hide_loading_animation();
-	}, 500 );
-}
-
-function grab_product_install_hash( d ) {
-	console.log( 'running grab_product_install_hash()' );
-
-	jQuery(".progress").hide();
-	fv_show_loading_animation();
-
-	var product_hash   = d.getAttribute("data-id");
-	// var license_key    = dd.data("license");
-	// var data_key       = dd.data("key");
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url       = plugin_ajax_object.ajax_url;
-
-	jQuery.ajax( {
-			data: {
-				action: "fv_plugin_install_button_modal_generate",
-				product_hash: product_hash,
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-
-				var data_s = data.slice( 0, -1 );
-				var json   = JSON.parse( data_s );
-
-				if ( json.result === "failed") {
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-					jQuery.alert( {
-						content: json.msg,
-					} );
-				}
-				if ( json.length == 0 ) {
-					jQuery.alert( {
-						content: "To enjoy this feature please activate your license.",
-					} );
-				} else {
-					// when api-call succes then show install & activate confirmation popup.
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-					fv_vault_show_install_confirmation_popup( json );
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-}
-
-/**
- * Renders and shows a popup after a user clicked the install button on a plugin or theme in the vault page.
- *
- * @param {*} json
- */
-function fv_vault_show_install_confirmation_popup( json ) {
-	console.log( 'running fv_vault_show_install_confirmation_popup()' );
-
-	let html = '<div class="row">';
-
-	jQuery.each( json, function ( index, item ) {
-
-		var ind_item               = JSON.parse( item );
-		let count_versions         = ind_item.other_available_versions.length;
-		let whichevent             = 'onChange';
-		let fv_install_button_text = '';
-
-		if ( count_versions == 1 ) {
-			whichevent = 'onClick';
-		}
-
-  		switch ( true ) {
-			// = active theme?
-			case fv_is_product_slug_found(
-					ind_item.product_slug,
-					// note: plugin_ajax_object is the wp_localized data passed from php
-					plugin_ajax_object.get_all_active_themes_js
-				) :
-				fv_install_button_text = 'Install latest version';
-				break;
-
-			// = active plugin?
-			case fv_is_product_slug_found(
-					ind_item.product_slug,
-					// note: plugin_ajax_object is the wp_localized data passed from php
-					plugin_ajax_object.get_all_active_plugins_js
-				) :
-				fv_install_button_text = 'Install latest version';
-				break;
-
-			// inactive theme?
-			case fv_is_product_slug_found(
-					ind_item.product_slug,
-					// note: plugin_ajax_object is the wp_localized data passed from php
-					plugin_ajax_object.get_all_inactive_themes_js
-				) :
-				fv_install_button_text = 'Already Installed Please Activate';
-				break;
-
-			// inactive plugin?
-			case fv_is_product_slug_found(
-					ind_item.product_slug,
-					// note: plugin_ajax_object is the wp_localized data passed from php
-					plugin_ajax_object.get_all_inactive_plugins_js
-				) :
-				fv_install_button_text = 'Already Installed Please Activate';
-				break;
-
-			default:
-
-				switch ( true ) {
-					case ( 'wordpress-themes' === ind_item.product_type ):
-						fv_install_button_text = 'Install LATEST VERSION';
-						break;
-
-					case ( 'wordpress-plugins' === ind_item.product_type ):
-						fv_install_button_text = 'Install & Activate LATEST VERSION';
-						break;
-
-					default:
-						fv_install_button_text = 'Install latest version';
-						break;
-				}
-
-				break;
-		}
-
-		html +=
-			'<div class="col">' +
-				// license information
-				'<div class="card bg-light" style="min-width:100%;">' +
-					'<div class="card-header">' +
-						ind_item.plan_name +
-					'</div>' +
-					'<ul class="list-group list-group-flush">' +
-						'<li class="list-group-item">' +
-							'Plan Type<b>: ' + ind_item.plan_type.toUpperCase() +
-						"</b></li>" +
-						'<li class="list-group-item">' +
-							'Plan Limit: ' + ind_item.plan_limit +
-						"</li>" +
-						'<li class="list-group-item">' +
-							'Available Limit: ' + ind_item.download_available +
-						'</li>' +
-					'</ul>' +
-				'</div>' +
-				// installation button
-				'<button id="option1" class="btn btn-sm btn-block card-btn" ' +
-					'data-license="' + ind_item.license_key  + '" ' +
-					'data-type="'    + ind_item.product_type + '" ' +
-					'data-id="'      + ind_item.product_hash + '" ' +
-					'href="#" ' +
-					'onclick="grab_product_install_link( this ); this.disabled=true;"' +
-					'>' +
-					'<i class="fa fa-arrow-down"></i>' +
-					fv_install_button_text +
-				'</button>' +
-				// version selection
-				'<div class="row" style="margin-top:40px;">' +
-					'<div class="col">' +
-						'<table class="table table-bordered" style="color:#fff;">' +
-							'<tr>' +
-								'<td>' +
-									'<div class="input-group text-white">' +
-										'<label class="input-group-text" for="inputGroupSelect01">' +
-											'Please choose your preferred version. Once selected, it will be installed and activated automatically' +
-										'</label>' +
-										// other available versions.
-										'<select ' +
-											whichevent + '="grab_product_install_link( this ); this.disabled=true;" ' +
-											'class="form-select text-white ' + ind_item.license_key + ind_item.product_hash + '" ' +
-											'name="downloadOtherVerions">';
-
-											if ( Array.isArray( ind_item.other_available_versions ) ) {
-												jQuery.each( ind_item.other_available_versions.reverse(), function( index3, item3 ) {
-													html +=
-														'<option value="' + item3.generated_version     + '" ' +
-															'data-license="' + ind_item.license_key    + '" ' +
-															'data-type="'    + ind_item.product_type   + '" ' +
-															'data-id="'      + ind_item.product_hash   + '" ' +
-															'data-key="'     + item3.filename          + '" ' +
-															'>' +
-															'Version '       + item3.generated_version +
-														'</option>';
-												});
-											}
-
-		html +=                  		'</select>' +
-									'</div>' +
-								'</td>' +
-							'</tr>' +
-						'</table>' +
-					'</div>' +
-				'</div>' +
-			'</div>';
-	} );
-
-	html += "</div>";
-
-	jQuery(".modal-body").html( html );
-	jQuery("#empModal").modal("show");
-
-}
-
-function fv_is_product_slug_found( needle, haystack ) {
-	console.log( 'running fv_is_product_slug_found()' );
-	return ( -1 !== jQuery.inArray( needle, JSON.parse( haystack ) ) );
-}
-
-function grab_product_install_link( d ) {
-	console.log( 'running grab_product_install_link()' );
-
-	fv_show_loading_animation();
-
-	let ddd = $( d ).find( 'option:selected' );
-
-	var plugin_download_hash = ddd.data("id");
-	var license_key = ddd.data("license");
-	var mfile = ddd.data("key");
-
-	// show confirm popup
-
-	var result = confirm("Are you sure you want to continue?");
-	if ( ! result ) {
-		fv_hide_loading_animation();
-		jQuery("#empModal").modal("hide");
-	} else {
-		if ( typeof license_key === 'undefined' || license_key === undefined ) {
-			var plugin_download_hash = d.getAttribute("data-id");
-			var license_key = d.getAttribute("data-license");
-			var mfile = d.getAttribute("data-key");
-			conditionmatch = true;
-		}
-
-	// var plugin_download_hash = d.getAttribute("data-id");
-	// var license_key          = d.getAttribute("data-license");
-	// var mfile                = d.getAttribute("data-key");
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url                = plugin_ajax_object.ajax_url;
-
-	jQuery
-		.ajax( {
-			data: {
-				action: "fv_plugin_install_ajax",
-				plugin_download_hash: plugin_download_hash,
-				license_key:          license_key,
-				mfile:                mfile,
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-				var data_s = data.slice( 0, -1 );
-				var json   = JSON.parse( data_s );
-
-				if ( json.result == "success") {
-					jQuery("#" + license_key + " #plan_limit_id").html( json.plan_limit );
-					jQuery("#" + license_key + " #current_limit_id").html( json.download_current_limit );
-					jQuery("#" + license_key + " #limit_available_id").html( json.download_available );
-
-					if ( json.link == "theme") {
-						jQuery.alert( {
-							content:
-								'Theme successfully installed. Click here to <a target="_blank" href="' +
-								json.theme_preview +
-								'">Preview theme</a>!',
-						} );
-					} else {
-						location.href = json.activation;
-					}
-					jQuery("#empModal").modal("hide");
-				} else {
-					jQuery("#empModal").modal("hide");
-					if ( json.result == "failed" && json.msg == "Daily limit crossed") {
-						jQuery.alert( {
-							title: "Sorry! Limit issue!",
-							content:
-								"Your daily Download Limit is crossed, you can download tomorrow again! Happy downloading.",
-						} );
-					} else {
-						if ( json.msg ) {
-							jQuery.alert( {
-								title: "Alert!",
-								content: json.msg,
-							} );
-						} else {
-							jQuery.alert( {
-								title: "Alert!",
-								content: "Hello!Something went wrong, Please try again later!",
-							} );
-						}
-					}
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-	}
 }
 
 jQuery.date = function( orginaldate ) {
@@ -2092,12 +2393,14 @@ jQuery.date = function( orginaldate ) {
 	return date;
 };
 
-//var page = 1;
-function fv_load_vault_page_plugins_and_themes( ajax_search = "", page = 1 ) {
-	console.log( 'running fv_load_vault_page_plugins_and_themes()' );
-
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url                  = plugin_ajax_object.ajax_url;
+/**
+ * Loads a grid of plugins and themes for the vault page.
+ *
+ * @param {object} ajax_search
+ * @param {number} page
+ */
+function fv_vault_load_products( ajax_search = {}, page = 1 ) {
+	// console.log( 'running fv_vault_load_products()' );
 
 	jQuery.ajax( {
 		data: {
@@ -2106,32 +2409,27 @@ function fv_load_vault_page_plugins_and_themes( ajax_search = "", page = 1 ) {
 			page:        page
 		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
-			// fv_show_loading_animation();
+			fv_show_loading_animation();
 
 			var data_s = data.slice( 0, -1 );  // removes the last char of string.
 			var json   = JSON.parse( data_s ); // converts json in a js object.
+			// console.log( json );
 
-			console.log( json );
+			/**
+			 * Renders the grid with product cards.
+			 * json.data contains the plugin/theme data
+			 */
+			fv_vault_render_product_grid( json.data );
 
-			// port the parse result through pagination controller
-			// json.links contains pagination urls etc.
-			// json.data contains the plugin/theme data
-
-			paginationDataController( ajax_search, json.links, page );
-
-			jQuery('#list').pagination( {
-
-				dataSource:    json.data, // plugin/theme data of the current page.
-				pageSize:      40,
-				showPrevious:  false,
-				showNext:      false,
-				showNavigator: false,
-
-				callback: fv_vault_render_product_grid,
-			} );
+			/**
+			 * ajax_search contains the search and filter criteria.
+			 * json.links contains pagination data.
+			 * page contains pagenumber
+			 */
+			fv_render_pagination( ajax_search, json.links, page );
 		},
 	} )
 	.done( function() {
@@ -2148,11 +2446,11 @@ function fv_load_vault_page_plugins_and_themes( ajax_search = "", page = 1 ) {
  * @returns
  */
 function fv_vault_render_product_grid( products, pagination ) {  // render current page.
-	console.log( 'running fv_vault_render_product_grid()' );
+	// console.log( 'running fv_vault_render_product_grid()' );
 
 	// note: plugin_ajax_object is the wp_localized data passed from php
 
-	jQuery( '.paginationjs-page' )
+	jQuery( '#pagination' )
 		.addClass( 'disabled disablendhide' )
 		.attr( 'disabled', true );
 
@@ -2162,13 +2460,13 @@ function fv_vault_render_product_grid( products, pagination ) {  // render curre
 	// Nothing found.
 	if ( products.length == 0 ) {
 		wrapper.html(
-			'<div class=mt-4 mb-4"" style="color:#fff; font-size:20px; text-align:center;">' +
+			'<div class="mt-4 mb-4" style="color:#fff; font-size:20px; text-align:center;">' +
 				'Sorry, No plugins or themes are found!' +
 			'</div>'
 		);
 
 		// Hide pagagination.
-		jQuery('.paginationjs').hide();
+		jQuery('#pagination').hide();
 		return;
 	}
 
@@ -2184,13 +2482,13 @@ function fv_vault_render_product_grid( products, pagination ) {  // render curre
 	);
 
 	// show pagination.
-	jQuery('.paginationjs').show();
+	jQuery('#pagination').show();
 
 	// Determine number of grid columns.
 	var fv_items_per_row = fv_get_items_per_row( '.wrapper' );
 
 	// iterate though the found products.
-	var product_grid_html = '<div class="row mb-3 ">';
+	var product_grid_html = '<div class="row mb-3">';
 
 	jQuery.each( products, function( i, f ) {
 
@@ -2208,78 +2506,88 @@ function fv_vault_render_product_grid( products, pagination ) {  // render curre
 		fv_item_count++;
 	} );
 
-	product_grid_html += "</div>"; // close row
-	product_grid_html += "</div>"; // close grid
+	product_grid_html += '</div>'; // close row
+	product_grid_html += '</div>'; // close grid
 
 	// insert grid in page.
 	wrapper.append( product_grid_html );
 }
 
-function paginationDataController( ajax_search, links, page ) {
-	console.log( 'running paginationDataController()' );
+/**
+ *	Render the pagination html on the vault page.
+ *
+ * @param {object} ajax_search Object with selected filters and search string.
+ * @param {array} links Pagination data.
+ * @param {int} page Current pagenumber.
+ */
+function fv_render_pagination( ajax_search, links, page ) {
+	// console.log( 'running fv_render_pagination()' );
 
 	var pagination = $( '#pagination' );
+
 	pagination.empty(); // Clear previous pagination links
 
 	$.each( links, function( index, link ) {
-		var listItem = $( '<li class="page-item"></li>' );
+
+		// create basic elements.
 		var linkElement = $( '<a class="page-link"></a>' );
+		var listItem    = $( '<li class="page-item"></li>' );
 
 		if ( link.url ) {
+
+			// add href.
 			linkElement.attr( 'href', link.url );
+
+			// add click event handler.
 			linkElement.on( 'click', function( event ) {
 				event.preventDefault();
-				var page = getPageFromUrl( link.url );
-				handlePageClick( ajax_search, page );
+				var page = fv_get_page_from_url( link.url );
+				fv_vault_load_products( ajax_search, page );
 			} );
 
-			// Add "active" class to the selected page link
-			if ( page === getPageFromUrl( link.url ) ) {
+			// Add 'active' class to the selected page link
+			if ( page === fv_get_page_from_url( link.url ) ) {
 				linkElement.addClass( 'active' );
 			}
 
 		} else {
+			// no link provided, so disable.
 			linkElement.addClass( 'disabled' );
 		}
 
-	// Decode HTML entities
+		// $( '<div>' ) creates a div-element.
+		// .html( link.label ) fills it with the html link.label.
+		// .text() returns the text-content.
 		var decodedLabel = $( '<div>' ).html( link.label ).text();
-		linkElement.html( decodedLabel );
 
+		linkElement.html( decodedLabel );
 		listItem.append( linkElement );
 		pagination.append( listItem );
 	} );
 }
 
-function getPageFromUrl( url ) {
-	console.log( 'running getPageFromUrl()' );
+function fv_get_page_from_url( url ) {
+	// console.log( 'running fv_get_page_from_url()' );
 	var regex = /[?&]page=( \d+ )/;
 	var match = regex.exec( url );
 	return match ? parseInt( match[1] ) : null;
 }
 
-function handlePageClick( ajax_search, page ) {
-	console.log( 'running handlePageClick()' );
-
-	// Replace this with your logic to handle the page click
-	fv_load_vault_page_plugins_and_themes( ajax_search, page );
-}
-
-function showToast() {
-	console.log( 'running showToast()' );
+function fv_vault_showToast() {
+	// console.log( 'running fv_vault_showToast()' );
 	var toast = document.querySelector( '.toast' );
 	var toastEl = new bootstrap.Toast( toast );
 	toastEl.show();
 }
 
-function fv_add_item_to_cart( d ) {
-	console.log( 'running fv_add_item_to_cart()' );
+function fv_vault_add_item_to_cart( d ) {
+	// console.log( 'running fv_vault_add_item_to_cart()' );
 
-	var productId   = d.getAttribute("data-id");
-	var productName = d.getAttribute("data-itemname");
+	var productId   = d.getAttribute('data-id');
+	var productName = d.getAttribute('data-itemname');
 
 	// Get the cart items from the cookie or create a new empty object
-	var cartData  = getCartData();
+	var cartData  = fv_vault_getCartData();
 	var cartCount = Object.keys( cartData ).length;
 
 	jQuery( '.dropdown-menu.cart-dropdown' )
@@ -2298,13 +2606,13 @@ function fv_add_item_to_cart( d ) {
 			};
 
 			// Add the new item to the cart dropdown
-			var cartItems = document.getElementById("cart-items");
-			var newItem = document.createElement("div");
+			var cartItems = document.getElementById('cart-items');
+			var newItem = document.createElement('div');
 
 			newItem.innerHTML =
 				productName +
 				'<button type="button" class="btn btn-danger btn-sm float-right" ' +
-					'onclick="remove_from_cart( this )" ' +
+					'onclick="fv_vault_remove_from_cart( this )" ' +
 					'data-id="' + productId + '">' +
 					'Remove' +
 				'</button>';
@@ -2313,47 +2621,47 @@ function fv_add_item_to_cart( d ) {
 		} else {
 		}
 
-		showToast();
+		fv_vault_showToast();
 
 	} else {
 		alert( 'Sorry, Maximum limit is 10 items.' )
 	}
 
 	// Save the updated cart data to the cookie
-	setCartData( cartData );
+	fv_vault_setCartData( cartData );
 
-	refreshCartDisplay();
+	fv_vault_refreshCartDisplay();
 };
 
 /**
  * Remove a bulk action item from cart.
  */
-function remove_from_cart( d ) {
-	console.log( 'running remove_from_cart()' );
+function fv_vault_remove_from_cart( d ) {
+	// console.log( 'running fv_vault_remove_from_cart()' );
 
-	var productId = d.getAttribute("data-id");
+	var productId = d.getAttribute('data-id');
 
 	// Get the cart items from the cookie or create a new empty object
-	var cartData  = getCartData();
+	var cartData  = fv_vault_getCartData();
 
 	// Remove the selected item from the cart
 	delete cartData[ productId ];
 
 	// Remove the item from the cart dropdown
-	var cartItems    = document.getElementById("cart-items");
+	var cartItems    = document.getElementById('cart-items');
 	var itemToRemove = d.parentNode;
 
 	cartItems.removeChild( itemToRemove );
 
 	// Save the updated cart data to the cookie
-	setCartData( cartData );
+	fv_vault_setCartData( cartData );
 };
 
 /**
  * Get bulk items in cart from cookie
  */
-function getCartData() {
-	console.log( 'running getCartData()' );
+function fv_vault_getCartData() {
+	// console.log( 'running fv_vault_getCartData()' );
 
 	// read cookie
 	var cartData = $.cookie( 'cartData' );
@@ -2383,8 +2691,8 @@ function getCartData() {
 /**
  * Save bulk items in cart in cookie
  */
-function setCartData( cartData ) {
-	console.log( 'running setCartData()' );
+function fv_vault_setCartData( cartData ) {
+	// console.log( 'running fv_vault_setCartData()' );
 
 	var expires = new Date();
 
@@ -2404,10 +2712,10 @@ function setCartData( cartData ) {
 /**
  * Refresh cart with items-data from cookie.
  */
-function refreshCartDisplay() {
-	console.log( 'running refreshCartDisplay()' );
+function fv_vault_refreshCartDisplay() {
+	// console.log( 'running fv_vault_refreshCartDisplay()' );
 
-	var cartData      = getCartData();
+	var cartData      = fv_vault_getCartData();
 	var cartCount     = Object.keys( cartData ).length;
 	var cartItemsList = jQuery( '.cart-dropdown .cart-items' );
 
@@ -2442,179 +2750,11 @@ function refreshCartDisplay() {
 
 	// Add a click event listener to the button
 	button.addEventListener( 'click', ( event ) => {
-
 		// Prevent the default behavior of the button click
 		event.preventDefault();
 		// Stop the event propagation to prevent the dropdown menu from closing
 		event.stopPropagation();
 	});
-
-	/**
-	 * Handle click on the Vault Page -> Bulk -> Clear All button.
-	 */
-	jQuery( '.cart-dropdown #clearall-button' )
-		.off( 'click' )
-		.on( 'click',
-			function() {
-				$.removeCookie( 'cartData' );
-				refreshCartDisplay();
-			}
-		);
-
-	/**
-	 * Handle click on the Vault Page -> Bulk -> Download All button.
-	 */
-	jQuery( '.cart-dropdown #download-button' )
-		.off( 'click' )
-		.on( 'click', fv_vault_page_handle_bulk_download_all_button );
-
-	/**
-	 * Callback for the Vault Page -> Bulk -> Download All button.
-	 */
-	function fv_vault_page_handle_bulk_download_all_button() {
-		console.log( 'running fv_vault_page_handle_bulk_download_all_button()' );
-
-		jQuery(".progress").hide();
-
-		var progressBar = $( '.progress' );
-
-		progressBar.attr( 'aria-valuenow', 0 );
-		progressBar.find( '.progress-bar' ).css( 'width', 0 + '%' );
-
-		// collect the bulk plugins/themes from the card.
-		// note: carItemsList is filled in refreshCartDisplay()
-
-		var cartItems = [];
-		cartItemsList.children().each( function() {
-
-				var itemId   = jQuery( this ).attr( 'data-id' );
-				var itemName = jQuery( this ).attr( 'data-name' );
-
-				cartItems.push( {
-					'id':   itemId,
-					'name': itemName
-				} );
-			}
-		);
-
-		// Send AJAX request to download items
-		var cartItemListForS = JSON.stringify( cartItems );
-
-		// note: plugin_ajax_object is the wp_localized data passed from php
-		var ajax_url         = plugin_ajax_object.ajax_url;
-
-		jQuery.ajax( {
-			data: {
-				action: "fv_get_bulk_items_data_from_api",
-				product_hash: cartItems
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-
-				var data_s = data.slice( 0, -1 );
-				var json   = JSON.parse( data_s );
-
-				if ( json.result == "failed" ) {
-
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-
-					jQuery.alert( {
-						content: json.msg,
-					} );
-				}
-				if ( json.length == 0 ) {
-
-					jQuery.alert( {
-						content: "To enjoy this feature please activate your license.",
-					} );
-
-				} else {
-
-					// If all went well, build and show the confirmation popup.
-					fv_show_bulk_action_confirmation_popup( json, 'download' );
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-	}
-
-	/**
-	 * Handle click on the Vault Page -> Bulk -> Install All button.
-	 */
-	jQuery( '.cart-dropdown #install-button' )
-		.off( 'click' )
-		.on( 'click', fv_vault_page_handle_bulk_install_all_button );
-
-	/**
-	 * Callback for the Vault Page -> Bulk -> Install All button.
-	 */
-	function fv_vault_page_handle_bulk_install_all_button() {
-		console.log( 'running fv_vault_page_handle_bulk_install_all_button()' );
-		jQuery(".progress").hide();
-
-		var progressBar = $( '.progress' );
-
-		progressBar.attr( 'aria-valuenow', 0 );
-		progressBar.find( '.progress-bar' ).css( 'width', 0 + '%' );
-
-		var cartItems = [];
-		cartItemsList.children().each( function() {
-			var itemId = jQuery( this ).attr( 'data-id' );
-			var itemName = jQuery( this ).attr( 'data-name' );
-			cartItems.push( {
-				'id': itemId,
-				'name': itemName
-			} );
-		} );
-
-		// Send AJAX request to install items
-		var cartItemListForS = JSON.stringify( cartItems );
-		// note: plugin_ajax_object is the wp_localized data passed from php
-		var ajax_url         = plugin_ajax_object.ajax_url;
-
-		jQuery.ajax( {
-			data: {
-				action: "fv_get_bulk_items_data_from_api",
-				product_hash: cartItems
-			},
-			type: "POST",
-			url: ajax_url,
-			success: function( data ) {
-				var data_s = data.slice( 0, -1 );
-				var json = JSON.parse( data_s );
-
-				if ( json.result == "failed") {
-					setTimeout( function() {
-						fv_hide_loading_animation();
-					}, 500 );
-
-					jQuery.alert( {
-						content: json.msg,
-					} );
-				}
-				if ( json.length == 0 ) {
-					jQuery.alert( {
-						content: "To enjoy this feature please activate your license.",
-					} );
-				} else {
-					fv_show_bulk_action_confirmation_popup( json, 'install' );
-				}
-			},
-		} )
-		.done( function() {
-			setTimeout( function() {
-				fv_hide_loading_animation();
-			}, 500 );
-		} );
-
-	}
 
 	/**
 	 * Handle click on the Vault Page -> Bulk -> Cart-item -> Remove button.
@@ -2624,20 +2764,30 @@ function refreshCartDisplay() {
 		.on( 'click', fv_vault_page_handle_bulk_action_item_remove_button );
 
 	/**
-	 * Callback for the Vault Page -> Bulk -> Cart-item -> Remove button.
+	 * Handle click on the Vault Page -> Bulk -> Download All button.
 	 */
-	function fv_vault_page_handle_bulk_action_item_remove_button() {
-		console.log( 'running fv_vault_page_handle_bulk_action_item_remove_button()' );
-		var itemId   = jQuery( this ).parent().attr( 'data-id' );
-		// Read cookie for cart data
-		var cartData = getCartData();
-		// remove item from bulk actions.
-		delete cartData[itemId];
-		// Save the updated cart data to the cookie
-		setCartData( cartData );
-		// refresh cart.
-		refreshCartDisplay();
-	}
+	jQuery( '.cart-dropdown #download-button' )
+		.off( 'click' )
+		.on( 'click', fv_vault_page_handle_bulk_download_all_button );
+
+	/**
+	 * Handle click on the Vault Page -> Bulk -> Install All button.
+	 */
+	jQuery( '.cart-dropdown #install-button' )
+		.off( 'click' )
+		.on( 'click', fv_vault_page_handle_bulk_install_all_button );
+
+	/**
+	 * Handle click on the Vault Page -> Bulk -> Clear All button.
+	 */
+	jQuery( '.cart-dropdown #clearall-button' )
+		.off( 'click' )
+		.on( 'click',
+			function() {
+				$.removeCookie( 'cartData' );
+				fv_vault_refreshCartDisplay();
+			}
+		);
 
 	// Show-hide buttons in bulk-action Cart
 	if (  cartCount > 0  ) {
@@ -2656,9 +2806,8 @@ function refreshCartDisplay() {
 	}
 }
 
-
 function fv_vault_toggle_bulk_action_cart() {
-	console.log( 'running fv_vault_toggle_bulk_action_cart()' );
+	// console.log( 'running fv_vault_toggle_bulk_action_cart()' );
 
 	// Get the cart-get-dropdown and get-cart-dropdownsub elements
 	var cartGetDropdown    = $( '.cart-get-dropdown'    ); // Bulk-button
@@ -2684,126 +2833,54 @@ function fv_vault_toggle_bulk_action_cart() {
 		}
 	);
 
-	refreshCartDisplay();
+	fv_vault_refreshCartDisplay();
 }
 
-function grab_dc_product_dcontents( d ) {
-	console.log( 'running grab_dc_product_dcontents()' );
+function fv_vault_on_click_product_additional_content_button( d ) {
+	// console.log( 'running fv_vault_on_click_product_additional_content_button()' );
 
-	fv_show_loading_animation()　
+	fv_show_loading_animation();
+
 	jQuery(".progress").hide();
 
 	var product_hash = ( d.getAttribute("data-id") );
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url     = plugin_ajax_object.ajax_url;
 
 	jQuery.ajax( {
 		data: {
-			action: 'fv_fs_plugin_dc_contents_ajax',
+			action: 'fv_get_remote_product_additional_content_data',
 			product_hash: product_hash
 		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
-			console.log( data );
-			var data_s = data.slice( 0, -1 );
-			var json = JSON.parse( data_s );
-			console.log( json );
 
-			if ( json.length === 0 ) {
-				jQuery( '#empModal' ).modal( 'hide' );
+			let data_s = data.slice( 0, -1 );
+			let json   = JSON.parse( data_s );
 
-				jQuery.alert( {
-					content: 'No contents found.',
-				} );
-			} else {
-				var button_data =
-					'<table class="table table-bordered data_table998fv" style="color:#fff; border:1px solid #fff;">' +
-						'<thead>' +
-							'<tr>' +
-								'<th class="text-white">File name</th>' +
-								'<th class="text-white">Type</th>' +
-								'<th class="text-white">Date</th>' +
-								'<th class="text-white">Action</th>' +
-							'</tr>' +
-						'</thead>' +
-						'<tbody>';
-
-				var getIdFromContent = null;
-				jQuery.each( json, function( index, item ) {
-
-					if ( item ) {
-						var ind_item             = ( item );
-						const dateTimeStringFvDc = ind_item.created_at;
-						const datePartFvDC       = dateTimeStringFvDc.split(" ")[0];
-						const inputStringfvdc    = ind_item.content_type;
-
-						// Step 1: Remove the hyphen and split the string into an array
-						const wordsArrayfvdc = inputStringfvdc.split("-");
-
-						// Step 2: Capitalize each word in the array
-						const capitalizedWordsArrayfvdc = wordsArrayfvdc.map( ( word ) => {
-							return word.charAt( 0 ).toUpperCase() + word.slice( 1 );
-						} );
-
-						// Step 3: Join the words back together to form the final string
-						const resultStringFvDc = capitalizedWordsArrayfvdc.join("");
-
-						if ( getIdFromContent == null ) {
-							getIdFromContent = ind_item.id;
-						}
-
-						button_data +=
-							'<tr class="text-white">' +
-								'<td class="text-white">' +
-									ind_item.content_name +
-								'</td>' +
-								'<td class="text-white">' +
-									resultStringFvDc +
-								'</td>' +
-								'<td class="text-white">' +
-									datePartFvDC +
-								'</td>' +
-								'<td class="text-white">';
-									'<button class="btn btn-success btn-xs text-white download_dc_fv" style="padding: 1px 7px 1px 0px; font-size: 12px;"' +
-										'id="dc_option" ' +
-										'data-dltype="single" ' +
-										'data-id="' + ind_item.id + '" ' +
-										'onclick="grab_dc_product_hash( this );" ' +
-										'onclick="grab_product_dowload_link_dc( this ); this.disabled=true;">' +
-										'Download' +
-									'</button>' +
-								'</td>' +
-							'</tr>';
-					}
-				} );
-
-				button_data +=
-						'</body>' +
-					'</table>' +
-					'<table class="table" style="color:#fff;margin-top:20px;">' +
-						'<tr>' +
-							'<td colspan>' +
-								'<button class="btn btn-success btn-xs text-white download_dc_fv" style="width:100%;"' +
-									'onclick="grab_dc_product_hash( this );" data-dltype="all_dl"' +
-									'data-id="' + getIdFromContent + '">' +
-									'Download all' +
-								'</button>' +
-							'</td>' +
-						'</tr>' +
-					'</table>';
-
-				jQuery( '.modal-body' ).html( button_data );
-				jQuery( '#empModal'   ).modal( 'show' );
-
-				$( '.data_table998fv' ).DataTable( {
-					"pageLength": 10
-				} );
-			}
+			// console.log( json );
+			jQuery( '#empModal' ).modal( 'hide' );
 
 			setTimeout( function() {
 				fv_hide_loading_animation();
 			}, 500 );
+
+			if ( json.length === 0 ) {
+				jQuery.alert( {
+					content: 'No additional content found.',
+				} );
+				return;
+			} else {
+
+				let html = fv_vault_get_product_additional_content_list_html( json );
+
+				jQuery( '.modal-body' ).html( html );
+				jQuery( '#empModal'   ).modal( 'show' );
+
+				$( '.data_table998fv' ).DataTable( {
+					'pageLength': 10
+				} );
+			}
+
 		}
 	} ).done( function() {
 		setTimeout( function() {
@@ -2812,55 +2889,206 @@ function grab_dc_product_dcontents( d ) {
 	} );
 }
 
-//demo contents product button web
-function grab_dc_product_hash( d ) {
-	console.log( 'running grab_dc_product_hash()' );
+function fv_vault_get_product_additional_content_list_html( content_items ) {
+	// console.log('running fv_vault_get_product_additional_content_list_html()');
 
-	fv_show_loading_animation()　
+	let first_item_id = null;
+	let html          =
+		'<table class="table table-bordered data_table998fv" style="color:#fff; border:1px solid #fff;">' +
+			'<thead>' +
+				'<tr>' +
+					'<th class="text-white">File name</th>' +
+					'<th class="text-white">Type</th>' +
+					'<th class="text-white">Date</th>' +
+					'<th class="text-white">Action</th>' +
+				'</tr>' +
+			'</thead>' +
+			'<tbody>';
 
-	var product_hash = ( d.getAttribute("data-id") );
-	var data_dltype = ( d.getAttribute("data-dltype") );
-	var product_mfile_id = '';
+	jQuery.each( content_items, function( index, item ) {
 
-	jQuery(".cs-fp-follow-button").on( 'click',);
+		if ( ! item ) {
+			return;
+		}
 
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url = plugin_ajax_object.ajax_url;
+		// timestamp formated like 2023-08-03 14:00:49
+		const fv_created_at_date = item.created_at.split(' ')[0];
+		const fv_content_type    = fv_kebab_case_to_pascal_case( item.content_type );
+
+		if ( first_item_id == null ) {
+			first_item_id = item.id;
+		}
+
+		html += '<tr class="text-white">' +
+					// File name
+					'<td class="text-white">' +
+						item.content_name +
+					'</td>' +
+					// Type
+					'<td class="text-white">' +
+						fv_content_type +
+					'</td>' +
+					// Date
+					'<td class="text-white">' +
+						fv_created_at_date +
+					'</td>' +
+					// Action
+					'<td class="text-white">' +
+						'<button class="btn btn-success btn-xs text-white download_dc_fv" style="padding: 1px 7px 1px 0px; font-size: 12px;"' +
+							'id="dc_option" ' +
+							'data-dltype="single" ' +
+							'data-id="' + item.id + '" ' +
+							'onclick="fv_vault_on_click_download_additional_content( this ); this.disabled=true;"' +
+						'>' +
+							'Download' +
+						'</button>' +
+					'</td>' +
+				'</tr>';
+	} );
+
+	html += '</body>' +
+		'</table>' +
+		'<table class="table" style="color:#fff;margin-top:20px;">' +
+			'<tr>' +
+				'<td colspan>' +
+					'<button class="btn btn-success btn-xs text-white download_dc_fv" style="width:100%;"' +
+						'onclick="fv_vault_on_click_download_all_additional_content( this );" ' +
+						'data-dltype="all_dl"' +
+						'data-id="' + first_item_id + '">' +
+						'Download all' +
+					'</button>' +
+				'</td>' +
+			'</tr>' +
+		'</table>';
+
+	return html;
+}
+
+/**
+ * change slug to title case sentence.
+ *
+ * Input string is expected to be formated in kebab case,
+ * which means all lowercase en with hyphens between words.
+ *
+ * Title case means each word is capitalizes, and there is a space between each word.
+ *
+ * @param {*} str string lowercase with hyphen ('-') between each word.
+ */
+function fv_kebab_case_to_title_case( str ) {
+
+	// Remove the hyphen and split str into an array
+	const words = str.split('-');
+
+	/**
+	 * Capitalize each word.
+	 *
+	 * note: charAt(0) selects onlyfirst char of word.
+	 *       slice(1)  selects word except the first char.
+	 */
+	const capitalized_words = words.map( ( word ) => {
+		return word.charAt( 0 ).toUpperCase() + word.slice( 1 );
+	} );
+
+	// Rebuild the string with spaces instead of hyphens.
+	return capitalized_words.join(' ');
+}
+
+/**
+ * Change slug to Pascal case.
+ *
+ * Input string is expected to be formated in kebab case,
+ * which means all lowercase en with hyphens between words.
+ *
+ * Pascal case means each word is capitalizes, and no seperator between words.
+ *
+ * @param {*} str string lowercase with hyphen ('-') between each word.
+ */
+function fv_kebab_case_to_pascal_case( str ) {
+
+	// Remove the hyphen and split str into an array
+	const words = str.split('-');
+
+	/**
+	 * Capitalize each word.
+	 *
+	 * note: charAt(0) selects onlyfirst char of word.
+	 *       slice(1)  selects word except the first char.
+	 */
+	const capitalized_words = words.map( ( word ) => {
+		return word.charAt( 0 ).toUpperCase() + word.slice( 1 );
+	} );
+
+	// Rebuild the string with spaces instead of hyphens.
+	return capitalized_words.join('');
+}
+
+function fv_vault_on_click_download_all_additional_content( button ) {
+	// console.log( 'running fv_vault_on_click_download_all_additional_content()' );
+
+	fv_show_loading_animation();
+
+	// 'single' of 'all_dl'
+	var data_dltype  = button.getAttribute('data-dltype');
+	// additional content post_id
+	var product_hash = button.getAttribute('data-id');
+
+	jQuery('.cs-fp-follow-button').on( 'click',);
 
 	jQuery.ajax( {
-		data: {action: 'fv_fs_plugin_dc_buttons_ajax', product_hash:product_hash, data_dltype:data_dltype},
+		data: {
+			action: 'fv_get_remote_additional_content_download_data',
+			product_hash: product_hash,
+			data_dltype:  data_dltype
+		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
+
 			var data_s = data.slice( 0, -1 );
-			var json = JSON.parse( data_s );
-			console.log( json );
-			if ( data_s == null || data_s.length == 5 ) {
-				jQuery.alert( {
-					content: 'No downloadable file is available for this item. Please try again later',
-				} );
-			} else {
-				if ( json.result == 'invalid' ) {
+			var json   = JSON.parse( data_s );
+
+			/**
+			 * This api action results the result in array,
+			 * with (expected) only one entry.
+			 * Each entry is json decoded, so we should parse,
+			 * since otherwise we cannot check for result.
+			 */
+			if ( Array.isArray( json ) && json.length >= 1 ) {
+				json   = JSON.parse( json[0] );
+			}
+			// console.log( 'json = ', json );
+
+			switch ( true ) {
+				case ( data_s == null || data_s.length == 5 ):
+					jQuery.alert( {
+						content: 'No downloadable file is available for this item. Please try again later',
+					} );
+					break;
+
+				case ( data_s.length == 0 ):
+					jQuery.alert( {
+						content: 'To enjoy this feature please activate your license.',
+					} );
+					break;
+
+				case ( 'invalid' === json.result ):
+
 					setTimeout( function() {
 						fv_hide_loading_animation();
 					}, 500 );
 
 					if ( json.msg == 'Please login to download.' ) {
-						window.location="/get-started/";
+						window.location='/get-started/';
 					} else {
 						jQuery.alert( {
 							content: json.msg,
 						} );
 					}
-				}
+					break;
 
-				if ( data_s.length == 0 ) {
-					jQuery.alert( {
-						content: 'To enjoy this feature please activate your license.',
-					} );
-				} else {
-					collectortdc( json );
-				}
+				default:
+					fv_vault_show_download_all_additional_content_confirmation( json );
+					break;
 			}
 		}
 	} ).done( function() {
@@ -2870,49 +3098,49 @@ function grab_dc_product_hash( d ) {
 	} );
 }
 
-function collectortdc( json ) {
-	console.log( 'running collectortdc()' );
+function fv_vault_show_download_all_additional_content_confirmation( item ) {
+	// console.log( 'running fv_vault_show_download_all_additional_content_confirmation()' );
 
-	var button_data = '<div class="row">';
+	let html = '<div class="row">';
 
-	jQuery.each( json, function( index, item ) {
-		if ( item ) {
-				var ind_item = JSON.parse( item );
-				button_data +=
-					'<div class="col-md-6">' +
-						'<div class="card mb-2 bg-light" style="min-width:100%;">' +
-							'<div class="card-header">' +
-								ind_item.plan_name +
-							'</div>' +
-							'<ul class="list-group list-group-flush">' +
-								'<li class="list-group-item">Plan Type<b>: '    +
-									ind_item.plan_type.toUpperCase() +
-								'</b></li>' +
-								'<li class="list-group-item">Plan Limit: '      +
-									ind_item.plan_limit +
-								'</li>' +
-								'<li class="list-group-item">Available Limit: ' +
-									ind_item.download_available +
-								'</li>' +
-							'</ul>' +
-							'<div class="card-footer">' +
-								'<button style="width:100%;" class="btn btn-sm btn-block card-btn" ' +
-									'id="dc_option" ' +
-									'onclick="grab_product_dowload_link_dc( this ); this.disabled=true;"' +
-									'data-license="' + ind_item.license_key  + '" ' +
-									'data-id="' +      ind_item.product_hash + '" ' +
-									'data-dltype="' +  ind_item.dl_type      + '">' +
-									'<i class="fa fa-arrow-down"></i>' +
-									'Download from ' + ind_item.plan_type.toUpperCase() + ' plan' +
-								'</button>' +
-							'</div>' +
-						'</div>' +
-					'</div>';
-			}
-	} );
-	button_data += '</div>';
+	if ( ! item ) {
+		return;
+	}
 
-	jQuery( '.modal-body' ).html( button_data );
+	html +=
+		'<div class="col-md-6">' +
+			'<div class="card mb-2 bg-light" style="min-width:100%;">' +
+				'<div class="card-header">' +
+					item.plan_name +
+				'</div>' +
+				'<ul class="list-group list-group-flush">' +
+					'<li class="list-group-item">Plan Type<b>: '    +
+						item.plan_type.toUpperCase() +
+					'</b></li>' +
+					'<li class="list-group-item">Plan Limit: '      +
+						item.plan_limit +
+					'</li>' +
+					'<li class="list-group-item">Available Limit: ' +
+						item.download_available +
+					'</li>' +
+				'</ul>' +
+				'<div class="card-footer">' +
+					'<button style="width:100%;" class="btn btn-sm btn-block card-btn" ' +
+						'id="dc_option" ' +
+						'onclick="fv_vault_on_click_download_additional_content( this ); this.disabled=true;"' +
+						'data-license="' + item.license_key  + '" ' +
+						'data-id="' +      item.product_hash + '" ' +
+						'data-dltype="' +  item.dl_type      + '">' +
+						'<i class="fa fa-arrow-down"></i>' +
+						'Download from ' + item.plan_type.toUpperCase() + ' plan' +
+					'</button>' +
+				'</div>' +
+			'</div>' +
+		'</div>';
+
+	html += '</div>';
+
+	jQuery( '.modal-body' ).html( html );
 	jQuery( '#empModal' ).modal( 'show' );
 	setTimeout( function() {
 		fv_hide_loading_animation();
@@ -2920,8 +3148,8 @@ function collectortdc( json ) {
 
 }
 
-function getFileNameFromURL( url ) {
-	console.log( 'running getFileNameFromURL()' );
+function fv_get_filename_from_url( url ) {
+	// console.log( 'running fv_get_filename_from_url()' );
 
 	// Get the part of the URL after the last '/'
 	var filenameWithParams    = url.substring( url.lastIndexOf( '/' ) + 1 );
@@ -2934,78 +3162,103 @@ function getFileNameFromURL( url ) {
 
 	filenameFinal = filename + extension;
 
-	console.log( filenameFinal );
+	// console.log( filenameFinal );
 
 	return filenameFinal;
 
 	//return { filename: filename, extension: extension };
 }
 
-function downloadFileDC( url ) {
-	console.log( 'running downloadFileDC()' );
+function fv_download_file_from_url( url ) {
+	// console.log( 'running fv_download_file_from_url()' );
 
 	var xhr = new XMLHttpRequest();
 
 	xhr.open( 'GET', url, true );
 	xhr.responseType = 'blob';
 	xhr.onload       = function() {
-		if ( xhr.status === 200 ) {
-			var blob        = xhr.response;
-			var filename    = getFileNameFromURL( url ); // Use the getFileNameFromURL function to extract the filename
-			var a           = document.createElement( 'a' );
-			a.href          = window.URL.createObjectURL( blob );
-			a.download      = filename;
-			a.style.display = 'none';
-			document.body.appendChild( a );
-			a.click();
-			window.URL.revokeObjectURL( a.href );
+		if ( xhr.status !== 200 ) {
+			return;
 		}
+		// creates an a-tag and self-clicks that to download.
+		var blob        = xhr.response;
+		var filename    = fv_get_filename_from_url( url ); // Use the fv_get_filename_from_url function to extract the filename
+		var a           = document.createElement( 'a' );
+		a.href          = window.URL.createObjectURL( blob );
+		a.download      = filename;
+		a.style.display = 'none';
+		document.body.appendChild( a );
+		a.click();
+		window.URL.revokeObjectURL( a.href );
 	};
 
 	xhr.send();
 }
 
-function grab_product_dowload_link_dc( d ) {
-	console.log( 'running grab_product_dowload_link_dc()' );
+/**
+ * Handles submissions of the product download form dc (download confirmation modal).
+ *
+ * @param {object} submit_el Submit button or Select element.
+ * @returns
+ */
+function fv_vault_on_click_download_additional_content( submit_el ) {
+	// console.log( 'running fv_vault_on_click_download_additional_content()' );
 
 	fv_show_loading_animation()　
 
-	var plugin_download_hash = ( d.getAttribute("data-id") );
-	var license_key          = ( d.getAttribute("data-license") );
-	var download_type        = ( d.getAttribute("data-dltype") );
-	// note: plugin_ajax_object is the wp_localized data passed from php
-	var ajax_url             = plugin_ajax_object.ajax_url;
+	// Submit element can be a submit button or a select element.
+	switch ( submit_el.type ) {
+
+		// User clicked the submit button
+		case 'submit':
+			var fv_product_hash  = submit_el.getAttribute('data-id');
+			var fv_license_key   = submit_el.getAttribute('data-license');
+			var fv_download_type = submit_el.getAttribute("data-dltype");
+			break;
+
+		// User changed the select element
+		case 'select-one':
+			let selected_option  = $( submit_el ).find( 'option:selected' );
+			var fv_product_hash  = selected_option.data('id');
+			var fv_license_key   = selected_option.data('license');
+			var fv_download_type = selected_option.data('dltype');
+			break;
+
+		default:
+			fv_hide_loading_animation();
+			return;
+	}
 
 	jQuery.ajax( {
 		data: {
 			action: 'fv_fs_plugin_download_ajax_dc',
-			plugin_download_hash: plugin_download_hash,
-			license_key:          license_key,
-			download_type:        download_type
+			fv_product_hash:  fv_product_hash,
+			fv_license_key:   fv_license_key,
+			fv_download_type: fv_download_type
 		},
 		type: 'POST',
-		url: ajax_url,
+		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
 
 			var data_s = data.slice( 0, -1 );
-			var json = JSON.parse( data_s );
+			var json   = JSON.parse( data_s );
 
-			console.log( json );
+			// console.log( json );
+
+			jQuery('#empModal').modal('hide');
 
 			if ( json.result == 'success' ) {
 
-				jQuery( '#'+license_key+' #plan_limit_id' ).html(      json.plan_limit  );
-				jQuery( '#'+license_key+' #current_limit_id' ).html(   json.download_current_limit  );
-				jQuery( '#'+license_key+' #limit_available_id' ).html( json.download_available );
+				jQuery( '#' + fv_license_key + ' #plan_limit_id'      ).html( json.plan_limit  );
+				jQuery( '#' + fv_license_key + ' #current_limit_id'   ).html( json.download_current_limit  );
+				jQuery( '#' + fv_license_key + ' #limit_available_id' ).html( json.download_available );
 
-				if ( download_type == 'single' ) {
-					downloadFileDC( json.link );
+				if ( fv_download_type == 'single' ) {
+					fv_download_file_from_url( json.link );
 				} else {
 					location.href = json.link;
 				}
-				jQuery( '#empModal' ).modal( 'hide' );
 			} else {
-				jQuery( '#empModal' ).modal( 'hide' );
 				if ( json.msg ) {
 					jQuery.alert( {
 						title: 'Alert!',
@@ -3027,7 +3280,7 @@ function grab_product_dowload_link_dc( d ) {
 }
 
 function fv_vault_reset_filters_value() {
-	console.log( 'running fv_vault_reset_filters_value()' );
+	// console.log( 'running fv_vault_reset_filters_value()' );
 	jQuery("#ajax_search").val("");
 	jQuery("#filter_allowence").val("all");
 	jQuery("#filter_type").val("all");
@@ -3035,12 +3288,12 @@ function fv_vault_reset_filters_value() {
 }
 
 function fv_show_loading_animation() {
-	console.log( 'running fv_show_loading_animation()' );
+	// console.log( 'running fv_show_loading_animation()' );
 	jQuery("#overlay").fadeIn( 300 );
 }
 
 function fv_hide_loading_animation() {
-	console.log( 'running fv_hide_loading_animation()' );
+	// console.log( 'running fv_hide_loading_animation()' );
 	jQuery("#overlay").fadeOut( 300 );
 }
 
@@ -3051,7 +3304,7 @@ function fv_hide_loading_animation() {
  * @returns
  */
 function fv_get_items_per_row( wrapper ) {
-	console.log( 'running fv_get_items_per_row()' );
+	// console.log( 'running fv_get_items_per_row()' );
 
 	var get_list_wrapper_display_size = jQuery( wrapper ).width();
 
@@ -3078,24 +3331,24 @@ function fv_get_items_per_row( wrapper ) {
 }
 
 function fv_is_active_theme( slug ) {
-	console.log( 'running fv_is_active_theme()' );
+	// console.log( 'running fv_is_active_theme()' );
 	return fv_is_product_slug_found( slug, plugin_ajax_object.get_all_active_themes_js );
 }
 function fv_is_active_plugin( slug ) {
-	console.log( 'running fv_is_active_plugin()' );
+	// console.log( 'running fv_is_active_plugin()' );
 	return fv_is_product_slug_found( slug, plugin_ajax_object.get_all_active_plugins_js );
 }
 function fv_is_disabled_theme( slug ) {
-	console.log( 'running fv_is_disabled_theme()' );
+	// console.log( 'running fv_is_disabled_theme()' );
 	return fv_is_product_slug_found( slug, plugin_ajax_object.get_all_inactive_themes_js );
 }
 function fv_is_disabled_plugin( slug ) {
-	console.log( 'running fv_is_disabled_plugin()' );
+	// console.log( 'running fv_is_disabled_plugin()' );
 	return fv_is_product_slug_found( slug, plugin_ajax_object.get_all_inactive_plugins_js );
 }
 
 function fv_get_allowence_img_html( value, dl_linkxyzzu ) {
-	console.log( 'running fv_get_allowence_img_html()' );
+	// console.log( 'running fv_get_allowence_img_html()' );
 
 	let html = '';
 
@@ -3139,7 +3392,7 @@ function fv_get_allowence_img_html( value, dl_linkxyzzu ) {
 }
 
 function fv_get_install_button_html_for_vault_product_card( f, fv_button_disabled ) {
-	console.log( 'running fv_get_install_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_install_button_html_for_vault_product_card()' );
 
 	// install button
 	let html =
@@ -3147,7 +3400,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 			'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn"' +
 			'href="#" '   +
 			'data-id="'   + f.unique_rand_md5 + '" ' +
-			'onclick="grab_product_install_hash( this );" ' +
+			'onclick="fv_vault_on_click_install_product_button( this );" ' +
 			'><i class="fas fa-cloud-download-alt"></i>' +
 			'Install' +
 		'</button>';
@@ -3173,7 +3426,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 				'<button ' +
 					'href="#" ' +
 					'data-id="' + f.unique_rand_md5 + '" ' +
-					'onclick="grab_product_install_hash( this );" ' +
+					'onclick="fv_vault_on_click_install_product_button( this );" ' +
 					'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn"' +
 					'>' +
 					'<i class="fas fa-cloud-download-alt"></i>' +
@@ -3186,7 +3439,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 				'<button ' +
 					'href="#" ' +
 					'data-id="'   + f.unique_rand_md5  + '" ' +
-					'onclick="grab_product_install_hash( this );" ' +
+					'onclick="fv_vault_on_click_install_product_button( this );" ' +
 					'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn" ' +
 					'> ' +
 					'<i class="fas fa-cloud-download-alt"></i>' +
@@ -3200,7 +3453,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 					'<button ' +
 						'href="#" ' +
 						'data-id="' + f.unique_rand_md5 + '" ' +
-						'onclick="grab_product_install_hash( this );" ' +
+						'onclick="fv_vault_on_click_install_product_button( this );" ' +
 						'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn" ' +
 						'>' +
 						'<i class="fas fa-cloud-download-alt"></i>' +
@@ -3211,7 +3464,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 			html =
 				'<button ' +
 					'data-id="' + f.unique_rand_md5 + '" ' +
-					'onclick="grab_product_install_hash( this );" ' +
+					'onclick="fv_vault_on_click_install_product_button( this );" ' +
 					'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn"' +
 					'><i class="fa fa-arrow-down"></i>' +
 					'Activate' +
@@ -3223,7 +3476,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 				'<button ' +
 					'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn"' +
 					'data-id="'   + f.unique_rand_md5  + '" ' +
-					'onclick="grab_product_install_hash( this );" ' +
+					'onclick="fv_vault_on_click_install_product_button( this );" ' +
 					'><i class="fa fa-arrow-down"></i>' +
 					'Activate' +
 				'</button>';
@@ -3235,7 +3488,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 					'class="btn ' + disable_the_button + ' btn-sm btn-block card-btn"' +
 					'data-id="'   + f.unique_rand_md5  + '" ' +
 					'href="#" '   +
-					'onclick="grab_product_install_hash(this);"  ' +
+					'onclick="fv_vault_on_click_install_product_button(this);"  ' +
 					'><i class="fas fa-cloud-download-alt"></i>' +
 					'Change Version' +
 					'</button>';
@@ -3259,7 +3512,7 @@ function fv_get_install_button_html_for_vault_product_card( f, fv_button_disable
 }
 
 function fv_get_download_button_html_for_vault_product_card( f, fv_button_disabled ) {
-	console.log( 'running fv_get_download_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_download_button_html_for_vault_product_card()' );
 
 	let html = '';
 
@@ -3274,7 +3527,7 @@ function fv_get_download_button_html_for_vault_product_card( f, fv_button_disabl
 				'class="btn '     + fv_button_disabled + ' btn-sm btn-block card-btn"' +
 				'data-id="'       + f.unique_rand_md5  + '" ' +
 				'data-itemname="' + f.title + '" ' +
-				'onclick="grab_product_hash( this );" ' +
+				'onclick="fv_vault_on_click_download_product_button( this );" ' +
 				'><i class="fas fa-download"></i>' +
 				'Download' +
 			'</button>' +
@@ -3284,7 +3537,7 @@ function fv_get_download_button_html_for_vault_product_card( f, fv_button_disabl
 }
 
 function fv_get_sales_page_button_html_for_vault_product_card( f ) {
-	console.log( 'running fv_get_sales_page_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_sales_page_button_html_for_vault_product_card()' );
 
 	let html = '';
 
@@ -3307,7 +3560,7 @@ function fv_get_sales_page_button_html_for_vault_product_card( f ) {
 }
 
 function fv_get_request_update_button_html_for_vault_product_card( f, fv_button_disabled, fv_white_label_is_active ) {
-	console.log( 'running fv_get_request_update_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_request_update_button_html_for_vault_product_card()' );
 
 	let html =
 		'<div class="col-6 mt-1">' +
@@ -3317,7 +3570,7 @@ function fv_get_request_update_button_html_for_vault_product_card( f, fv_button_
 				'data-generated-slug="' + f.new_generated_slug + '" ' +
 				'data-generated-name="' + f.title + '" ' +
 				'href="#" ' +
-				'onclick="grab_product_support_link( this );" ' +
+				'onclick="fv_vault_on_click_update_request_button( this );" ' +
 				'class="btn btn-sm btn-block card-btn ' + fv_button_disabled + '" ' +
 				'><i class="fas fa-sync"></i>' +
 				'Request Update' +
@@ -3340,7 +3593,7 @@ function fv_get_request_update_button_html_for_vault_product_card( f, fv_button_
 }
 
 function fv_get_support_button_html_for_vault_product_card( f, fv_white_label_is_active ) {
-	console.log( 'running fv_get_support_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_support_button_html_for_vault_product_card()' );
 
 	let html =
 		'<div class="col-6 mt-1 mb-1">' +
@@ -3368,7 +3621,7 @@ function fv_get_support_button_html_for_vault_product_card( f, fv_white_label_is
 }
 
 function fv_get_report_item_button_html_for_vault_product_card( f, fv_white_label_is_active ) {
-	console.log( 'running fv_get_report_item_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_report_item_button_html_for_vault_product_card()' );
 
 	let html =
 		'<div class="col-6 mt-1">' +
@@ -3378,7 +3631,7 @@ function fv_get_report_item_button_html_for_vault_product_card( f, fv_white_labe
 				'data-generated-slug="' + f.new_generated_slug + '" ' +
 				'data-generated-name="' + f.title + '" ' +
 				'href="#" ' +
-				'onclick="grab_product_report_link( this );" ' +
+				'onclick="fv_vault_on_click_report_item_button( this );" ' +
 				'class="btn btn-sm btn-block card-btn "' +
 				'><i class="fas fa-flag"></i>' +
 				'Report Item' +
@@ -3401,14 +3654,14 @@ function fv_get_report_item_button_html_for_vault_product_card( f, fv_white_labe
 }
 
 function fv_get_add_to_bulk_button_html_for_vault_product_card( f, fv_button_disabled ) {
-	console.log( 'running fv_get_add_to_bulk_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_add_to_bulk_button_html_for_vault_product_card()' );
 
 	let html =
 		'<div class="col-6 mt-1 mb-1">' +
 			'<button type="button" style="font-size:12.6px;" ' +
 				'data-id="' + f.unique_rand_md5 + '" ' +
 				'data-itemname="' + f.title + '" ' +
-				'onclick="fv_add_item_to_cart( this )" ' +
+				'onclick="fv_vault_add_item_to_cart( this )" ' +
 				'class="btn btn-sm btn-block card-btn mt-2 add_to_bulk_btn ' + fv_button_disabled + '"' +
 				'> <i class="fas fa-angle-down"></i>' +
 				'Add to bulk' +
@@ -3429,7 +3682,7 @@ function fv_get_add_to_bulk_button_html_for_vault_product_card( f, fv_button_dis
 }
 
 function fv_get_virus_scan_button_html_for_vault_product_card( f ) {
-	console.log( 'running fv_get_virus_scan_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_virus_scan_button_html_for_vault_product_card()' );
 
 	let html =
 		'<div class="col-6 mt-1 mb-1">' +
@@ -3455,7 +3708,7 @@ function fv_get_virus_scan_button_html_for_vault_product_card( f ) {
 }
 
 function fv_get_additional_content_button_html_for_vault_product_card( f, fv_button_disabled ) {
-	console.log( 'running fv_get_additional_content_button_html_for_vault_product_card()' );
+	// console.log( 'running fv_get_additional_content_button_html_for_vault_product_card()' );
 
 	// install button
 	let html =
@@ -3463,8 +3716,7 @@ function fv_get_additional_content_button_html_for_vault_product_card( f, fv_but
 			'<button id="optiondc" ' +
 				'data-id="' + f.unique_rand_md5 + '" ' +
 				'data-itemname="' + f.title + '" href="#" ' +
-				'grab_dc_product_hash ' +
-				'onclick="grab_dc_product_dcontents( this );" ' +
+				'onclick="fv_vault_on_click_product_additional_content_button( this );" ' +
 				'class="btn ' + fv_button_disabled + ' btn-sm btn-block card-btn">' +
 				'<i class="fas fa-download"></i>' +
 				'Additional Content' +
@@ -3475,7 +3727,7 @@ function fv_get_additional_content_button_html_for_vault_product_card( f, fv_but
 }
 
 function fv_has_membership_allowance( f ) {
-	console.log( 'running fv_has_membership_allowance()' );
+	// console.log( 'running fv_has_membership_allowance()' );
 
 	return ( null      !== f.membershipallowance
 		&& 'undefined' !== typeof f.membershipallowance
@@ -3483,7 +3735,7 @@ function fv_has_membership_allowance( f ) {
 }
 
 function fv_get_vault_product_card_html( f ) {
-	console.log( 'running fv_get_vault_product_card_html()' );
+	// console.log( 'running fv_get_vault_product_card_html()' );
 
 	let fv_install_button_html;
 	let fv_download_button_html;
@@ -3663,4 +3915,225 @@ function fv_get_vault_product_card_html( f ) {
 		'</div>';
 
 	return html;
+}
+
+/**
+ * Callback for the Vault Page -> Bulk -> Download All button.
+ */
+function fv_vault_page_handle_bulk_download_all_button() {
+	// console.log( 'running fv_vault_page_handle_bulk_download_all_button()' );
+
+	jQuery(".progress").hide();
+
+	var progressBar   = $( '.progress' );
+	var cartItemsList = jQuery( '.cart-dropdown .cart-items' );
+
+	progressBar.attr( 'aria-valuenow', 0 );
+	progressBar.find( '.progress-bar' ).css( 'width', 0 + '%' );
+
+	/**
+	 * Collect the bulk plugins/themes from the card.
+	 *
+	 * Note: carItemsList is filled in fv_vault_refreshCartDisplay()
+	 */
+
+	var cartItems = [];
+
+	cartItemsList.children().each( function() {
+
+			var itemId   = jQuery( this ).attr( 'data-id' );
+			var itemName = jQuery( this ).attr( 'data-name' );
+
+			cartItems.push( {
+				'id':   itemId,
+				'name': itemName
+			} );
+		}
+	);
+
+	// Send AJAX request to download items
+	var cartItemListForS = JSON.stringify( cartItems );
+
+	jQuery.ajax( {
+		data: {
+			action: "fv_get_bulk_items_data_from_api",
+			product_hash: cartItems
+		},
+		type: "POST",
+		url:  plugin_ajax_object.ajax_url,
+		success: function( data ) {
+
+			var data_s = data.slice( 0, -1 );
+			var json   = JSON.parse( data_s );
+
+			if ( json.result == "failed" ) {
+
+				setTimeout( function() {
+					fv_hide_loading_animation();
+				}, 500 );
+
+				jQuery.alert( {
+					content: json.msg,
+				} );
+			}
+			if ( json.length == 0 ) {
+
+				jQuery.alert( {
+					content: "To enjoy this feature please activate your license.",
+				} );
+
+			} else {
+
+				// If all went well, build and show the confirmation popup.
+				fv_vault_show_bulk_action_confirmation_popup( json, 'download' );
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+}
+
+/**
+ * Callback for the Vault Page -> Bulk -> Install All button.
+ */
+function fv_vault_page_handle_bulk_install_all_button() {
+	// console.log( 'running fv_vault_page_handle_bulk_install_all_button()' );
+
+	jQuery(".progress").hide();
+
+	var progressBar   = $( '.progress' );
+	var cartItemsList = jQuery( '.cart-dropdown .cart-items' );
+
+	progressBar.attr( 'aria-valuenow', 0 );
+	progressBar.find( '.progress-bar' ).css( 'width', 0 + '%' );
+
+	var cartItems = [];
+	cartItemsList.children().each( function() {
+		var itemId = jQuery( this ).attr( 'data-id' );
+		var itemName = jQuery( this ).attr( 'data-name' );
+		cartItems.push( {
+			'id': itemId,
+			'name': itemName
+		} );
+	} );
+
+	// Send AJAX request to install items
+	var cartItemListForS = JSON.stringify( cartItems );
+
+	jQuery.ajax( {
+		data: {
+			action: "fv_get_bulk_items_data_from_api",
+			product_hash: cartItems
+		},
+		type: "POST",
+		url:  plugin_ajax_object.ajax_url,
+		success: function( data ) {
+			var data_s = data.slice( 0, -1 );
+			var json = JSON.parse( data_s );
+
+			if ( json.result == "failed") {
+				setTimeout( function() {
+					fv_hide_loading_animation();
+				}, 500 );
+
+				jQuery.alert( {
+					content: json.msg,
+				} );
+			}
+			if ( json.length == 0 ) {
+				jQuery.alert( {
+					content: "To enjoy this feature please activate your license.",
+				} );
+			} else {
+				fv_vault_show_bulk_action_confirmation_popup( json, 'install' );
+			}
+		},
+	} )
+	.done( function() {
+		setTimeout( function() {
+			fv_hide_loading_animation();
+		}, 500 );
+	} );
+
+}
+
+/**
+ * Callback for the Vault Page -> Bulk -> Cart-item -> Remove button.
+ */
+function fv_vault_page_handle_bulk_action_item_remove_button() {
+	// console.log( 'running fv_vault_page_handle_bulk_action_item_remove_button()' );
+	var itemId   = jQuery( this ).parent().attr( 'data-id' );
+	// Read cookie for cart data
+	var cartData = fv_vault_getCartData();
+	// remove item from bulk actions.
+	delete cartData[itemId];
+	// Save the updated cart data to the cookie
+	fv_vault_setCartData( cartData );
+	// refresh cart.
+	fv_vault_refreshCartDisplay();
+}
+
+/**
+ * Get product post-id from item support page url.
+ *
+ * item support page url looks like...
+ * https://community.festingervault.com/t/item-slug/1234
+ *
+ * It ends with an integer product id (here: 1234).
+ *
+ * @param {string} url
+ * @returns {int} post_id
+ */
+function fv_get_postid_from_item_support_page_url( url ) {
+	let chunks     = url.split("/");
+	let last_chunk = chunks.pop();
+	return parseInt( last_chunk );
+}
+
+/**
+ * Determine the text of the button on the install confirmation modal in the vault.
+ *
+ * @param {string} slug Product slug
+ * @param {string} type Product type
+ * @returns string Install button text
+ */
+function fv_vault_get_install_product_button_text( slug, type ) {
+
+	switch ( true ) {
+
+		// = active theme?
+		case fv_is_active_theme( slug ):
+			return 'Install latest version';
+
+		// = active plugin?
+		case fv_is_active_plugin( slug ):
+			return  'Install latest version';
+
+		// inactive theme?
+		case fv_is_disabled_theme( slug ):
+			return  'Already Installed Please Activate';
+
+		// inactive plugin?
+		case fv_is_disabled_plugin( slug ):
+			return 'Already Installed Please Activate';
+
+		default:
+
+			switch ( true ) {
+
+				case ( 'wordpress-themes' === type ):
+					return 'Install LATEST VERSION';
+
+				case ( 'wordpress-plugins' === type ):
+					return 'Install & Activate LATEST VERSION';
+
+				default:
+					return 'Install latest version';
+
+			}
+	}
+
 }
