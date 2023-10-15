@@ -3620,7 +3620,7 @@ function fv_get_support_button_html_for_vault_product_card( f, fv_white_label_is
 	return html;
 }
 
-function fv_get_report_item_button_html_for_vault_product_card( f, fv_white_label_is_active ) {
+function fv_get_report_item_button_html_for_vault_product_card( f, fv_button_disabled, fv_white_label_is_active ) {
 	// console.log( 'running fv_get_report_item_button_html_for_vault_product_card()' );
 
 	let html =
@@ -3632,7 +3632,7 @@ function fv_get_report_item_button_html_for_vault_product_card( f, fv_white_labe
 				'data-generated-name="' + f.title + '" ' +
 				'href="#" ' +
 				'onclick="fv_vault_on_click_report_item_button( this );" ' +
-				'class="btn btn-sm btn-block card-btn "' +
+				'class="btn btn-sm btn-block card-btn ' + fv_button_disabled + '" ' +
 				'><i class="fas fa-flag"></i>' +
 				'Report Item' +
 			'</button>' +
@@ -3809,7 +3809,7 @@ function fv_get_vault_product_card_html( f ) {
 	fv_sales_page_button_html         = fv_get_sales_page_button_html_for_vault_product_card( f );
 	fv_request_update_button_html     = fv_get_request_update_button_html_for_vault_product_card( f, fv_button_disabled, fv_white_label_is_active );
 	fv_support_button_html            = fv_get_support_button_html_for_vault_product_card( f, fv_white_label_is_active );
-	fv_report_item_button_html        = fv_get_report_item_button_html_for_vault_product_card( f, fv_white_label_is_active );
+	fv_report_item_button_html        = fv_get_report_item_button_html_for_vault_product_card( f, fv_button_disabled, fv_white_label_is_active );
 	fv_add_to_bulk_button_html        = fv_get_add_to_bulk_button_html_for_vault_product_card( f, fv_button_disabled );
 	fv_virus_scan_button_html         = fv_get_virus_scan_button_html_for_vault_product_card( f );
 	fv_additional_content_button_html = fv_get_additional_content_button_html_for_vault_product_card( f, fv_button_disabled );
@@ -3966,27 +3966,26 @@ function fv_vault_page_handle_bulk_download_all_button() {
 			var data_s = data.slice( 0, -1 );
 			var json   = JSON.parse( data_s );
 
-			if ( json.result == "failed" ) {
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
 
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
-
-				jQuery.alert( {
-					content: json.msg,
-				} );
-			}
 			if ( json.length == 0 ) {
-
 				jQuery.alert( {
 					content: "To enjoy this feature please activate your license.",
 				} );
-
-			} else {
-
-				// If all went well, build and show the confirmation popup.
-				fv_vault_show_bulk_action_confirmation_popup( json, 'download' );
+				return;
 			}
+
+			if ( json.result == "failed" ) {
+				jQuery.alert( {
+					content: json.msg,
+				} );
+				return;
+			}
+
+			// If all went well, build and show the confirmation popup.
+			fv_vault_show_bulk_action_confirmation_popup( json, 'download' );
 		},
 	} )
 	.done( function() {
@@ -4021,6 +4020,7 @@ function fv_vault_page_handle_bulk_install_all_button() {
 	} );
 
 	// Send AJAX request to install items
+
 	var cartItemListForS = JSON.stringify( cartItems );
 
 	jQuery.ajax( {
@@ -4031,25 +4031,28 @@ function fv_vault_page_handle_bulk_install_all_button() {
 		type: "POST",
 		url:  plugin_ajax_object.ajax_url,
 		success: function( data ) {
+
 			var data_s = data.slice( 0, -1 );
 			var json = JSON.parse( data_s );
 
-			if ( json.result == "failed") {
-				setTimeout( function() {
-					fv_hide_loading_animation();
-				}, 500 );
+			setTimeout( function() {
+				fv_hide_loading_animation();
+			}, 500 );
 
-				jQuery.alert( {
-					content: json.msg,
-				} );
-			}
 			if ( json.length == 0 ) {
 				jQuery.alert( {
 					content: "To enjoy this feature please activate your license.",
 				} );
-			} else {
-				fv_vault_show_bulk_action_confirmation_popup( json, 'install' );
+				return;
 			}
+			if ( json.result == "failed") {
+				jQuery.alert( {
+					content: json.msg,
+				} );
+				return;
+			}
+
+			fv_vault_show_bulk_action_confirmation_popup( json, 'install' );
 		},
 	} )
 	.done( function() {

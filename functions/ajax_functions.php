@@ -459,6 +459,16 @@ function fv_plugin_install_bulk_ajax() {
     $response     = fv_run_remote_query( $query );
 	$fv_api       = json_decode( wp_remote_retrieve_body( $response ) );
 
+if ( \function_exists( '\DeWittePrins\CoreFunctionality\log' ) ) {
+	\DeWittePrins\CoreFunctionality\log(
+		array(
+			'method' => __METHOD__,
+			'filter' => \current_filter(),
+			'$fv_api' => $fv_api,
+		)
+	);
+}
+
 	// Download an install multiple plugins and/or themes.
 
 	$fv_bulk_zip_file = pathinfo( $fv_api->config->content_slug, PATHINFO_FILENAME ) . '.zip';
@@ -519,8 +529,15 @@ function fv_vault_product_install() {
 
 		if ( 'plugin' === $fv_api->content_type ) {
 
+			$slug = pathinfo( $fv_api->content_slug, PATHINFO_FILENAME );
+
+			// enable auto-update by default.
+			if ( ! fv_plugin_slug_is_installed( $slug ) ) {
+				fv_enable_auto_update_plugin( $slug );
+			}
+
 			fv_install_remote_plugin(
-				basename:     pathinfo( $fv_api->content_slug, PATHINFO_FILENAME ),
+				basename:     $slug,
 				download_url: $fv_api->link
 			);
 
@@ -541,8 +558,14 @@ function fv_vault_product_install() {
 
 		if ( 'theme' === $fv_api->content_type ) {
 
+			$stylesheet = pathinfo( $fv_api->content_slug, PATHINFO_FILENAME );
+
+			if ( ! fv_theme_slug_is_installed( $stylesheet ) ) {
+				fv_enable_auto_update_theme( $stylesheet );
+			}
+
 			fv_install_remote_theme(
-				stylesheet:   pathinfo( $fv_api->content_slug, PATHINFO_FILENAME ),
+				stylesheet:   $stylesheet,
 				download_url: $fv_api->link
 			);
 
@@ -552,9 +575,9 @@ function fv_vault_product_install() {
 			echo json_encode( array(
 				'result'                 => 'success',
 				'filename'               => $filename,
-				'slug'                   => $fv_api->content_slug,
+				'slug'                   => $stylesheet,
 				'link'                   => 'theme',
-				'theme_preview'          => admin_url( 'themes.php?theme=' . $fv_api->content_slug ),
+				'theme_preview'          => admin_url( 'themes.php?theme=' . $stylesheet ),
 				'plan_limit'             => $fv_api->plan_limit,
 				'download_current_limit' => $fv_api->download_current_limit,
 				'download_available'     => $fv_api->download_available,

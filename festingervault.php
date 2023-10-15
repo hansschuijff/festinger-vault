@@ -2222,9 +2222,8 @@ function fv_do_bulk_update( string $should_update = 'all', array $single_update_
 
 				$total_download_size +=
 					fv_install_remote_plugin(
-						$fv_update->slug,
-						$fv_update->dl_link,
 						$basename,
+						$fv_update->dl_link,
 					);
 
 				fv_run_remote_update_request_load( $fv_update->slug, $fv_update->version );
@@ -2726,6 +2725,16 @@ function fv_do_form_submissions() {
 	foreach ( $_POST as $key => $value ) {
 
 		switch ($key) {
+
+			/**
+			 * Auto update settings form.
+			 */
+			case 'autpupdatestatus_form':
+				if ( ! empty( $value ) ) {
+					fv_do_auto_update_settings_form();
+				};
+				break;
+
 			/**
 			 * White label settings form.
 			 */
@@ -2837,6 +2846,24 @@ function fv_do_form_submissions() {
 	}
 }
 
+function fv_do_auto_update_settings_form() {
+	$user_ID        = get_current_user_id();
+	$query_base_url = YOUR_LICENSE_SERVER_URL.'on-off-auto-update-domain-using-first-server';
+	$api_params     = array(
+		'license_key'  => fv_get_any_license_key(),
+	    'license_mode' => 'on_off_auto_update',
+	    'domain_name'  => $_SERVER['HTTP_HOST'],
+	);
+	$query    = esc_url_raw( add_query_arg( $api_params, $query_base_url ) );
+    $response = fv_run_remote_query( $query );
+
+	if ( is_wp_error( $response ) ) {
+	    echo "Unexpected Error! The query returned with an error.";
+	}
+}
+
+
+
 function fv_do_plugins_ignore_form() : void {
 	fv_set_ignore_disabled_plugins_option();
 	fv_set_ignore_plugins_in_list_option();
@@ -2910,13 +2937,13 @@ function fv_ignore_plugins_list() : array {
 }
 
 function fv_do_themes_ignore_form() : void {
-	fv_set_fv_ignore_disabled_themes_option();
+	fv_set_ignore_disabled_themes_option();
 	fv_set_ignore_themes_in_list_option();
 	fv_set_ignore_themes_list_option();
 	fv_reset_themes_in_ignore_list();
 }
 
-function fv_set_fv_ignore_disabled_themes_option() : void {
+function fv_set_ignore_disabled_themes_option() : void {
 
 	if ( isset( $_POST['fv_ignore_disabled_themes'] ) ) {
 		fv_set_option(
@@ -3609,6 +3636,22 @@ function fv_should_auto_update_theme( string $slug ): bool	{
 		&& in_array( $slug, get_option( 'fv_themes_auto_update_list' ) );
 }
 
+function fv_enable_auto_update_theme( string $slug ): bool	{
+
+	if ( empty( $slug ) ) {
+		return false;
+	}
+
+	if ( fv_should_auto_update_theme( $slug ) ) {
+		return true; // $slug allready enabled.
+	}
+
+	$list   = get_option( 'fv_themes_auto_update_list', array() );
+	$list[] = $slug;
+
+	return fv_set_themes_auto_update_list( $list );
+}
+
 function fv_should_auto_update_plugin( string $slug ): bool	{
 
 	if ( empty( $slug ) ) {
@@ -3619,6 +3662,21 @@ function fv_should_auto_update_plugin( string $slug ): bool	{
 
 	return is_array( get_option( 'fv_plugins_auto_update_list' ) )
 		&& in_array( $slug, get_option( 'fv_plugins_auto_update_list' ) );
+}
+
+function fv_enable_auto_update_plugin( string $slug ): bool	{
+
+	if ( empty( $slug ) ) {
+		return false;
+	}
+
+	if ( fv_should_auto_update_plugin( $slug ) ) {
+		return true; // $slug allready enabled.
+	}
+
+	$list   = get_option( 'fv_plugins_auto_update_list', array() );
+	$list[] = $slug;
+	return fv_set_plugins_auto_update_list( $list );
 }
 
 /**
@@ -4687,8 +4745,8 @@ function fv_is_active_license_key( string $license_key, $refresh = false ) : boo
  * @param array $list Slugs of plugins that need to be auto-updated.
  * @return void
  */
-function fv_set_plugins_auto_update_list( array $list ) : void {
-	fv_set_option( 'fv_plugins_auto_update_list', $list );
+function fv_set_plugins_auto_update_list( array $list ) : bool {
+	return fv_set_option( 'fv_plugins_auto_update_list', $list );
 }
 
 /**
@@ -4697,8 +4755,8 @@ function fv_set_plugins_auto_update_list( array $list ) : void {
  * @param array $list Slugs of themes that need to be auto-updated.
  * @return void
  */
-function fv_set_themes_auto_update_list( array $list ) : void {
-	fv_set_option( 'fv_themes_auto_update_list', $list );
+function fv_set_themes_auto_update_list( array $list ) : bool {
+	return fv_set_option( 'fv_themes_auto_update_list', $list );
 }
 
 /**
@@ -4863,6 +4921,19 @@ function fv_is_hidden_file( string $file ) : bool {
  */
 function fv_bulk_install( string $url, string $file ) : void {
 
+	if ( \function_exists( '\DeWittePrins\CoreFunctionality\log' ) ) {
+		\DeWittePrins\CoreFunctionality\log(
+			array(
+				'method' => __METHOD__,
+				'filter' => \current_filter(),
+				'$url' => $url,
+				'$file' => $file,
+			)
+		);
+	}
+
+	// First download a zip-file that contains the installation zip-files of the selected plugins/themes.
+
 	$file_slug        = pathinfo( $file )['filename'];
 	$fv_bulk_zip_file = fv_get_upload_dir('bulk-install') . $file_slug . '.zip';
 
@@ -4878,11 +4949,13 @@ function fv_bulk_install( string $url, string $file ) : void {
 		return;
 	}
 
-	// extract bulk zip-file to extract dir.
+	// Extract bulk zip-file to bulk extract dir.
+
 	$zip->extractTo( fv_get_upload_dir('bulk-extract') );
 	$zip->close();
 
-	// Scan extract dir for plugins/themes zip-files.
+	// Scan bulk extract dir for plugins/themes zip-files.
+
 	foreach ( scandir( fv_get_upload_dir('bulk-extract') ) as $file ) {
 
 		if ( fv_is_hidden_file( $file )
@@ -4892,13 +4965,23 @@ function fv_bulk_install( string $url, string $file ) : void {
 
 		switch ( true ) {
 			case false !== strpos( $file, '___theme___' ):
-				$type   = 'theme';
-				$to_dir = get_theme_root();
+				$type       = 'theme';
+				$stylesheet = fv_get_slug_from_bulk_extracted_filename( $file );
+				$to_dir     = get_theme_root();
+				// Enable auto update by default (so at first install)
+				if ( ! fv_theme_slug_is_installed( $stylesheet ) ) {
+					fv_enable_auto_update_theme( $stylesheet );
+				}
 				break;
 
 			case false !== strpos( $file, '___plugin___' ):
-				$type = 'plugin';
+				$type   = 'plugin';
+				$slug   = fv_get_slug_from_bulk_extracted_filename( $file );
 				$to_dir = WP_PLUGIN_DIR;
+				// Enable auto update by default (so at first install)
+				if ( !empty( $slug ) && ! fv_plugin_slug_is_installed( $slug ) ) {
+					fv_enable_auto_update_plugin( $slug );
+				}
 				break;
 
 			default:
@@ -4915,4 +4998,88 @@ function fv_bulk_install( string $url, string $file ) : void {
 		fv_unzip_file_to( file: $zip_file, to: $to_dir );
 		fv_delete_file( file: $zip_file );
 	}
+}
+
+/**
+ * Gets the timestamp from the bulk download url.
+ *
+ * A download link is expected to end with a timestamp followed by .zip.
+ * Example:
+ * "https://engine.festingervault.com/storage/bundles/1697404806.zip
+ *
+ * @param [type] $url
+ * @return void
+ */
+function fv_get_timestamp_from_bulk_download_url( $url ) {
+
+	// Remove query strings from the URL
+	$url      = strtok( $url, '?' );
+
+	// Find the last '/' character and extract the part behind it
+	$last_slash_pos = strrpos( $url, '/' );
+
+	if ( false !== $last_slash_pos ) {
+		$filename = substr( $url, $last_slash_pos + 1 );
+	} else {
+		$filename = $url;
+	}
+
+	// Check if it ends with ".zip" and extract the timestamp (digits) directly before .zip
+	if ( preg_match( '/(\d+)\.zip$/', $filename, $matches) ) {
+		return $matches[1];
+	}
+	return ''; // No timestamp found.
+}
+
+/**
+ * Gets slug from in filename.
+ *
+ * Expects filename to be in camelcase and have the following elements:
+ * 1. slug
+ * 2. post_id (digits)
+ * 3. timestamp (digits)
+ * 4. ___theme___.zip or ___plugin___.zip
+ *
+ * Examples:
+ * 'avada-1-1689179390___theme___.zip',
+ * 'cartflows-pro-53-1692618258___plugin___.zip',
+ * 'rank-math-seo-pro-63-1696535124___plugin___.zip',
+ *
+ * @param string $filename
+ * @return string The slug (first) part of the filename
+ */
+function fv_get_slug_from_bulk_extracted_filename( string $filename ): string {
+
+   if ( preg_match('/^(.*?)-\d+-\d+___(plugin|theme)___.zip$/', $filename, $matches) ) {
+		return $matches[1]; // slug
+	}
+	return ''; // No slug recognized.
+}
+
+/**
+ * Is plugin with slug installed?
+ *
+ * @param string $slug
+ * @return boolean
+ */
+function fv_plugin_slug_is_installed( string $slug ): bool {
+	foreach ( fv_get_plugins() as $basename => $plugin ) {
+		if ( fv_get_slug( $basename ) === $slug ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Is theme with (stylesheet) slug installed?
+ *
+ * @param string $slug
+ * @return boolean
+ */
+function fv_theme_slug_is_installed( string $slug ): bool {
+	if ( wp_get_theme( $slug )->exists() ) {
+		return true;
+	}
+	return false;
 }
