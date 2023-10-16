@@ -157,7 +157,18 @@
                                     <?php echo $fv_plugin_data['installed-version'] ?>
                                 </div>
                                 <!-- available update -->
-                                <?php if ( version_compare( $fv_plugin_data['version'], $fv_plugin_data['installed-version'], '>' ) ): ?>
+                                <?php
+                                /**
+                                 * Prevent false positive when '.0' is added by fv at the end.
+                                 */
+                                if ( $fv_plugin_data['version'] !== $fv_plugin_data['installed-version']
+                                &&   str_starts_with( $fv_plugin_data['version'], $fv_plugin_data['installed-version'] )
+                                &&   '.0' === substr( $fv_plugin_data['version'], strlen( $fv_plugin_data['installed-version'] ) ) ) {
+                                    $fv_plugin_data['version'] = $fv_plugin_data['installed-version'];
+                                }
+
+                                if ( version_compare( $fv_plugin_data['version'], $fv_plugin_data['installed-version'], '>' ) ):
+                                ?>
                                     <div class='col-6 text-left text-grey'>New</div>
                                     <div class='col-6 text-left' <?php echo $bgredhere ?>>
                                         <?php echo $fv_plugin_data['version'] ?>
