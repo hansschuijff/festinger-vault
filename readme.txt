@@ -91,3 +91,8 @@ New pagination for better and faster loading
 --4.1.0--
 New features
 Bug fixing
+
+
+--4.2.0--
+Bug fixing
+Performance improvement
