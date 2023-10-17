@@ -136,11 +136,14 @@
                     } else {
                         $auto_update_toggle_checked = '';
                     }
+                    $vault_product_url = admin_url( 'admin.php?page=festinger-vault&s=' . fv_str_to_search_query_var( $fv_theme['name'] ) );
                     ?>
                     <tr class="table-tr mb-2">
-                        <!-- Name -->
-                        <td class='theme_update_width_20'>
-                            <?php echo $fv_theme['name']; ?> <br/>
+                       <!-- Name  -->
+                       <td class='theme_update_width_20'>
+                            <a href="<?php echo $vault_product_url ?>" style="color: #fff; text-decoration: none;">
+                                <?php echo $fv_theme['name'] ?>
+                            </a><br/>
                             <?php if ( $fv_theme_stylesheet === $active_theme->stylesheet ): ?>
                                 <span class='badge bg-tag'>Active</span>
                             <?php endif; ?>
