@@ -69,15 +69,6 @@ function fv_do_vault_page() {
 		]
 	} )
 
-	// This id doesn't seem to be used anymore.
-	// Perhaps it was and now it is redundant?
-	jQuery('#ajax-plugin-search-form').ready( function( e ) {
-		// Show spinner.
-		fv_show_loading_animation();
-		// Load plugins and themes listing.
-		fv_vault_load_products();
-	});
-
 	jQuery('#filter_type'     ).on( 'change', fv_vault_show_filter_type_changed_value );
 	jQuery('#reset_filter'    ).on( 'click',  fv_vault_on_click_reset_filters_button );
 	jQuery('#mylist'          ).on( 'click',  fv_vault_show_tab_mylist_results );
@@ -88,6 +79,36 @@ function fv_do_vault_page() {
 	jQuery('#filter_allowence').on( 'change', fv_vault_show_filter_allowence_results );
 	jQuery('#filter_category' ).on( 'change', fv_vault_show_filter_allowence_results );
 	jQuery('#ajax_search'     ).on( 'keyup',  fv_vault_show_search_results );
+
+	// Show spinner.
+	fv_show_loading_animation();
+
+	/**
+	 * If s query-var present, then trigger search with that value.
+	 *
+	 * Note that this page is in fact only loaded once in full.
+	 * After the first load, it will use events to refresh only the product grid.
+	 *
+	 * If that was not the case, this code would force it to always only
+	 * show the result of this search string.
+	 */
+	if ( get_query_vars()['s'] ) {
+
+		// Replace + in query var by space before using it as seach value.
+		jQuery('#ajax_search').val( get_query_vars()['s'].replace(/\+/g, ' ') );
+
+		// We need a custom event to pass the keyCode to the keyUp event.
+		// the search string is only processed at certain keyCodes.
+		var customEvent = jQuery.Event( 'keyup', { keyCode: 13 } );
+
+		// Trigger the keyUp event so it will run the search
+		jQuery('#ajax_search').trigger( customEvent );
+
+	} else {
+
+		// Load plugins and themes listing.
+		fv_vault_load_products();
+	}
 
 	fv_vault_toggle_bulk_action_cart();
 
@@ -2401,6 +2422,7 @@ jQuery.date = function( orginaldate ) {
  */
 function fv_vault_load_products( ajax_search = {}, page = 1 ) {
 	// console.log( 'running fv_vault_load_products()' );
+	// console.log( 'ajax_search', ajax_search );
 
 	jQuery.ajax( {
 		data: {
@@ -3285,6 +3307,7 @@ function fv_vault_reset_filters_value() {
 	jQuery("#filter_allowence").val("all");
 	jQuery("#filter_type").val("all");
 	jQuery("#filter_category").val("all");
+	ajax_filter_data = {};
 }
 
 function fv_show_loading_animation() {
@@ -4139,4 +4162,33 @@ function fv_vault_get_install_product_button_text( slug, type ) {
 			}
 	}
 
+}
+
+/**
+ * Gets an associative array of query vars from a url.
+ *
+ * @param {string} url Default is curren page url.
+ * @returns array
+ */
+function get_query_vars( url = null ) {
+
+	if ( ! url ) {
+		// Current page url.
+		url = window.location.href;
+	}
+
+	// breaks the query-vars from url and puts them in an array.
+	let hashes = url.slice( url.indexOf('?') + 1 ).split('&');
+
+	let vars   = [];
+	let hash   = [];
+
+	for( var i = 0; i < hashes.length; i++) {
+		// split each query-var in an key->value pair.
+        hash = hashes[i].split('=');
+		// Build associated array in vars.
+		vars.push(hash[0]); // key
+		vars[ hash[0] ] = hash[1]; // value
+    }
+    return vars;
 }

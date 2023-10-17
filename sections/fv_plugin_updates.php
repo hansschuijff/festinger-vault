@@ -78,7 +78,6 @@
         $success_message = fv_get_succes_message( context: 'plugins' );
         if ( $success_message ) :
         ?>
-
             <div class="alert alert-custom-clr alert-dismissible fade show" role="alert" style="background-color: #292055;">
                 <strong><?php echo $success_message; ?></strong>
                 <a href="<?= admin_url( 'admin.php?page=festinger-vault-updates' ); ?>" class="btn-close" aria-label="Close"></a>
@@ -118,7 +117,6 @@
                  * Render plugin rows
                  */
                 foreach( $fv_plugins as $fv_plugin_basename => $fv_plugin_data ):
-
                     if ( isset( $fv_plugin_updates[ $fv_plugin_basename ] ) ) {
                         $fv_plugin_has_update = true;
                         $bgredhere            = 'style="background: #f33059; border-radius: 5px;"';
@@ -126,17 +124,21 @@
                         $fv_plugin_has_update = false;
                         $bgredhere            = '';
                     }
+
                     if ( fv_should_auto_update_plugin( $fv_plugin_data['slug'] ) ) {
                         $auto_update_toggle_checked = 'checked';
                     } else {
                         $auto_update_toggle_checked = '';
                     }
                     $is_active_plugin = is_plugin_active( $fv_plugin_basename );
+                    $vault_product_url = admin_url( 'admin.php?page=festinger-vault&s=' . fv_str_to_search_query_var( $fv_plugin_data['name'] ) );
                     ?>
                     <tr class="table-tr mb-2">
                         <!-- Name  -->
                         <td class='plugin_update_width_30'>
-                            <?php echo $fv_plugin_data['name'] ?><br/>
+                            <a href="<?php echo $vault_product_url ?>" style="color: #fff; text-decoration: none;">
+                                <?php echo $fv_plugin_data['name'] ?>
+                            </a><br/>
                             <span class='badge <?php echo $is_active_plugin ? 'bg-tag' : 'bg-danger' ?>'>
                                 <?php echo $is_active_plugin ? 'Active' : 'Inactive' ?>
                             </span>
@@ -157,18 +159,7 @@
                                     <?php echo $fv_plugin_data['installed-version'] ?>
                                 </div>
                                 <!-- available update -->
-                                <?php
-                                /**
-                                 * Prevent false positive when '.0' is added by fv at the end.
-                                 */
-                                if ( $fv_plugin_data['version'] !== $fv_plugin_data['installed-version']
-                                &&   str_starts_with( $fv_plugin_data['version'], $fv_plugin_data['installed-version'] )
-                                &&   '.0' === substr( $fv_plugin_data['version'], strlen( $fv_plugin_data['installed-version'] ) ) ) {
-                                    $fv_plugin_data['version'] = $fv_plugin_data['installed-version'];
-                                }
-
-                                if ( version_compare( $fv_plugin_data['version'], $fv_plugin_data['installed-version'], '>' ) ):
-                                ?>
+                                <?php if ( $fv_plugin_has_update ): ?>
                                     <div class='col-6 text-left text-grey'>New</div>
                                     <div class='col-6 text-left' <?php echo $bgredhere ?>>
                                         <?php echo $fv_plugin_data['version'] ?>

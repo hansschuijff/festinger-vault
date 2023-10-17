@@ -4280,6 +4280,13 @@ function fv_get_updates( array $arrays ): array {
 	$updates = array();
 
     foreach( $arrays as $key => $details ) {
+		/**
+		 * Prevent false positive when '.0' is added by fv at the end.
+		 */
+		if ( $details['version'] !== $details['installed-version']
+		&&   str_ends_with( $details['version'], '.0' ) ) {
+			$details['version'] = substr( $details['version'], 0, -2 );
+		}
 		// Skip if not a newer version
 		if ( version_compare( $details['version'], $details['installed-version'], '<=' ) ) {
 			continue;
@@ -5083,3 +5090,98 @@ function fv_theme_slug_is_installed( string $slug ): bool {
 	}
 	return false;
 }
+
+/**
+ * Prepare string for use as seach value in an url.
+ *
+ * The result should be lowercase, only digits and letters, and words separated by + signs.
+ * If a colon is in the string, it will be removed with everything after the colon.
+ * Every char that is not a letter, digit, hyphen or space will be removed.
+ *
+ * @param string $str string to transform to a search value.
+ * @return string Lowercase, only digits and letters, and words separated by + signs
+ */
+function fv_str_to_search_query_var( string $str ): string {
+
+    // words to remove
+    $words = array( 'plugin', 'version', 'add-on' );
+
+    $is_not_a_slug = ( false !== strpos( $str, ' ' ) );
+    $is_valid_slug = is_kebab_case( $str );
+
+    // lowercase for better comparison
+    $str = strtolower( $str );
+
+    $str = str_replace_by_space( $str, $words );
+
+    if ( $is_valid_slug ) {
+        // this may be a slug,
+        // so just replace the - by a space.
+        $str = str_replace_by_space( $str, '-' );
+    }
+
+    if ( $is_not_a_slug ) {
+
+        $str = str_remove_text_between_parentheses( $str );
+
+        // Remove colon and everything after it.
+        $str = str_trim_after( $str, ':' );
+
+        // Remove hyphen and everything after it.
+        $str = str_trim_after( $str, '-' );
+    }
+
+    // Replace characters that are not spaces, letters, or digits with a space.
+    $str = str_letters_digits_and_spaces( $str );
+
+    // remove spaces at the start or end of string
+    $str = trim( $str );
+
+    // Replace spaces with "+" signs and ensure no double spaces
+    $str = str_spaces_to_plus( $str );
+
+    return $str;
+}
+
+// Remove text between parentheses and the parentheses themselves
+function str_remove_text_between_parentheses( string $str ): string {
+    return preg_replace('/\([^)]*\)/', '', $str);
+}
+
+// Remove text after a given token (hyphen, colon, etc.).
+function str_trim_after( string $str, string $token ): string {
+
+    if ( empty( $token ) ) {
+        return $str;
+    }
+
+    $pos = strpos( $str, $token );
+
+    if ( false !== $pos ) {
+        // Remove characters after the colon
+        $str = substr( $str, 0, $pos );
+    }
+
+    return $str;
+}
+
+function str_replace_by_space( string $str, string|array $words ): string {
+    $words = (array) $words;
+    foreach ( $words as $word ) {
+        $str = str_replace( $word, ' ', $str );
+    }
+    return $str;
+}
+
+function str_spaces_to_plus( $str ) {
+    return preg_replace('/\s+/', '+', $str);
+}
+
+function str_letters_digits_and_spaces( $str ) {
+    return preg_replace( '/[^a-zA-Z0-9\s]/', ' ', $str );
+}
+
+function is_kebab_case( $str ) {
+    return 1 === preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $str );
+}
+

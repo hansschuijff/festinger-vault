@@ -193,7 +193,7 @@
                         <div class="col-md-8">
                             <div class="d-inline-block dark-blue border-8 p-2">
                                 <div class="d-flex justify-content-between">
-                                    <button type="button" class="mr-1 btn  non_active_button margin-bottom-xs active_button" id="popular" value="popular">
+                                    <button type="button" class="mr-1 btn  non_active_button margin-bottom-xs" id="popular" value="popular">
                                         Popular
                                     </button>
                                     <button type="button" class="mx-1 btn  non_active_button margin-bottom-xs" id="recent" value="recent">
