@@ -1896,7 +1896,7 @@ function fv_vault_on_submit_update_request_form( button ) {
 
 	// form validations...
 
-	if ( versionNumber.trim() === '') {
+	if ( fv_requested_version_number.trim() === '') {
 		alert('Version number is required.');
 		return;
 	}
