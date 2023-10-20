@@ -1830,8 +1830,8 @@ function fv_vault_show_modal_update_request_form( data ) {
 		'<div class="row">' +
 			'<form ' +
 				'class="submitupdaterequest" ' +
-				'data-product-hash="'   + json.data_product_hash   + '" ' +
-				'data-generated-slug="' + json.data_generated_slug + '" ' +
+				'data-product-hash="'   + json.fv_item_hash   + '" ' +
+				'data-generated-slug="' + json.fv_item_slug + '" ' +
 				'data-license="'        + json.license_key         + '"' +
 			'>' +
 				'<div class="mb-3">' +
@@ -1840,9 +1840,9 @@ function fv_vault_show_modal_update_request_form( data ) {
 						'class="form-control text-white" ' +
 						'type="hidden" ' +
 						'name="fv_item_support_page_url" ' +
-						'value="' + json.data_support_link   + '"' +
+						'value="' + json.fv_item_support_link   + '"' +
 					'>' +
-					// product generated nam
+					// product generated name
 					'<input ' +
 						'class="form-control text-white" ' +
 						'type="hidden" ' +
