@@ -442,7 +442,7 @@ function fv_add_pages_to_admin_menu() {
 		callback:   'fv_render_vault_page',
 		icon_url:   fv_perhaps_white_label_plugin_icon_url(),
 		position:   99
-	 );
+	);
 
 	add_submenu_page(
 		parent_slug: 'festinger-vault',
@@ -451,7 +451,7 @@ function fv_add_pages_to_admin_menu() {
 		capability:  'read',
 		menu_slug:   'festinger-vault',
 		callback:    'fv_render_vault_page'
-	 );
+	);
 
 	// Only add Activation page when white labeling is not enabled
 	if ( ! fv_should_white_label() ) {
@@ -463,7 +463,7 @@ function fv_add_pages_to_admin_menu() {
 			capability:  'manage_options',
 			menu_slug:   'festinger-vault-activation',
 			callback:    'fv_render_activation_page'
-		 );
+		);
 	}
 
 	add_submenu_page(
@@ -473,7 +473,7 @@ function fv_add_pages_to_admin_menu() {
 		capability:  'manage_options',
 		menu_slug:   'festinger-vault-updates',
 		callback:    'fv_render_plugin_updates_page'
-	 );
+	);
 
 	add_submenu_page(
 		parent_slug: 'festinger-vault',
@@ -482,7 +482,7 @@ function fv_add_pages_to_admin_menu() {
 		capability:  'manage_options',
 		menu_slug:   'festinger-vault-theme-updates',
 		callback:    'fv_render_theme_updates_page'
-	 );
+	);
 
 	// Only add History and Settings page when white labeling is not enabled
 	if ( ! fv_should_white_label() ) {
@@ -494,7 +494,7 @@ function fv_add_pages_to_admin_menu() {
 			capability:  'manage_options',
 			menu_slug:   'festinger-vault-theme-history',
 			callback:    'fv_render_history_page'
-		 );
+		);
 
 		add_submenu_page(
 			parent_slug: 'festinger-vault',
@@ -503,7 +503,7 @@ function fv_add_pages_to_admin_menu() {
 			capability:  'manage_options',
 			menu_slug:   'festinger-vault-settings',
 			callback:    'fv_render_settings_page'
-		 );
+		);
 	}
 }
 add_action( 'admin_menu', 'fv_add_pages_to_admin_menu' );
@@ -5185,3 +5185,39 @@ function is_kebab_case( $str ) {
     return 1 === preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $str );
 }
 
+/**
+ * Fill plugins auto update list with all plugins.
+ *
+ * @return void
+ */
+function fv_set_all_plugins_auto_update(): void {
+
+	$plugins = fv_get_plugins();
+	if ( ! $plugins ) {
+		return;
+	}
+
+	$auto_update_plugins = array();
+	foreach ( $plugins as $basename => $plugin ) {
+		if ( ! fv_should_ignore_plugin( $basename ) ) {
+			$auto_update_plugins[ fv_get_slug( $basename ) ] = true;
+		}
+	}
+	fv_set_plugins_auto_update_list( array_keys( $auto_update_plugins ) );
+}
+
+function fv_set_all_themes_auto_update(): void {
+
+	$themes = fv_get_themes();
+	if ( ! $themes ) {
+		return;
+	}
+
+	$auto_update_themes = array();
+	foreach ( $themes as $stylesheet => $theme ) {
+		if ( ! fv_should_ignore_theme( $stylesheet ) ) {
+			$auto_update_themes[ $stylesheet ] = true;
+		}
+	}
+	fv_set_themes_auto_update_list( array_keys( $auto_update_themes ) );
+}
