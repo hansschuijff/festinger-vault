@@ -690,7 +690,7 @@ function fv_vault_remote_request_update() {
 		'license_key' => $_POST['fv_license_key'],
 		'plugin_name' => $_POST['fv_item_name'],
 		'title'       => $_POST['fv_item_name'],
-		'postid'      => $_POST['fv_license_key'],
+		'postid'      => $_POST['fv_item_postid'],
 		'comment'     => $_POST['fv_requested_version_number'],
 	);
 	// make sure license_key is valid.

@@ -736,7 +736,7 @@ function fv_jquery_upgrade() : array {
 
 	wp_register_script(
 		handle: 'jquery',
-		src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',
+		src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-3.4.1.min.js',
 		deps: false,
 		ver: FV_PLUGIN_VERSION,
 		args: true
