@@ -5025,17 +5025,6 @@ function fv_is_hidden_file( string $file ) : bool {
  */
 function fv_bulk_install( string $url, string $file ) : void {
 
-	if ( \function_exists( '\DeWittePrins\CoreFunctionality\log' ) ) {
-		\DeWittePrins\CoreFunctionality\log(
-			array(
-				'method' => __METHOD__,
-				'filter' => \current_filter(),
-				'$url' => $url,
-				'$file' => $file,
-			)
-		);
-	}
-
 	// First download a zip-file that contains the installation zip-files of the selected plugins/themes.
 
 	$file_slug        = pathinfo( $file )['filename'];

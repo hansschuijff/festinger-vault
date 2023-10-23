@@ -459,16 +459,6 @@ function fv_plugin_install_bulk_ajax() {
     $response     = fv_run_remote_query( $query );
 	$fv_api       = json_decode( wp_remote_retrieve_body( $response ) );
 
-if ( \function_exists( '\DeWittePrins\CoreFunctionality\log' ) ) {
-	\DeWittePrins\CoreFunctionality\log(
-		array(
-			'method' => __METHOD__,
-			'filter' => \current_filter(),
-			'$fv_api' => $fv_api,
-		)
-	);
-}
-
 	// Download an install multiple plugins and/or themes.
 
 	$fv_bulk_zip_file = pathinfo( $fv_api->config->content_slug, PATHINFO_FILENAME ) . '.zip';
@@ -691,7 +681,7 @@ function fv_vault_remote_request_update() {
 		'plugin_name' => $_POST['fv_item_name'],
 		'title'       => $_POST['fv_item_name'],
 		'postid'      => $_POST['fv_item_postid'],
-		'comment'     => $_POST['fv_requested_version_number'],
+		'comment'     => $_POST['fv_requested_version'],
 	);
 	// make sure license_key is valid.
 	if ( ! fv_is_active_license_key( $query_args['license_key'] ) ) {
@@ -726,16 +716,6 @@ function fv_vault_remote_report_item() {
 	if ( ! fv_is_active_license_key( $query_args['license_key'] ) ) {
 		$query_args['license_key'] = fv_get_any_license_key();
 	}
-	if ( \function_exists( '\DeWittePrins\CoreFunctionality\log' ) ) {
-		\DeWittePrins\CoreFunctionality\log(
-			array(
-				'method'      => __METHOD__,
-				'filter'      => \current_filter(),
-				'$query_args' => $query_args,
-			)
-		);
-	}
-
 	$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response          = fv_run_remote_query( $query );
 	$fv_api            = json_decode( wp_remote_retrieve_body( $response ) );

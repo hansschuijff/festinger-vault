@@ -1860,7 +1860,7 @@ function fv_vault_show_modal_update_request_form( data ) {
 					'<input ' +
 						'class="form-control text-white" ' +
 						'type="text" ' +
-						'name="fv_requested_version_number" ' +
+						'name="fv_requested_version" ' +
 						'placeholder="Enter the version number ( e.g. 2.3.2 )" ' +
 						'onkeydown="if ( event.keyCode==13 ) {event.preventDefault();}"' +
 					'>' +
@@ -1888,7 +1888,7 @@ function fv_vault_on_submit_update_request_form( button ) {
 
 	// get the parent form of the clicked button
 	let form                        = jQuery( button ).closest('form');
-	let fv_requested_version_number = form.find('input[name="fv_requested_version_number"]').val();
+	let fv_requested_version = form.find('input[name="fv_requested_version"]').val();
 	let fv_license_key              = form.find('input[name="fv_license_key"]'             ).val();
 	let fv_item_name                = form.find('input[name="fv_item_name"]'               ).val();
 	var fv_item_support_page_url    = form.find('input[name="fv_item_support_page_url"]'   ).val();
@@ -1896,7 +1896,7 @@ function fv_vault_on_submit_update_request_form( button ) {
 
 	// form validations...
 
-	if ( fv_requested_version_number.trim() === '') {
+	if ( fv_requested_version.trim() === '') {
 		alert('Version number is required.');
 		return;
 	}
@@ -1912,10 +1912,10 @@ function fv_vault_on_submit_update_request_form( button ) {
 	jQuery.ajax( {
 		data: {
 			action: 'fv_vault_remote_request_update',
-			fv_version_number: fv_requested_version_number,
-			fv_item_postid:    fv_item_postid,
-			fv_license_key:    fv_license_key,
-			fv_item_name:      fv_item_name
+			fv_license_key:              fv_license_key,
+			fv_item_name:                fv_item_name,
+			fv_item_postid:              fv_item_postid,
+			fv_requested_version: fv_requested_version
 		},
 		type: 'POST',
 		url:  plugin_ajax_object.ajax_url,
