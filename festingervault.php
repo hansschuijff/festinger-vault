@@ -12,7 +12,7 @@
  * Plugin Name:       Festinger Vault Fork
  * Plugin URI:        https://github.com/hansschuijff/festinger-vault
  * GitHub Plugin URI: hansschuijff/festinger-vault
- * Version:           4.2.0.h2
+ * Version:           4.2.0.h3
  * Description:       Festinger vault - The largest plugin market
  * 					  Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.
  * Author:            Hans Schuijff
@@ -485,7 +485,7 @@ function fv_add_pages_to_admin_menu() {
 	);
 
 	// Only add History and Settings page when white labeling is not enabled
-	// if ( ! fv_should_white_label() ) {
+	if ( ! fv_should_white_label() ) {
 
 		add_submenu_page(
 			parent_slug: 'festinger-vault',
@@ -504,7 +504,7 @@ function fv_add_pages_to_admin_menu() {
 			menu_slug:   'festinger-vault-settings',
 			callback:    'fv_render_settings_page'
 		);
-	// }
+	}
 }
 add_action( 'admin_menu', 'fv_add_pages_to_admin_menu' );
 
