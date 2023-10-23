@@ -1,53 +1,13 @@
-<!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"> -->
-<link rel="stylesheet" href="<?php echo get_stylesheet_directory_uri() ?>/jquery-ui.css">
-<style>
-    #tabs .ui-state-active a,
-    #tabs .ui-state-active a:link,
-    #tabs .ui-state-active a:visited {
-        color: #454545;
-    }
-    #tabs {
-        padding: 0px;
-        background: none;
-        border-width: 0px;
-    }
-    .nav-tab {
-        border: none;
-        background: transparent;
-    }
-
-    #tabs a.nav-tab,
-    #tabs a.nav-tab:hover,
-    #tabs a.nav-tab:active,
-    #tabs a.nav-tab:focus {
-        background: transparent;
-    }
-
-    #tabs .ui-tabs-nav {
-        padding-left: 0px;
-        background: transparent;
-        border-width: 0px 0px 1px 0px;
-        -moz-border-radius: 0px;
-        -webkit-border-radius: 0px;
-        border-radius: 0px;
-        width: 100%;
-        height: 2.7rem;
-    }
-    #tabs .ui-tabs-panel {
-        background: #292055 !important;
-        /* background: #f5f3e5 url(https://code.jquery.com/ui/1.8.23/themes/south-street/images/ui-bg_highlight-hard_100_f5f3e5_1x100.png) repeat-x scroll 50% top; */
-        /* border-width: 0px 1px 1px 1px; */
-    }
-</style>
 <div class="container-padding">
     <h1 class="text-white mt-4 fw-bold">
         Festinger Vault Settings
     </h1>
-
     <div id="tabs">
         <ul>
             <li><a class="nav-tab" href="#tab-auto-update">Auto Update</a></li>
+            <?php if ( ! fv_should_white_label() ) : ?>
             <li><a class="nav-tab" href="#tab-white-label">White Label</a></li>
+            <?php endif; ?>
             <li><a class="nav-tab" href="#tab-admin-notices">Admin Notices</a></li>
             <li><a class="nav-tab" href="#tab-ignore-plugins">Ignore Plugins</a></li>
             <li><a class="nav-tab" href="#tab-ignore-themes">Ignore Themes</a></li>
@@ -88,174 +48,172 @@
                 </div>
             </div>
         </div>
+        <?php
+        /**
+         * Only show whitelabel when not active (will be reset on plugin reactivation)
+         */
+        if ( ! fv_should_white_label() ) :
+        ?>
         <!-- White Label settings -->
         <div id="tab-white-label" class="row">
             <div class="col-md-12">
-                <?php
-                /**
-                 * Only show whitelabel when not active (will be reset on plugin reactivation)
-                 */
-                if ( ! fv_should_white_label() ) :
-                    ?>
-                    <h5 class="text-white mt-4 fw-bold">
-                        White labeling Festinger Vault
-                    </h5>
-                    <!-- Festinger Vault white labeling feature  -->
-                    <div class="card mb-3 card-bg-cus" style="padding: 20px 0 !important;min-width: 100%;">
-                        <div class="card-body container-padding">
-                            <form method="post" action="" name="wl_form">
-                                <div class="row">
-                                    <!-- Agency details section -->
-                                    <div class="col-md-12">
-                                        <p class="fw-bold text-secondary mb-0 secondary-heading-light">
-                                            AGENCY DETAIL
-                                        </p>
-                                    </div>
-                                    <!-- Author -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="agency_author" class="form-label">
-                                                Agency Author
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="agency_author"
-                                                value="<?= get_option('wl_fv_plugin_agency_author_wl_'); ?>"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- Author URL -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="agency_author" class="form-label">
-                                                Agency Author URL
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="agency_author_url"
-                                                value="<?= get_option('wl_fv_plugin_author_url_wl_'); ?>"
-                                            />
-                                        </div>
+                <h5 class="text-white mt-4 fw-bold">
+                    White labeling Festinger Vault
+                </h5>
+                <!-- Festinger Vault white labeling feature  -->
+                <div class="card mb-3 card-bg-cus" style="padding: 20px 0 !important;min-width: 100%;">
+                    <div class="card-body container-padding">
+                        <form method="post" action="" name="wl_form">
+                            <div class="row">
+                                <!-- Agency details section -->
+                                <div class="col-md-12">
+                                    <p class="fw-bold text-secondary mb-0 secondary-heading-light">
+                                        AGENCY DETAIL
+                                    </p>
+                                </div>
+                                <!-- Author -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="agency_author" class="form-label">
+                                            Agency Author
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="agency_author"
+                                            value="<?= get_option('wl_fv_plugin_agency_author_wl_'); ?>"
+                                        />
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <!-- Author detail section -->
-                                    <div class="col-md-12">
-                                        <p class="fw-bold text-secondary mb-2 mt-3 secondary-heading-light">
-                                            PLUGIN DETAIL
-                                        </p>
-                                    </div>
-                                    <!-- Plugin name -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="fv_plugin_name" class="form-label">
-                                                Plugin Name
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="fv_plugin_name"
-                                                value="<?= get_option('wl_fv_plugin_name_wl_'); ?>"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- Plugin slogan -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="fv_plugin_name" class="form-label">
-                                                Plugin Slogan
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="fv_plugin_slogan"
-                                                value="<?= get_option('wl_fv_plugin_slogan_wl_'); ?>"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- Plugin icon URL -->
-                                    <div class="col-12">
-                                        <div class="mb-3">
-                                            <label for="fv_plugin_icon_url" class="form-label">
-                                                Plugin Icon URL
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="fv_plugin_icon_url"
-                                                value="<?= get_option('wl_fv_plugin_icon_url_wl_'); ?>"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- Default product image URL (used as featured image on products that have no image) -->
-                                    <div class="col-12">
-                                        <div class="mb-3">
-                                            <label for="fv_default_product_image_url" class="form-label">
-                                                Default Product Image URL (used when plugin of theme has no image)
-                                            </label>
-                                            <input type="text" class="form-control search_bg_clr"
-                                                name="fv_default_product_image_url"
-                                                value="<?= get_option('wl_fv_default_product_image_url_wl_'); ?>"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- Plugin description -->
-                                    <div class="col-12">
-                                        <div class="mb-3">
-                                            <label for="fv_plugin_description" class="form-label">
-                                                Plugin Description
-                                            </label>
-                                            <textarea class="form-control search_bg_clr"
-                                                name="fv_plugin_description"
-                                                rows="4">
-                                                <?= get_option('wl_fv_plugin_description_wl_'); ?>
-                                            </textarea>
-                                        </div>
+                                <!-- Author URL -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="agency_author" class="form-label">
+                                            Agency Author URL
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="agency_author_url"
+                                            value="<?= get_option('wl_fv_plugin_author_url_wl_'); ?>"
+                                        />
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <!-- Enable white labeling -->
-                                    <div class="col-12">
-                                        <div class="form-check mt-3">
-                                            <input class="form-check-input custom-checkbox-color"
-                                                type="checkbox"
-                                                id="fv_plugin_wl_enable"
-                                                name="fv_plugin_wl_enable"
-                                                value="1">
-                                            <label class="form-check-label"
-                                                for="fv_plugin_wl_enable"
-                                                style="margin-top: -19px;">
-                                                Enable white label
-                                            </label>
-                                        </div>
-                                        <div id="white_label_help" class="form-text">
-                                            By enabling white label, The white label settings will be removed.
-                                            If you want to access while label settings in future, simply deactivate the
-                                            Festinger Vault plugin and activate it again.
-                                        </div>
+                            </div>
+                            <div class="row">
+                                <!-- Author detail section -->
+                                <div class="col-md-12">
+                                    <p class="fw-bold text-secondary mb-2 mt-3 secondary-heading-light">
+                                        PLUGIN DETAIL
+                                    </p>
+                                </div>
+                                <!-- Plugin name -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fv_plugin_name" class="form-label">
+                                            Plugin Name
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="fv_plugin_name"
+                                            value="<?= get_option('wl_fv_plugin_name_wl_'); ?>"
+                                        />
                                     </div>
                                 </div>
-                                <div class='row'>
-                                    <div class='col-md-12'>
-                                        <hr style="margin: 25px auto; height:0.5px; background-color: #4d378e !important;" />
+                                <!-- Plugin slogan -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fv_plugin_name" class="form-label">
+                                            Plugin Slogan
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="fv_plugin_slogan"
+                                            value="<?= get_option('wl_fv_plugin_slogan_wl_'); ?>"
+                                        />
                                     </div>
-                                    <!-- White label submit button -->
-                                    <div class='col-md-12'>
-                                        <?php
-                                        if ( $fv_api->license_1->options->white_label == 'yes'
-                                        ||   $fv_api->license_2->options->white_label == 'yes' ):
-                                            ?>
-                                            <input type="submit" class="btn non_active_button primary-btn"
-                                                name="fv_white_label_form_submit_button"
-                                                value="Submit"
-                                            />
-                                        <?php else: ?>
-                                            <button class="btn non_active_button primary-btn"
-                                                id="white_label">
-                                                Submit
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class='col-md-10'></div>
                                 </div>
-                            </form>
-                        </div>
+                                <!-- Plugin icon URL -->
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="fv_plugin_icon_url" class="form-label">
+                                            Plugin Icon URL
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="fv_plugin_icon_url"
+                                            value="<?= get_option('wl_fv_plugin_icon_url_wl_'); ?>"
+                                        />
+                                    </div>
+                                </div>
+                                <!-- Default product image URL (used as featured image on products that have no image) -->
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="fv_default_product_image_url" class="form-label">
+                                            Default Product Image URL (used when plugin of theme has no image)
+                                        </label>
+                                        <input type="text" class="form-control search_bg_clr"
+                                            name="fv_default_product_image_url"
+                                            value="<?= get_option('wl_fv_default_product_image_url_wl_'); ?>"
+                                        />
+                                    </div>
+                                </div>
+                                <!-- Plugin description -->
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="fv_plugin_description" class="form-label">
+                                            Plugin Description
+                                        </label>
+                                        <textarea class="form-control search_bg_clr"
+                                            name="fv_plugin_description"
+                                            rows="4"><?= get_option('wl_fv_plugin_description_wl_'); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Enable white labeling -->
+                                <div class="col-12">
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input custom-checkbox-color"
+                                            type="checkbox"
+                                            id="fv_plugin_wl_enable"
+                                            name="fv_plugin_wl_enable"
+                                            value="1">
+                                        <label class="form-check-label"
+                                            for="fv_plugin_wl_enable"
+                                            style="margin-top: -19px;">
+                                            Enable white label
+                                        </label>
+                                    </div>
+                                    <div id="white_label_help" class="form-text">
+                                        By enabling white label, The white label settings will be removed.
+                                        If you want to access while label settings in future, simply deactivate the
+                                        Festinger Vault plugin and activate it again.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <div class='col-md-12'>
+                                    <hr style="margin: 25px auto; height:0.5px; background-color: #4d378e !important;" />
+                                </div>
+                                <!-- White label submit button -->
+                                <div class='col-md-12'>
+                                    <?php
+                                    if ( $fv_api->license_1->options->white_label == 'yes'
+                                    ||   $fv_api->license_2->options->white_label == 'yes' ):
+                                        ?>
+                                        <input type="submit" class="btn non_active_button primary-btn"
+                                            name="fv_white_label_form_submit_button"
+                                            value="Submit"
+                                        />
+                                    <?php else: ?>
+                                        <button class="btn non_active_button primary-btn"
+                                            id="white_label">
+                                            Submit
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                                <div class='col-md-10'></div>
+                            </div>
+                        </form>
                     </div>
-                <?php endif;?>
+                </div>
             </div>
         </div>
+        <?php endif;?>
         <!-- Hide admin notices settings -->
         <div id="tab-admin-notices" class="row">
             <div class="col-md-12">
@@ -558,4 +516,3 @@
         </div>
     </div>
 </div>
-

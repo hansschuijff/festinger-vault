@@ -1190,7 +1190,7 @@ function fv_vault_on_submit_product_install_form( submit_el ) {
 
 		// User changed the select element
 		case 'select-one':
-			let selected_option = $( submit_el ).find( 'option:selected' );
+			let selected_option = jQuery( submit_el ).find( 'option:selected' );
 			var fv_product_hash = selected_option.data('id');
 			var fv_license_key  = selected_option.data('license');
 			var fv_mfile        = selected_option.data('key');
@@ -1497,7 +1497,7 @@ function fv_vault_on_submit_product_download_form( submit_el ) {
 
 		// User changed the select element
 		case 'select-one':
-			let selected_option  = $( submit_el ).find( 'option:selected' );
+			let selected_option  = jQuery( submit_el ).find( 'option:selected' );
 			var fv_product_hash  = selected_option.data('id');
 			var fv_license_key   = selected_option.data('license');
 			var fv_mfile         = selected_option.data('key');
@@ -2047,7 +2047,7 @@ function fv_vault_on_submit_bulk_install_confirmation( d ) {
 						//   content: "Items has been installed successfully.",
 						// } );
 						fv_vault_updateProgressBar( json.getfilesize );
-						$.removeCookie( 'cartData' );
+						jQuery.removeCookie( 'cartData' );
 						fv_vault_refreshCartDisplay();
 					}
 				}
@@ -2129,7 +2129,7 @@ function fv_vault_on_submit_bulk_download_confirmation( d ) {
 
 				fv_vault_updateProgressBarAutoDL( 100 );
 
-				$.removeCookie( 'cartData' );
+				jQuery.removeCookie( 'cartData' );
 				fv_vault_refreshCartDisplay();
 
 			//
@@ -2179,7 +2179,7 @@ function fv_vault_on_submit_bulk_download_confirmation( d ) {
 function fv_vault_updateProgressBarAuto( progress ) {
 	// console.log( 'running fv_vault_updateProgressBarAuto()' );
 
-	var progressElement = $( '.progress' );
+	var progressElement = jQuery( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
 	var targetProgress  = parseInt( progress );
 
@@ -2203,7 +2203,7 @@ function fv_vault_updateProgressBarAuto( progress ) {
 
 function fv_vault_updateProgressBarAutoDLBefore( progress ) {
 	// console.log( 'running fv_vault_updateProgressBarAutoDLBefore()' );
-	var progressElement = $( '.progress' );
+	var progressElement = jQuery( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
 	var targetProgress  = parseInt( progress );
 	var increment       = ( targetProgress - currentProgress ) / 100;
@@ -2227,7 +2227,7 @@ function fv_vault_updateProgressBarAutoDLBefore( progress ) {
 function fv_vault_updateProgressBarAutoDL( progress ) {
 	// console.log( 'running fv_vault_updateProgressBarAutoDL()' );
 
-	var progressElement = $( '.progress' );
+	var progressElement = jQuery( '.progress' );
 	var currentProgress = parseInt( progressElement.attr( 'aria-valuenow' ) );
 	var targetProgress  = parseInt( progress );
 	var increment       = ( targetProgress - currentProgress ) / 100;
@@ -2260,7 +2260,7 @@ function fv_vault_updateProgressBarAutoDL( progress ) {
 function fv_vault_updateProgressBar( fileSize ) {
 	// console.log( 'running fv_vault_updateProgressBar()' );
 
-	var progressBar     = $( '.progress' );
+	var progressBar     = jQuery( '.progress' );
 	var currentProgress = parseInt( progressBar.attr( 'aria-valuenow' ) );
 	var targetProgress  = 100 - currentProgress; // The target progress is 100% ( full progress bar )
 
@@ -2545,15 +2545,15 @@ function fv_vault_render_product_grid( products, pagination ) {  // render curre
 function fv_render_pagination( ajax_search, links, page ) {
 	// console.log( 'running fv_render_pagination()' );
 
-	var pagination = $( '#pagination' );
+	var pagination = jQuery( '#pagination' );
 
 	pagination.empty(); // Clear previous pagination links
 
-	$.each( links, function( index, link ) {
+	jQuery.each( links, function( index, link ) {
 
 		// create basic elements.
-		var linkElement = $( '<a class="page-link"></a>' );
-		var listItem    = $( '<li class="page-item"></li>' );
+		var linkElement = jQuery( '<a class="page-link"></a>' );
+		var listItem    = jQuery( '<li class="page-item"></li>' );
 
 		if ( link.url ) {
 
@@ -2577,10 +2577,10 @@ function fv_render_pagination( ajax_search, links, page ) {
 			linkElement.addClass( 'disabled' );
 		}
 
-		// $( '<div>' ) creates a div-element.
+		// jQuery( '<div>' ) creates a div-element.
 		// .html( link.label ) fills it with the html link.label.
 		// .text() returns the text-content.
-		var decodedLabel = $( '<div>' ).html( link.label ).text();
+		var decodedLabel = jQuery( '<div>' ).html( link.label ).text();
 
 		linkElement.html( decodedLabel );
 		listItem.append( linkElement );
@@ -2686,7 +2686,7 @@ function fv_vault_getCartData() {
 	// console.log( 'running fv_vault_getCartData()' );
 
 	// read cookie
-	var cartData = $.cookie( 'cartData' );
+	var cartData = jQuery.cookie( 'cartData' );
 
 	if ( typeof cartData !== 'undefined' ) {
 
@@ -2697,7 +2697,7 @@ function fv_vault_getCartData() {
 		var expires = new Date( cartData.expires );
 		var now     = new Date();
 		if ( now > expires ) {
-			$.removeCookie( 'cartData' );
+			jQuery.removeCookie( 'cartData' );
 			cartData = {};
 		}
 
@@ -2722,7 +2722,7 @@ function fv_vault_setCartData( cartData ) {
 	expires.setTime( expires.getTime() + ( 10 * 60 * 1000 ) );
 
 	// Save cookie
-	$.cookie(
+	jQuery.cookie(
 		'cartData',
 		JSON.stringify( cartData ),
 		{
@@ -2806,7 +2806,7 @@ function fv_vault_refreshCartDisplay() {
 		.off( 'click' )
 		.on( 'click',
 			function() {
-				$.removeCookie( 'cartData' );
+				jQuery.removeCookie( 'cartData' );
 				fv_vault_refreshCartDisplay();
 			}
 		);
@@ -2814,17 +2814,17 @@ function fv_vault_refreshCartDisplay() {
 	// Show-hide buttons in bulk-action Cart
 	if (  cartCount > 0  ) {
 		// one or more items for bulk action
-		$( '#download-button'     ).show();
-		$( '#install-button'      ).show();
-		$( '#clearall-button'     ).show();
-		$( '.cart-items-notfound' ).hide();
+		jQuery( '#download-button'     ).show();
+		jQuery( '#install-button'      ).show();
+		jQuery( '#clearall-button'     ).show();
+		jQuery( '.cart-items-notfound' ).hide();
 
 	} else {
 		// no items for bulk action
-		$( '#download-button'     ).hide();
-		$( '#install-button'      ).hide();
-		$( '#clearall-button'     ).hide();
-		$( '.cart-items-notfound' ).show();
+		jQuery( '#download-button'     ).hide();
+		jQuery( '#install-button'      ).hide();
+		jQuery( '#clearall-button'     ).hide();
+		jQuery( '.cart-items-notfound' ).show();
 	}
 }
 
@@ -2832,9 +2832,9 @@ function fv_vault_toggle_bulk_action_cart() {
 	// console.log( 'running fv_vault_toggle_bulk_action_cart()' );
 
 	// Get the cart-get-dropdown and get-cart-dropdownsub elements
-	var cartGetDropdown    = $( '.cart-get-dropdown'    ); // Bulk-button
-	var getCartDropdownsub = $( '.get-cart-dropdownsub' ); // Dropdown of the Bulk-button
-	var addToBulkBtn       = $( '.add_to_bulk_btn'      ); // A 'Add to bulk'-button
+	var cartGetDropdown    = jQuery( '.cart-get-dropdown'    ); // Bulk-button
+	var getCartDropdownsub = jQuery( '.get-cart-dropdownsub' ); // Dropdown of the Bulk-button
+	var addToBulkBtn       = jQuery( '.add_to_bulk_btn'      ); // A 'Add to bulk'-button
 
 	// Show/hide the dropdown when the cart-get-dropdown is clicked
 	cartGetDropdown.on( 'click', function() {
@@ -2849,7 +2849,7 @@ function fv_vault_toggle_bulk_action_cart() {
 		function( event ) {
 			if ( ! cartGetDropdown.is( event.target )
 			&&     cartGetDropdown.has( event.target ).length === 0
-			&&   ! $( event.target ).hasClass( 'add_to_bulk_btn' ) ) {
+			&&   ! jQuery( event.target ).hasClass( 'add_to_bulk_btn' ) ) {
 				getCartDropdownsub.hide();
 			}
 		}
@@ -2898,7 +2898,7 @@ function fv_vault_on_click_product_additional_content_button( d ) {
 				jQuery( '.modal-body' ).html( html );
 				jQuery( '#empModal'   ).modal( 'show' );
 
-				$( '.data_table998fv' ).DataTable( {
+				jQuery( '.data_table998fv' ).DataTable( {
 					'pageLength': 10
 				} );
 			}
@@ -3240,7 +3240,7 @@ function fv_vault_on_click_download_additional_content( submit_el ) {
 
 		// User changed the select element
 		case 'select-one':
-			let selected_option  = $( submit_el ).find( 'option:selected' );
+			let selected_option  = jQuery( submit_el ).find( 'option:selected' );
 			var fv_product_hash  = selected_option.data('id');
 			var fv_license_key   = selected_option.data('license');
 			var fv_download_type = selected_option.data('dltype');
@@ -3847,7 +3847,7 @@ function fv_get_vault_product_card_html( f ) {
 			dl_linkxyzzu = 'https://community.festingervault.com/t/gold-silver-and-bronze-downloads/35448';
 		}
 
-		$.each( values, function( index, value ) {
+		jQuery.each( values, function( index, value ) {
 			fv_allowence_image = fv_get_allowence_img_html( value, dl_linkxyzzu );
 		} );
 	}
@@ -3948,7 +3948,7 @@ function fv_vault_page_handle_bulk_download_all_button() {
 
 	jQuery(".progress").hide();
 
-	var progressBar   = $( '.progress' );
+	var progressBar   = jQuery( '.progress' );
 	var cartItemsList = jQuery( '.cart-dropdown .cart-items' );
 
 	progressBar.attr( 'aria-valuenow', 0 );
@@ -4026,7 +4026,7 @@ function fv_vault_page_handle_bulk_install_all_button() {
 
 	jQuery(".progress").hide();
 
-	var progressBar   = $( '.progress' );
+	var progressBar   = jQuery( '.progress' );
 	var cartItemsList = jQuery( '.cart-dropdown .cart-items' );
 
 	progressBar.attr( 'aria-valuenow', 0 );

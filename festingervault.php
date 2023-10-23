@@ -485,7 +485,7 @@ function fv_add_pages_to_admin_menu() {
 	);
 
 	// Only add History and Settings page when white labeling is not enabled
-	if ( ! fv_should_white_label() ) {
+	// if ( ! fv_should_white_label() ) {
 
 		add_submenu_page(
 			parent_slug: 'festinger-vault',
@@ -504,7 +504,7 @@ function fv_add_pages_to_admin_menu() {
 			menu_slug:   'festinger-vault-settings',
 			callback:    'fv_render_settings_page'
 		);
-	}
+	// }
 }
 add_action( 'admin_menu', 'fv_add_pages_to_admin_menu' );
 
@@ -537,55 +537,121 @@ function fv_enqueue_styles_and_scripts( $hook ) {
 }
 add_action( 'admin_enqueue_scripts', 'fv_enqueue_styles_and_scripts' );
 
+function fv_get_screen_prefix() {
+	return sanitize_title( fv_perhaps_white_label_plugin_name() );
+}
+
+function fv_is_settings_page() {
+
+	$screen_prefix = sanitize_title( get_plugin_data( FV_PLUGIN__FILE__ )['Name'] );
+
+	return is_admin() && fv_get_screen_prefix() . '_page_festinger-vault-settings' === get_current_screen()->id;
+}
+
 /**
  * Enqueue styles css files.
  *
  * @return void
  */
 function fv_enqueue_styles() : void {
+
+	$handles = fv_enqueue_third_party_styles();
+
+	wp_enqueue_style(
+		handle: 'fv_festinger_css',
+		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/css/wp_festinger_vault.css',
+		deps:   $handles, // makes sure this styles can third party styles.
+		ver:    FV_PLUGIN_VERSION
+	);
+}
+
+
+/**
+ * Enqueue third party css used by this plugin.
+ *
+ * @return array Handles of enqueued styles.
+ */
+function fv_enqueue_third_party_styles(): array {
+
+	$handles = array();
+
 	// wp_enqueue_style(
 	// 	handle: 'pagicss',
 	// 	src:    'https://pagination.js.org/dist/2.6.0/pagination.css',
 	// 	deps:   array(),
 	// 	ver:    FV_PLUGIN_VERSION
 	// );
+	// $handles[] = 'pagicss';
+
 	wp_enqueue_style(
 		handle: 'fwv_font_style',
 		src:    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css'
 	);
+	$handles[] = 'fwv_font_style';
+
 	wp_enqueue_style(
 		handle: 'fv_bootstrap',
 		src:    'https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css',
 		deps:   array(),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'fv_bootstrap';
+
 	wp_enqueue_style(
 		handle: 'custom-alert-css',
 		src:    '//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css',
 		deps:   array(),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'custom-alert-css';
+
 	wp_enqueue_style(
 		handle: 'custom-dt-css',
 		src:    'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css',
 		deps:   array(),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'custom-dt-css';
+
 	wp_enqueue_style(
 		handle: 'roboto-dt-css',
 		src:    'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
 		deps:   array(),
 		ver:    FV_PLUGIN_VERSION
 	);
-	wp_enqueue_style(
-		handle: 'fv_festinger_css',
-		src:    FV_PLUGIN_ABSOLUTE_PATH.'assets/css/wp_festinger_vault.css',
-		deps:   array(
-			'custom-dt-css', // jQuery datatables css is full of !important qualifiers, so we must load our css later.
-			'fv_bootstrap'   // Making sure we can override bootstrap css when needed.
-		),
-		ver:    FV_PLUGIN_VERSION
-	);
+	$handles[] = 'roboto-dt-css';
+
+	if ( fv_is_settings_page() ) {
+		// settings page uses tabs from jquery ui
+		$handle = 'fv-jquery-ui';
+		wp_enqueue_style(
+			handle: $handle,
+			src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/css/jquery-ui.min.css',
+			deps:   array(),
+			ver:    FV_PLUGIN_VERSION
+		);
+		$handles[] = $handle;
+
+		$handle = 'fv-jquery-ui-structure';
+		wp_enqueue_style(
+			handle: $handle,
+			src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/css/jquery-ui.structure.min.css',
+			deps:   array(),
+			ver:    FV_PLUGIN_VERSION
+		);
+		$handles[] = $handle;
+
+		$handle = 'fv-jquery-ui-theme';
+		wp_enqueue_style(
+			handle: $handle,
+			src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/css/jquery-ui.theme.min.css',
+			deps:   array(),
+			ver:    FV_PLUGIN_VERSION
+		);
+		$handles[] = $handle;
+	}
+
+	return $handles;
 }
 
 /**
@@ -615,7 +681,7 @@ function fv_enqueue_scripts() : void {
 			'get_all_inactive_plugins_js'    => json_encode( fv_get_inactive_plugins_slugs() ),
 			'get_all_active_themes_js'       => json_encode( fv_get_active_themes_slugs() ),
 			'get_all_inactive_themes_js'     => json_encode( fv_get_inactive_themes_slugs() ),
-			'fv_this_plugin_prefix'          => sanitize_title( get_plugin_data( FV_PLUGIN__FILE__ )['Name'] ),
+			'fv_this_plugin_prefix'          => sanitize_title( fv_perhaps_white_label_plugin_name() ),
 			'fv_white_label_is_active'       => fv_should_white_label() ? 1 : 0,
 			'fv_default_product_img_url'     => fv_get_default_product_image_url(),
 			'fv_has_download_credits'        => fv_has_download_credits() ? 1 : 0,
@@ -663,30 +729,33 @@ function fv_has_download_credits() : bool {
 /**
  * Upgrade buildin jQuery version to 3.4.1.
  *
- * @return void
+ * @return array Handles of enqueued scripts
  */
-function fv_jquery_upgrade() : void {
-	wp_deregister_script( // Deregisters the built-in version of jQuery
-		handle: 'jquery'
-	);
-	wp_register_script(
-		handle: 'jquery',
-		src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',
-		deps: false,
-		ver: FV_PLUGIN_VERSION,
-		args: true
-	);
+function fv_jquery_upgrade() : array {
+	// No longer needed? The current jquery version of WP is 3.7.0
+	// wp_deregister_script( // Deregisters the built-in version of jQuery
+	// 	handle: 'jquery'
+	// );
+	// wp_register_script(
+	// 	handle: 'jquery',
+	// 	src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',
+	// 	deps: false,
+	// 	ver: FV_PLUGIN_VERSION,
+	// 	args: true
+	// );
 	wp_enqueue_script(
 		handle: 'jquery'
 	);
+
+	return array('jquery');
 }
 
 /**
  * Enqueue third party scripts used by this plugin.
  *
- * @return void
+ * @return array Handles of enqueued scripts.
  */
-function fv_enqueue_third_party_scripts() : void {
+function fv_enqueue_third_party_scripts() : array {
 
 	wp_enqueue_script(
 		handle: 'jquery-cookie',
@@ -695,36 +764,56 @@ function fv_enqueue_third_party_scripts() : void {
 		ver: '   1.4.1',
 		args: true
 	);
+	$handles = array( 'jquery-cookie' );
+
+	if ( fv_is_settings_page() ) {
+		wp_enqueue_script(
+			handle: 'jquery-ui-tabs'
+		);
+		$handles[] = 'jquery-ui-tabs';
+	}
+
 	wp_enqueue_script(
 		handle: 'custom-alert-js',
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-confirm.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'custom-alert-js';
+
 	// wp_enqueue_script(
 	// 	handle: 'pagi-js',
 	// 	src:    'https://pagination.js.org/dist/2.6.0/pagination.js',
 	// 	deps:   array( 'jquery' ),
 	// 	ver:    FV_PLUGIN_VERSION
 	// );
+	// $handles[] = 'pagi-js';
+
 	wp_enqueue_script(
 		handle: 'pagid-js',
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/bootstrap.bundle.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'pagid-js';
+
 	wp_enqueue_script(
 		handle: 'dt-js',
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery.dataTables.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'dt-js';
+
 	wp_enqueue_script(
 		handle: 'bootstrap-toggle',
 		src:    'https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
+	$handles[] = 'bootstrap-toggle';
+
+	return $handles;
 }
 
 /**
@@ -2848,7 +2937,7 @@ function fv_do_form_submissions() {
 
 function fv_do_auto_update_settings_form() {
 	$user_ID        = get_current_user_id();
-	$query_base_url = YOUR_LICENSE_SERVER_URL.'on-off-auto-update-domain-using-first-server';
+	$query_base_url = FV_REST_API_URL . 'on-off-auto-update-domain-using-first-server';
 	$api_params     = array(
 		'license_key'  => fv_get_any_license_key(),
 	    'license_mode' => 'on_off_auto_update',
