@@ -729,17 +729,19 @@ function fv_has_download_credits() : bool {
  * @return array Handles of enqueued scripts
  */
 function fv_jquery_upgrade() : array {
-	// No longer needed? The current jquery version of WP is 3.7.0
-	// wp_deregister_script( // Deregisters the built-in version of jQuery
-	// 	handle: 'jquery'
-	// );
-	// wp_register_script(
-	// 	handle: 'jquery',
-	// 	src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',
-	// 	deps: false,
-	// 	ver: FV_PLUGIN_VERSION,
-	// 	args: true
-	// );
+
+	wp_deregister_script( // Deregisters the built-in version of jQuery
+		handle: 'jquery'
+	);
+
+	wp_register_script(
+		handle: 'jquery',
+		src: FV_PLUGIN_ABSOLUTE_PATH.'assets/js/jquery-3.4.1.min.js',
+		deps: false,
+		ver: FV_PLUGIN_VERSION,
+		args: true
+	);
+
 	wp_enqueue_script(
 		handle: 'jquery'
 	);

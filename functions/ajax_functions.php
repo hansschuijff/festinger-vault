@@ -685,7 +685,7 @@ function get_plugins_and_themes_matched_by_vault( $plugin_theme, $get_slug ) {
 function fv_vault_remote_request_update() {
 
     // commentdata = "Please update ".$_POST['fv_item_name']." to ".$_POST['versionNumber']." @FestingerUpdates";
-	$query_base_url = FV_REST_API_URL.'discourse-input';
+	$query_base_url = FV_REST_API_URL . 'discourse-input';
 	$query_args     = array(
 		'license_key' => $_POST['fv_license_key'],
 		'plugin_name' => $_POST['fv_item_name'],
@@ -697,6 +697,7 @@ function fv_vault_remote_request_update() {
 	if ( ! fv_is_active_license_key( $query_args['license_key'] ) ) {
 		$query_args['license_key'] = fv_get_any_license_key();
 	}
+
 	$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response          = fv_run_remote_query( $query );
 	$fv_api            = json_decode( wp_remote_retrieve_body( $response ) );
