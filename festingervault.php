@@ -542,9 +542,6 @@ function fv_get_screen_prefix() {
 }
 
 function fv_is_settings_page() {
-
-	$screen_prefix = sanitize_title( get_plugin_data( FV_PLUGIN__FILE__ )['Name'] );
-
 	return is_admin() && fv_get_screen_prefix() . '_page_festinger-vault-settings' === get_current_screen()->id;
 }
 
@@ -757,61 +754,70 @@ function fv_jquery_upgrade() : array {
  */
 function fv_enqueue_third_party_scripts() : array {
 
+	$handles = array();
+
+	$handle = 'jquery-cookie';
 	wp_enqueue_script(
-		handle: 'jquery-cookie',
+		handle: $handle,
 		src:    'https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js',
 		deps:   array( 'jquery' ),
 		ver: '   1.4.1',
 		args: true
 	);
-	$handles = array( 'jquery-cookie' );
+	$handles[] = $handle;
 
 	if ( fv_is_settings_page() ) {
+		$handle = 'jquery-ui-tabs';
 		wp_enqueue_script(
-			handle: 'jquery-ui-tabs'
+			handle: $handle
 		);
-		$handles[] = 'jquery-ui-tabs';
+		$handles[] = $handle;
 	}
 
+	$handle = 'custom-alert-js';
 	wp_enqueue_script(
-		handle: 'custom-alert-js',
+		handle: $handle,
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-confirm.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
-	$handles[] = 'custom-alert-js';
+	$handles[] = $handle;
 
+	// $handle = 'pagi-js';
 	// wp_enqueue_script(
-	// 	handle: 'pagi-js',
+	// 	handle: $handle,
 	// 	src:    'https://pagination.js.org/dist/2.6.0/pagination.js',
 	// 	deps:   array( 'jquery' ),
 	// 	ver:    FV_PLUGIN_VERSION
 	// );
-	// $handles[] = 'pagi-js';
+	// $handles[] = $handle;
 
+	$handle = 'pagid-js';
 	wp_enqueue_script(
-		handle: 'pagid-js',
+		handle: $handle,
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/bootstrap.bundle.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
-	$handles[] = 'pagid-js';
+	$handles[] = $handle;
 
+	$handle = 'dt-js';
 	wp_enqueue_script(
-		handle: 'dt-js',
+		handle: $handle,
 		src:    FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery.dataTables.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
-	$handles[] = 'dt-js';
+	$handles[] = $handle;
 
+	$handle = 'bootstrap-toggle';
 	wp_enqueue_script(
-		handle: 'bootstrap-toggle',
+		handle: $handle,
 		src:    'https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js',
 		deps:   array( 'jquery' ),
 		ver:    FV_PLUGIN_VERSION
 	);
-	$handles[] = 'bootstrap-toggle';
+	$handles[] = $handle;
 
 	return $handles;
 }
