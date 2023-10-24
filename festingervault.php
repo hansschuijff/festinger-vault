@@ -5189,7 +5189,7 @@ function fv_theme_slug_is_installed( string $slug ): bool {
 function fv_str_to_search_query_var( string $str ): string {
 
     // words to remove
-    $words = array( 'plugin', 'version', 'add-on' );
+    $words = array( 'plugin', 'version' );
 
     $is_not_a_slug = ( false !== strpos( $str, ' ' ) );
     $is_valid_slug = is_kebab_case( $str );
