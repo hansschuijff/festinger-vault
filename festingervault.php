@@ -658,7 +658,6 @@ function fv_enqueue_third_party_styles(): array {
  */
 function fv_enqueue_scripts() : void {
 
-	fv_jquery_upgrade();
 	fv_enqueue_third_party_scripts();
 
 	wp_enqueue_script(
@@ -730,17 +729,17 @@ function fv_has_download_credits() : bool {
  */
 function fv_jquery_upgrade() : array {
 
-	wp_deregister_script( // Deregisters the built-in version of jQuery
-		handle: 'jquery'
-	);
+	// wp_deregister_script( // Deregisters the built-in version of jQuery
+	// 	handle: 'jquery'
+	// );
 
-	wp_register_script(
-		handle: 'jquery',
-		src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-3.4.1.min.js',
-		deps: false,
-		ver: FV_PLUGIN_VERSION,
-		args: true
-	);
+	// wp_register_script(
+	// 	handle: 'jquery',
+	// 	src: FV_PLUGIN_ABSOLUTE_PATH . 'assets/js/jquery-3.4.1.min.js',
+	// 	deps: false,
+	// 	ver: FV_PLUGIN_VERSION,
+	// 	args: true
+	// );
 
 	wp_enqueue_script(
 		handle: 'jquery'
@@ -756,25 +755,17 @@ function fv_jquery_upgrade() : array {
  */
 function fv_enqueue_third_party_scripts() : array {
 
-	$handles = array();
+	$handles = fv_jquery_upgrade();
 
 	$handle = 'jquery-cookie';
 	wp_enqueue_script(
 		handle: $handle,
 		src:    'https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js',
 		deps:   array( 'jquery' ),
-		ver: '   1.4.1',
-		args: true
+		ver: 	'1.4.1',
+		args:   true
 	);
 	$handles[] = $handle;
-
-	if ( fv_is_settings_page() ) {
-		$handle = 'jquery-ui-tabs';
-		wp_enqueue_script(
-			handle: $handle
-		);
-		$handles[] = $handle;
-	}
 
 	$handle = 'custom-alert-js';
 	wp_enqueue_script(
@@ -820,6 +811,14 @@ function fv_enqueue_third_party_scripts() : array {
 		ver:    FV_PLUGIN_VERSION
 	);
 	$handles[] = $handle;
+
+	if ( fv_is_settings_page() ) {
+		$handle = 'jquery-ui-tabs';
+		wp_enqueue_script(
+			handle: $handle
+		);
+		$handles[] = $handle;
+	}
 
 	return $handles;
 }

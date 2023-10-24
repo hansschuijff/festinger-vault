@@ -687,7 +687,6 @@ function fv_vault_remote_request_update() {
 	if ( ! fv_is_active_license_key( $query_args['license_key'] ) ) {
 		$query_args['license_key'] = fv_get_any_license_key();
 	}
-
 	$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response          = fv_run_remote_query( $query );
 	$fv_api            = json_decode( wp_remote_retrieve_body( $response ) );
