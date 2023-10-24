@@ -223,6 +223,8 @@ function fv_do_settings_page() {
 	// settings page - white label form - submit button.
 	jQuery('#white_label')
 		.on( 'click', fv_settings_show_alert_white_label_not_available );
+
+	jQuery( "#tabs" ).tabs();
 }
 
 /**
