@@ -33,7 +33,7 @@ function fv_toggle_theme_auto_update() : void {
 		'license_pp'    => $_SERVER['REMOTE_ADDR'],
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'captured_slug_st',
-		'license_v'     => FV_PLUGIN_VERSION,
+		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response = fv_run_remote_query( $query );
@@ -117,7 +117,7 @@ function fv_toggle_plugin_auto_update() : void {
 		'license_pp'    => $_SERVER['REMOTE_ADDR'],
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'captured_slug_st',
-		'license_v'     => FV_PLUGIN_VERSION,
+		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response = fv_run_remote_query( $query );
@@ -185,7 +185,7 @@ function fv_get_bulk_items_data_from_api() : void {
 	    'license_pp'   => $_SERVER['REMOTE_ADDR'],
 	    'license_host' => $_SERVER['HTTP_HOST'],
 	    'license_mode' => 'buttons_multiple',
-	    'license_v'    => FV_PLUGIN_VERSION,
+	    'license_v'    => FV_API_PLUGIN_VERSION,
 	    'product_hash' => $_POST['product_hash'],
 	);
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
@@ -212,7 +212,7 @@ function fv_get_remote_product_download_data() : void {
 	    'license_pp'   => $_SERVER['REMOTE_ADDR'],
 	    'license_host' => $_SERVER['HTTP_HOST'],
 	    'license_mode' => 'buttons',
-	    'license_v'    => FV_PLUGIN_VERSION,
+	    'license_v'    => FV_API_PLUGIN_VERSION,
 	    'product_hash' => $_POST['product_hash'],
 	);
 	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
@@ -351,7 +351,7 @@ function fv_plugin_download_ajax() : void {
 	    'license_pp'           => $_SERVER['REMOTE_ADDR'],
 	    'license_host'         => $_SERVER['HTTP_HOST'],
 	    'license_mode'         => 'download',
-	    'license_v'            => FV_PLUGIN_VERSION,
+	    'license_v'            => FV_API_PLUGIN_VERSION,
 	    'plugin_download_hash' => $_POST['fv_product_hash'],
 	    'mfile'                => $_POST['fv_mfile'],
 	    'license_key'          => $_POST['fv_license_key'],
@@ -401,7 +401,7 @@ function fv_plugin_download_ajax_bundle() {
 	    'license_pp'           => $_SERVER['REMOTE_ADDR'],
 	    'license_host'         => $_SERVER['HTTP_HOST'],
 	    'license_mode'         => 'download_bundle',
-	    'license_v'            => FV_PLUGIN_VERSION,
+	    'license_v'            => FV_API_PLUGIN_VERSION,
 	    'plugin_download_hash' => $_POST['plugin_download_hash'],
 	    'license_key'          => $_POST['license_key'],
 	    'mfile'                => $_POST['mfile'],
@@ -450,7 +450,7 @@ function fv_plugin_install_bulk_ajax() {
 	    'license_pp'           => $_SERVER['REMOTE_ADDR'],
 	    'license_host'         => $_SERVER['HTTP_HOST'],
 	    'license_mode'         => 'install_bundle',
-	    'license_v'            => FV_PLUGIN_VERSION,
+	    'license_v'            => FV_API_PLUGIN_VERSION,
 	    'plugin_download_hash' => $_POST['plugin_download_hash'],
 	    'license_key'          => $_POST['license_key'],
 	    'mfile'                => $_POST['mfile'],
@@ -502,7 +502,7 @@ function fv_vault_product_install() {
 	    'license_pp'           => $_SERVER['REMOTE_ADDR'],
 	    'license_host'         => $_SERVER['HTTP_HOST'],
 	    'license_mode'         => 'install',
-	    'license_v'            => FV_PLUGIN_VERSION,
+	    'license_v'            => FV_API_PLUGIN_VERSION,
 	    'plugin_download_hash' => $_POST['fv_product_hash'],
 	    'license_key'          => $_POST['fv_license_key'],
 	    'mfile'                => $_POST['fv_mfile'],
@@ -650,7 +650,7 @@ function get_plugins_and_themes_matched_by_vault( $plugin_theme, $get_slug ) {
 		    'license_pp'      => $_SERVER['REMOTE_ADDR'],
 		    'license_host'    => $_SERVER['HTTP_HOST'],
 		    'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
-		    'license_v'       => FV_PLUGIN_VERSION,
+		    'license_v'       => FV_API_PLUGIN_VERSION,
 		);
 		$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	    $response          = fv_run_remote_query( $query );

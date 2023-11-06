@@ -254,8 +254,10 @@
         <?php endif; ?>
 
 <?php
-// this inserts a js-script (inserts the content from fv api)
-echo ( $fv_api->cat_func );
+
+// This inserts a js-script that is passed by the api.
+// Since we use WP jQuery, it may not use the $() shortcut for jQuery().
+echo str_replace( '$(', 'jQuery(', $fv_api->cat_func );
 
 function print_license_table_markup( stdClass $license ) : void {
     $gap = 'margin-left: 10px !important;';

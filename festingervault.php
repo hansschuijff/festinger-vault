@@ -12,7 +12,7 @@
  * Plugin Name:       Festinger Vault Fork
  * Plugin URI:        https://github.com/hansschuijff/festinger-vault
  * GitHub Plugin URI: hansschuijff/festinger-vault
- * Version:           4.2.0.h4
+ * Version:           4.2.3.h1
  * Description:       Festinger vault - The largest plugin market
  * 					  Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.
  * Author:            Hans Schuijff
@@ -47,7 +47,15 @@ if ( ! defined( 'FV_REST_API_URL' ) ) {
 if ( ! defined( 'FV_TEXTDOMAIN' ) ) {
 	define( 'FV_TEXTDOMAIN', \get_plugin_data(__FILE__)['TextDomain'] );
 }
-define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
+
+if ( ! defined( 'FV_PLUGIN_VERSION' ) ) {
+	define( 'FV_PLUGIN_VERSION', \get_plugin_data(__FILE__)['Version'] );
+}
+
+if ( ! defined( 'FV_API_PLUGIN_VERSION' ) ) {
+	// The api checks for FV versions, so it needs a version without the .h## suffix.
+	define( 'FV_API_PLUGIN_VERSION', fv_remove_version_suffix ( FV_PLUGIN_VERSION ) );
+}
 
 require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 require_once( FV_PLUGIN_DIR . '/functions/ajax_functions.php' );
@@ -190,7 +198,7 @@ function fv_custom_endpoint_create( $request ) {
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
 		'license_mode' => 'salt_verification',
-		'license_v'    => FV_PLUGIN_VERSION,
+		'license_v'    => FV_API_PLUGIN_VERSION,
 	);
 	$query    = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response = fv_run_remote_query( $query );
@@ -245,7 +253,7 @@ function fv_custom_endpoint_create( $request ) {
 			'license_pp'          => $_SERVER['REMOTE_ADDR'],
 			'license_host'        => $_SERVER['HTTP_HOST'],
 			'license_mode'        => 'salt_push_update_result',
-			'license_v'           => FV_PLUGIN_VERSION,
+			'license_v'           => FV_API_PLUGIN_VERSION,
 			);
 		$query         = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 		$response      = fv_run_remote_query( $query );
@@ -725,6 +733,11 @@ function fv_has_download_credits() : bool {
 /**
  * Upgrade buildin jQuery version to 3.4.1.
  *
+ * NOTE: The reason for this update is not really to upgrade the version,
+ * since WordPress already uses almost the latest version.
+ * But some scripts use $() instead of jQuery() and are send
+ * by the server so cannot be changed.
+ *
  * @return array Handles of enqueued scripts
  */
 function fv_jquery_upgrade() : array {
@@ -861,7 +874,7 @@ function fv_run_remote_activate_license( string $license_key ) : stdClass|WP_Err
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
 		'license_mode' => 'activation',
-		'license_v'    => FV_PLUGIN_VERSION,
+		'license_v'    => FV_API_PLUGIN_VERSION,
 	 );
 
 	$query           = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
@@ -890,7 +903,7 @@ function fv_run_remote_deactivate_license( string $key, string $domain ) : stdCl
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
 		'license_mode' => 'deactivation',
-		'license_v'    => FV_PLUGIN_VERSION,
+		'license_v'    => FV_API_PLUGIN_VERSION,
 	);
 	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
@@ -919,7 +932,7 @@ function fv_run_remote_update_request_load( string $slug, string $version ) : ar
 		'license_pp'           => $_SERVER['REMOTE_ADDR'],
 		'license_host'         => $_SERVER['HTTP_HOST'],
 		'license_mode'         => 'update_request_load',
-		'license_v'            => FV_PLUGIN_VERSION,
+		'license_v'            => FV_API_PLUGIN_VERSION,
 	);
 	$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
@@ -1027,7 +1040,7 @@ function fv_do_search_vault_for_plugins_and_themes_form() {
 		'license_host'         => $_SERVER['HTTP_HOST'],
 		'license_mode'         => 'search_query',
 		'license_cache_status' => $fv_cache_status,
-		'license_v'            => FV_PLUGIN_VERSION,
+		'license_v'            => FV_API_PLUGIN_VERSION,
 		'queryd'               => 'wordpress',
 	);
 	$query        = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
@@ -1180,7 +1193,7 @@ function fv_run_remote_get_all_license_data() : null|stdClass|WP_Error {
 		'license_pp'    => $_SERVER['REMOTE_ADDR'],
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'get_all_license_data',
-		'license_v'     => FV_PLUGIN_VERSION,
+		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
@@ -1422,7 +1435,7 @@ function fv_get_remote_matches( array $plugins = array(), array $themes = array(
 		'license_pp'      => $_SERVER['REMOTE_ADDR'],
 		'license_host'    => $_SERVER['HTTP_HOST'],
 		'license_mode'    => 'get_plugins_and_themes_matched_by_vault',
-		'license_v'       => FV_PLUGIN_VERSION,
+		'license_v'       => FV_API_PLUGIN_VERSION,
 	);
 	if ( 'update' === $context ) {
 		$query_args['license_mode']    = 'up_dl_plugs_thms';
@@ -1493,7 +1506,7 @@ function fv_get_remote_history(): array|WP_Error|null {
 		'license_pp'    => $_SERVER['REMOTE_ADDR'],
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'get_history',
-		'license_v'     => FV_PLUGIN_VERSION,
+		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 
@@ -1516,7 +1529,7 @@ function fv_do_license_refill_form(): void {
 		'license_pp'   => $_SERVER['REMOTE_ADDR'],
 		'license_host' => $_SERVER['HTTP_HOST'],
 		'license_mode' => 'refill_history',
-		'license_v'    => FV_PLUGIN_VERSION,
+		'license_v'    => FV_API_PLUGIN_VERSION,
 	);
 	$query       = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response    = fv_run_remote_query( $query );
@@ -2354,7 +2367,7 @@ function download_and_istall_plugin() {
 		'license_pp'           => $_SERVER['REMOTE_ADDR'],
 		'license_host'         => $_SERVER['HTTP_HOST'],
 		'license_mode'         => 'download',
-		'license_v'            => FV_PLUGIN_VERSION,
+		'license_v'            => FV_API_PLUGIN_VERSION,
 		'plugin_download_hash' => 'ff4e1b8e4bc36381389eaac20fae1169',
 		'license_key'          => '53fd42a77eb617e31fca2439f4e51fd20bd96754',
 	);
@@ -2581,7 +2594,7 @@ function fv_run_remote_licensed_info_list( array $plugins, array $themes ): void
 		'license_pp'              => $_SERVER['REMOTE_ADDR'],
 		'license_host'            => $_SERVER['HTTP_HOST'],
 		'license_mode'            => 'licensedinfolist',
-		'license_v'               => FV_PLUGIN_VERSION,
+		'license_v'               => FV_API_PLUGIN_VERSION,
 	);
 
 	$chunks  = fv_array_split( $plugins, count( $themes ), 75 );
@@ -4918,8 +4931,7 @@ function get_hours_to_midnight() : string {
 function fv_print_no_license_push_message() : void {
 	?>
 	<script type="text/javascript">
-        $(document).ready(
-            function(){
+        jQuery( function($) {
                 var containerdiv = $("#push-notice-container").eq(0);
 				console.log(containerdiv);
                 containerdiv.replaceWith(
@@ -5305,4 +5317,13 @@ function fv_set_all_themes_auto_update(): void {
 		}
 	}
 	fv_set_themes_auto_update_list( array_keys( $auto_update_themes ) );
+}
+
+/**
+ * Removes the last part of the version when it starts with '.h'
+ */
+function fv_remove_version_suffix( $version ) {
+	// Use regular expression to remove the last part starting with 'h'
+	$pattern = '/\.h[^.]*$/';
+	return preg_replace($pattern, '', $version);
 }

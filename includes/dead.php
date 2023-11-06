@@ -292,7 +292,7 @@ function festinger_vault_get_multi_purpose_data() {
 		'license_pp'    => $_SERVER['REMOTE_ADDR'],
 		'license_host'  => $_SERVER['HTTP_HOST'],
 		'license_mode'  => 'get_multi_purpose_data_status',
-		'license_v'     => FV_PLUGIN_VERSION,
+		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query             = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
 	$response          = fv_run_remote_query( $query );
