@@ -125,6 +125,10 @@
                         $bgredhere            = '';
                     }
 
+                    if ( ! $fv_plugin_has_update && fv_should_hide_plugins_without_update() ) {
+                        continue;
+                    }
+
                     if ( fv_should_auto_update_plugin( $fv_plugin_data['slug'] ) ) {
                         $auto_update_toggle_checked = 'checked';
                     } else {
@@ -136,7 +140,7 @@
                     <tr class="table-tr mb-2">
                         <!-- Name  -->
                         <td class='plugin_update_width_30'>
-                            <a href="<?php echo $vault_product_url ?>" style="color: #fff; text-decoration: none;">
+                            <a href="<?php echo $vault_product_url ?>" <?php if ( fv_should_open_plugin_in_new_browser_tab() ) echo 'target="_blank"'; ?> style="color: #fff; text-decoration: none;">
                                 <?php echo $fv_plugin_data['name'] ?>
                             </a><br/>
                             <span class='badge <?php echo $is_active_plugin ? 'bg-tag' : 'bg-danger' ?>'>

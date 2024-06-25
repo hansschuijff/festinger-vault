@@ -9,8 +9,8 @@
             <li><a class="nav-tab" href="#tab-white-label">White Label</a></li>
             <?php endif; ?>
             <li><a class="nav-tab" href="#tab-admin-notices">Admin Notices</a></li>
-            <li><a class="nav-tab" href="#tab-ignore-plugins">Ignore Plugins</a></li>
-            <li><a class="nav-tab" href="#tab-ignore-themes">Ignore Themes</a></li>
+            <li><a class="nav-tab" href="#tab-ignore-plugins">Plugin Updates</a></li>
+            <li><a class="nav-tab" href="#tab-ignore-themes">Theme Updates</a></li>
         </ul>
         <!-- Auto-update settings -->
         <div id="tab-auto-update" class="row">
@@ -286,13 +286,47 @@
                     <div class="card-body container-padding">
                         <form method="post" action="" name="fv_plugins_ignore_form">
                             <div class="row">
+                                <!-- Hide plugins with update section -->
+                                <div class="col-md-12">
+                                    <p class="fw-bold text-secondary mt-3 mb-1 secondary-heading-light" style='font-size: 1.3rem !important;'>
+                                        Check to hide plugins that are up to date in the plugin updates page.
+                                    </p>
+                                    <!-- Hide plugins without update -->
+                                    <div class="col-md-5 mt-3">
+                                        <div class="form-check">
+                                            <input id="fv_hide_plugins_without_update" class="form-check-input custom-checkbox-color"
+                                                type="checkbox"
+                                                name="fv_hide_plugins_without_update"
+                                                value="1"
+                                                <?php echo fv_set_checked_attr( fv_should_hide_plugins_without_update() ); ?>
+                                            />
+                                            <label class="form-check-label" for="fv_ignore_disabled_plugins" style="margin-top: -19px;">
+                                                Hide plugins without update.
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- Open link in new tab -->
+                                    <div class="col-md-5 mt-3">
+                                        <div class="form-check">
+                                            <input id="fv_open_plugin_in_new_browser_tab" class="form-check-input custom-checkbox-color"
+                                                type="checkbox"
+                                                name="fv_open_plugin_in_new_browser_tab"
+                                                value="1"
+                                                <?php echo fv_set_checked_attr( fv_should_open_plugin_in_new_browser_tab() ); ?>
+                                            />
+                                            <label class="form-check-label" for="fv_open_plugin_in_new_browser_tab" style="margin-top: -19px;">
+                                                Open plugin in new browser tab.
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- Ignore disabled plugins section -->
                                 <div class="col-md-12">
-                                    <div class="fw-bold text-secondary secondary-heading-light" style='font-size: 1.2rem !important; margin-bottom: 1rem !important;'>
+                                    <p class="fw-bold text-secondary mt-3 mb-1 secondary-heading-light" style='font-size: 1.3rem !important;'>
                                         Check to ignore disabled plugins
-                                    </div>
+                                    </p>
                                     <!-- ignore disabled plugins checkbox -->
-                                    <div class="col-md-5">
+                                    <div class="col-md-5 mt-3">
                                         <div class="form-check">
                                             <input id="fv_ignore_disabled_plugins" class="form-check-input custom-checkbox-color"
                                                 type="checkbox"
@@ -308,8 +342,8 @@
                                 </div>
                                 <!-- Ignore plugins section -->
                                 <div class="col-md-12">
-                                    <p class="fw-bold text-secondary mb-0 secondary-heading-light" style='font-size: 1.3rem !important; margin-top: 1rem !important;'>
-                                        Ignore plugins
+                                    <p class="fw-bold text-secondary mt-3 mb-1 secondary-heading-light" style='font-size: 1.3rem !important;'>
+                                        Ignore Plugins
                                     </p>
                                 </div>
                                 <!-- Ignore plugins in list toggle -->
@@ -345,7 +379,7 @@
                                 </div>
                                 <!-- Ignore plugins list  -->
                                 <div class="col-md-12">
-                                    <p class="fw-bold text-secondary mb-0 secondary-heading-light" style='font-size: 1.3rem !important; margin-top: 1rem !important; margin-bottom: 1.5rem !important;'>
+                                    <p class="fw-bold text-secondary mt-3 mb-1 secondary-heading-light" style='font-size: 1.3rem !important;'>
                                         Select plugins to ignore
                                     </p>
                                 </div>

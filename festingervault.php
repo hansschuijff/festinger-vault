@@ -12,7 +12,7 @@
  * Plugin Name:       Festinger Vault Fork
  * Plugin URI:        https://github.com/hansschuijff/festinger-vault
  * GitHub Plugin URI: hansschuijff/festinger-vault
- * Version:           4.2.3.h1
+ * Version:           4.2.6.h2
  * Description:       Festinger vault - The largest plugin market
  * 					  Get access to 25K+ kick-ass premium WordPress themes and plugins. Now directly from your WP dashboard. Get automatic updates and one-click installation by installing the Festinger Vault plugin.
  * Author:            Hans Schuijff
@@ -717,6 +717,11 @@ function fv_has_download_credits() : bool {
 
 	$fv_api   = fv_run_remote_get_all_license_data();
 
+	if ( ! isset( $fv_api->license_1 )
+	||   ! isset( $fv_api->license_2 ) ) {
+		return false;
+	}
+
 	$total_credits  = $fv_api->license_1->license_data->plan_credit_available
 					+ $fv_api->license_2->license_data->plan_credit_available;
 
@@ -1196,10 +1201,8 @@ function fv_run_remote_get_all_license_data() : null|stdClass|WP_Error {
 		'license_v'     => FV_API_PLUGIN_VERSION,
 	);
 	$query          = esc_url_raw( add_query_arg( $query_args, $query_base_url ) );
-
-	return json_decode( wp_remote_retrieve_body(
-		fv_run_remote_query( $query ) )
-	);
+	$response       = fv_run_remote_query( $query );
+	return json_decode( wp_remote_retrieve_body( $response ) );
 }
 
 /**
@@ -2971,13 +2974,39 @@ function fv_do_auto_update_settings_form() {
 	}
 }
 
-
-
 function fv_do_plugins_ignore_form() : void {
+	fv_set_hide_plugins_without_update_option();
+	fv_set_open_plugin_in_new_browser_tab_option();
 	fv_set_ignore_disabled_plugins_option();
 	fv_set_ignore_plugins_in_list_option();
 	fv_set_ignore_plugins_list_option();
 	fv_reset_plugins_in_ignore_list();
+}
+
+function fv_set_hide_plugins_without_update_option() : void {
+
+	if ( ! empty( $_POST['fv_hide_plugins_without_update'] ) ) {
+		fv_set_option(
+			'fv_hide_plugins_without_update',
+			$_POST['fv_hide_plugins_without_update']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_hide_plugins_without_update' );
+}
+
+function fv_set_open_plugin_in_new_browser_tab_option() : void {
+
+	if ( ! empty( $_POST['fv_open_plugin_in_new_browser_tab'] ) ) {
+		fv_set_option(
+			'fv_open_plugin_in_new_browser_tab',
+			$_POST['fv_open_plugin_in_new_browser_tab']
+		);
+		return;
+	}
+
+	fv_delete_option( 'fv_open_plugin_in_new_browser_tab' );
 }
 
 function fv_set_ignore_disabled_plugins_option() : void {
@@ -3024,6 +3053,14 @@ function fv_set_ignore_plugins_list_option() : void {
 	}
 
 	fv_delete_option( 'fv_ignore_plugins_list' );
+}
+
+function fv_should_hide_plugins_without_update() {
+    return get_option( 'fv_hide_plugins_without_update' );
+}
+
+function fv_should_open_plugin_in_new_browser_tab() {
+    return get_option( 'fv_open_plugin_in_new_browser_tab' );
 }
 
 function fv_should_ignore_disabled_plugins() {
